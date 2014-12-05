@@ -17,7 +17,7 @@ measureswrapper.o: $(SRCDIR)/measureswrapper.cpp
 	$(CXX) $(CXXFLAGS) $(SRCDIR)/measureswrapper.cpp -I$(CASACORE)
 
 libcasacorewrapper.so: containers.o tableswrapper.o measureswrapper.o
-	$(CXX) -shared -o libcasacorewrapper.so containers.o tableswrapper.o measureswrapper.o -lcasa_tables -lcasa_measures
+	$(CXX) -shared -o libcasacorewrapper.so containers.o tableswrapper.o measureswrapper.o -L$(PREFIX)/lib -lcasa_tables -lcasa_measures
 
 clean:
 	rm *.o

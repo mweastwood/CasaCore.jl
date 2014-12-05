@@ -1,10 +1,17 @@
 module CasaCore
 
+# Tables
 export Table
 export getColumn, putColumn
 
-# The location of the shared library
-const libwrapper = "./libcasacorewrapper.so"
+# Measures
+export ReferenceFrame
+export set!
+export Measure,Quantity
+export measure,observatory
+
+# TODO: Check to make sure this file exists
+const libcasacorewrapper = "../deps/usr/lib/libcasacorewrapper.so"
 
 include("conversions.jl")
 include("containers.jl")

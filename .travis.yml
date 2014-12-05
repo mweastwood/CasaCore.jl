@@ -1,17 +1,8 @@
-language: cpp
-compiler:
-  - clang
-notifications:
-  email: false
-env:
-  matrix:
-    #- JULIAVERSION="juliareleases"
-    - JULIAVERSION="julianightlies"
+language: julia
+julia:
+    - nightly
 before_install:
-  - sudo add-apt-repository ppa:staticfloat/julia-deps -y
-  - sudo add-apt-repository ppa:staticfloat/${JULIAVERSION} -y
-  - sudo apt-get update -qq -y
-  - sudo apt-get install libpcre3-dev julia -y
-  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-script:
-  - julia --check-bounds=yes -e 'versioninfo(); Pkg.init(); Pkg.clone(pwd()); Pkg.build("CasaCore"); Pkg.test("CasaCore")'
+    - sudo add-apt-repository ppa:ska-sa/main -y
+    - sudo apt-get update -qq -y
+    - sudo apt-get install libcasacore-dev -y
+    - sudo apt-get install casacore-data -y
