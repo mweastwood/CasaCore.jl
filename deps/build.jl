@@ -26,7 +26,7 @@ provides(BuildProcess,
                 @build_steps begin
                         ChangeDirectory(builddir)
                         FileRule(files,@build_steps begin
-                                `cmake -DCMAKE_INSTALL_PREFIX $prefix $srcdir`
+                                `cmake -DCMAKE_INSTALL_PREFIX="$prefix" $srcdir`
                                 `make`
                                 `make install`
                         end)
