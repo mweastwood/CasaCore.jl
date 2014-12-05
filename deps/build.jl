@@ -4,11 +4,15 @@ using BinDeps
 version = "1.7.0"
 url = "ftp://ftp.atnf.csiro.au/pub/software/casacore/casacore-$version.tar.bz2"
 
+libopenblas        = library_dependency("libopenblas")
+liblapack          = library_dependency("liblapack")
 libcasa_tables     = library_dependency("libcasa_tables")
 libcasa_measures   = library_dependency("libcasa_measures")
 libcasacorewrapper = library_dependency("libcasacorewrapper")
 casacore_libraries = [libcasa_tables,libcasa_measures]
 all_libraries = [casacore_libraries, libcasacorewrapper]
+
+provides(AptGet,Dict("openblas" => libopenblas,"lapack" => liblapack))
 
 depsdir  = BinDeps.depsdir(libcasacorewrapper)
 prefix   = joinpath(depsdir,"usr")
