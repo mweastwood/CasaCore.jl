@@ -8,13 +8,13 @@ type ReferenceFrame
 end
 
 function ReferenceFrame()
-    rf = ReferenceFrame(ccall(("newMeasures",libwrapper),Ptr{Void},()))
+    rf = ReferenceFrame(ccall(("newMeasures",libcasacorewrapper),Ptr{Void},()))
     finalizer(rf,referenceframefinalizer)
     rf
 end
 
 function referenceframefinalizer(rf::ReferenceFrame)
-    ccall(("deleteMeasures",libwrapper),Void,(Ptr{Void},),rf.ptr)
+    ccall(("deleteMeasures",libcasacorewrapper),Void,(Ptr{Void},),rf.ptr)
 end
 
 type Quantity{T<:FloatingPoint,S<:String}
@@ -67,21 +67,21 @@ end
 
 function set!(rf::ReferenceFrame,measurement::Measure)
     record = CasaRecord(measurement)
-    ccall(("doframe",libwrapper),
+    ccall(("doframe",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Void}),
           rf.ptr,record.ptr)
 end
 
 function measure(rf::ReferenceFrame,measurement::Measure,newsystem::String)
     record = CasaRecord(measurement)
-    newrecord = CasaRecord(ccall(("measure",libwrapper),
+    newrecord = CasaRecord(ccall(("measure",libcasacorewrapper),
                                  Ptr{Void},(Ptr{Void},Ptr{Void},Ptr{Cchar}),
                                  rf.ptr,record.ptr,newsystem))
     Measure(newrecord)
 end
 
 function observatory(rf::ReferenceFrame,name::String)
-    record = CasaRecord(ccall(("observatory",libwrapper),
+    record = CasaRecord(ccall(("observatory",libcasacorewrapper),
                               Ptr{Void},(Ptr{Void},Ptr{Cchar}),
                               rf.ptr,name))
     Measure(record)

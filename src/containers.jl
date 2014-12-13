@@ -10,13 +10,13 @@ type CasaRecordDesc
     end
 end
 
-CasaRecordDesc() = CasaRecordDesc(ccall(("createRecordDesc",libwrapper),Ptr{Void},()))
+CasaRecordDesc() = CasaRecordDesc(ccall(("createRecordDesc",libcasacorewrapper),Ptr{Void},()))
 function recorddescfinalizer(recorddesc::CasaRecordDesc)
-    ccall(("deleteRecordDesc",libwrapper),Void,(Ptr{Void},),recorddesc.ptr)
+    ccall(("deleteRecordDesc",libcasacorewrapper),Void,(Ptr{Void},),recorddesc.ptr)
 end
 
 function addField(recorddesc::CasaRecordDesc,field::String,fieldtype)
-    ccall(("addRecordDescField",libwrapper),
+    ccall(("addRecordDescField",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Cint),
           recorddesc.ptr,field,fieldtype)
 end
@@ -34,14 +34,14 @@ type CasaRecord
 end
 
 function CasaRecord(recorddesc::CasaRecordDesc)
-    CasaRecord(ccall(("createRecord",libwrapper),Ptr{Void},(Ptr{Void},),recorddesc.ptr))
+    CasaRecord(ccall(("createRecord",libcasacorewrapper),Ptr{Void},(Ptr{Void},),recorddesc.ptr))
 end
 function recordfinalizer(record::CasaRecord)
-    ccall(("deleteRecord",libwrapper),Void,(Ptr{Void},),record.ptr)
+    ccall(("deleteRecord",libcasacorewrapper),Void,(Ptr{Void},),record.ptr)
 end
 
 function nfields(record::CasaRecord)
-    ccall(("nfields",libwrapper),
+    ccall(("nfields",libcasacorewrapper),
           Cuint,(Ptr{Void},),
           record.ptr)
 end
@@ -60,7 +60,7 @@ end
 Get the field value from the casa::Record object.
 """ ->
 function getField(record::CasaRecord,field::String)
-    N = Int(ccall(("fieldType",libwrapper),
+    N = Int(ccall(("fieldType",libcasacorewrapper),
                   Cint,(Ptr{Void},Ptr{Cchar}),
                   record.ptr,field))
     getField_helper(TpEnum{N}(),record,field)
@@ -73,39 +73,39 @@ for typestr in ("float","double")
     getcfunc = "getRecordField_$typestr"
 
     @eval function putField_helper(record::CasaRecord,field::String,value::$T)
-        ccall(($putcfunc,libwrapper),
+        ccall(($putcfunc,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar},$T),
               record.ptr,field,value)
     end
 
     @eval function getField_helper(::TpEnum{$Tp},record::CasaRecord,field::String)
-        output = ccall(($getcfunc,libwrapper),
+        output = ccall(($getcfunc,libcasacorewrapper),
                        $T,(Ptr{Void},Ptr{Cchar}),
                        record.ptr,field)
     end
 end
 
 function putField_helper(record::CasaRecord,field::ASCIIString,value::ASCIIString)
-    ccall(("putRecordField_string",libwrapper),
+    ccall(("putRecordField_string",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
           record.ptr,field,value)
 end
 
 function getField_helper(::TpEnum{TpString},record::CasaRecord,field::ASCIIString)
-    output = ccall(("getRecordField_string",libwrapper),
+    output = ccall(("getRecordField_string",libcasacorewrapper),
                    Ptr{Cchar},(Ptr{Void},Ptr{Cchar}),
                    record.ptr,field)
     bytestring(output)
 end
 
 function putField_helper(record::CasaRecord,field::ASCIIString,value::CasaRecord)
-    ccall(("putRecordField_record",libwrapper),
+    ccall(("putRecordField_record",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Ptr{Void}),
           record.ptr,field,value.ptr)
 end
 
 function getField_helper(::TpEnum{TpRecord},record::CasaRecord,field::String)
-    output = ccall(("getRecordField_record",libwrapper),
+    output = ccall(("getRecordField_record",libcasacorewrapper),
                    Ptr{Void},(Ptr{Void},Ptr{Cchar}),
                    record.ptr,field)
     CasaRecord(output)

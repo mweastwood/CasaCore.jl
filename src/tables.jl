@@ -11,7 +11,7 @@ type Table
 end
 
 function Table(name::ASCIIString)
-    table = Table(ccall(("newTable",libwrapper),
+    table = Table(ccall(("newTable",libcasacorewrapper),
                         Ptr{Void},(Ptr{Cchar},Cint),
                         name,Table_TableOption_Update))
     finalizer(table,tablefinalizer)
@@ -22,32 +22,32 @@ end
 Call the table destructor.
 """ ->
 function tablefinalizer(table::Table)
-    ccall(("deleteTable",libwrapper),Void,(Ptr{Void},),table.ptr)
+    ccall(("deleteTable",libcasacorewrapper),Void,(Ptr{Void},),table.ptr)
 end
 
 function flush(table::Table)
-    ccall(("flush",libwrapper),Void,(Ptr{Void},Bool),table.ptr,true)
+    ccall(("flush",libcasacorewrapper),Void,(Ptr{Void},Bool),table.ptr,true)
 end
 
 for f in (:isWritable,:isReadable)
     @eval function $f(table::Table)
-        ccall(($(string(f)),libwrapper),Bool,(Ptr{Void},),table.ptr)
+        ccall(($(string(f)),libcasacorewrapper),Bool,(Ptr{Void},),table.ptr)
     end
 end
 
 for f in (:nrows,:ncolumns)
     @eval function $f(table::Table)
-        ccall(($(string(f)),libwrapper),Cint,(Ptr{Void},),table.ptr)
+        ccall(($(string(f)),libcasacorewrapper),Cint,(Ptr{Void},),table.ptr)
     end
 end
 
 function nKeywords(table::Table)
-    ccall(("nKeywords",libwrapper),Cuint,(Ptr{Void},),table.ptr)
+    ccall(("nKeywords",libcasacorewrapper),Cuint,(Ptr{Void},),table.ptr)
 end
 
 function getKeyword_string(table::Table,keyword::String,buffersize::Int=200)
     output = Array(Cchar,buffersize)
-    ccall(("getKeyword_string",libwrapper),
+    ccall(("getKeyword_string",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar},Csize_t),
           table.ptr,keyword,output,length(output))
     bytestring(Ptr{Cchar}(output))
@@ -55,7 +55,7 @@ end
 
 function getColumnType(table::Table,column::String)
     output = Array(Cchar,30)
-    ccall(("getColumnType",libwrapper),
+    ccall(("getColumnType",libcasacorewrapper),
            Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar},Csize_t),
            table.ptr,column,output,length(output))
     str2type[bytestring(Ptr{Cchar}(output))]
@@ -69,7 +69,7 @@ in general, but works for LWA datasets.
 """ ->
 function getColumnShape(table::Table,column::String,buffersize::Int=4)
     output = Array(Cint,buffersize)
-    ccall(("getColumnShape",libwrapper),
+    ccall(("getColumnShape",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Ptr{Cint},Csize_t),
           table.ptr,column,output,length(output))
     # The output is terminated with a negative integer (-1).
@@ -102,7 +102,7 @@ for typestr in ("int","double","complex")
     T = str2type[typestr]
     cfunc = "getColumn_$typestr"
     @eval function getColumn_helper!(output::Vector{$T},table::Table,column::String)
-        ccall(($cfunc,libwrapper),
+        ccall(($cfunc,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar},Ptr{$T},Csize_t),
               table.ptr,column,pointer(output),length(output))
         nothing
@@ -123,7 +123,7 @@ for typestr in ("complex",)
     @eval function putColumn_helper(table::Table,column::String,array::Array{$T})
         S = [size(array)...]
         ndim = length(S)
-        ccall(($cfunc,libwrapper),
+        ccall(($cfunc,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar},Ptr{$T},Ptr{Csize_t},Csize_t),
               table.ptr,column,pointer(array),pointer(S),ndim)
         nothing
