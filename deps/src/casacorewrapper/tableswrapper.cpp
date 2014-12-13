@@ -1,11 +1,16 @@
 #include <casa/Containers/ValueHolder.h>
 #include <tables/Tables/TableProxy.h>
 #include <tables/Tables/TableColumn.h>
+#include <tables/Tables/ScaColData.h>
+#include <tables/Tables/ArrColData.h>
 
 using namespace casa;
 
 extern "C" {
-    TableProxy* newTable(char* name,int option) {
+    TableProxy* newTable(char* name, char* endianFormat, char* memType, int nrow) {
+        return new TableProxy(String(name),Record(),endianFormat,memType,nrow,Record(),Record());
+    }
+    TableProxy* newTable_existing(char* name, int option) {
         return new TableProxy(String(name),Record(),option);
     }
     void deleteTable(TableProxy* t) {delete t;}
@@ -17,6 +22,42 @@ extern "C" {
 
     int nrows(TableProxy* t) {return t->nrows();}
     int ncolumns(TableProxy* t) {return t->ncolumns();}
+
+    void addRow(TableProxy* t, int nrows) {t->addRow(nrows);}
+
+    bool canRemoveRow(TableProxy* t) {return t->table().canRemoveRow();}
+    void removeRow(TableProxy* t, int* rownrs, size_t nrows) {
+        Vector<Int> rows(Block<Int>(nrows,rownrs,false));
+        t->removeRow(rows);
+    }
+
+    void addScalarColumn(TableProxy* t, char* name, int type) {
+        switch(type) {
+        case TpInt:
+            ScalarColumnDesc<Int> column(name);
+            t->table().addColumn(column);
+            break;
+        }
+    }
+
+    void addArrayColumn(TableProxy* t, char* name, int type, int* dim, size_t ndim) {
+        IPosition dimensions(ndim);
+        for (uint i = 0; i < ndim; ++i) {
+            dimensions[i] = dim[i];
+        }
+        switch (type) {
+        case TpInt:
+            ArrayColumnDesc<Int> column(name,"",dimensions);
+            t->table().addColumn(column);
+            break;
+        }
+    }
+
+    void removeColumn(TableProxy* t, char* name) {
+        Vector<String> column(1);
+        column[0] = String(name);
+        t->removeColumns(column);
+    }
 
     unsigned int nKeywords(TableProxy* t) {
         Record record = t->getKeywordSet(String());

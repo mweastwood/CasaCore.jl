@@ -2,20 +2,35 @@ module CasaCore
 
 # Tables
 export Table
-export getColumn, putColumn
+export nrows, ncolumns
+export addRows!, removeRows!
+export addScalarColumn!, addArrayColumn!, removeColumn!
+export getColumn, putColumn!
+
+# Measurement Sets
+export MeasurementSet
+export getData,  getModelData,  getCorrectedData
+export putData!, putModelData!, putCorrectedData!
+
+# Quanta
+export Quantity, @q_str
 
 # Measures
 export ReferenceFrame
 export set!
-export Measure,Quantity
-export measure,observatory
+export Measure, Epoch, Direction, Position
+export measure, observatory
 
 # TODO: Check to make sure this file exists
 const libcasacorewrapper = "../deps/usr/lib/libcasacorewrapper.so"
 
+import Base: show
+
 include("conversions.jl")
 include("containers.jl")
 include("tables.jl")
+include("measurementsets.jl")
+include("quanta.jl")
 include("measures.jl")
 
 end
