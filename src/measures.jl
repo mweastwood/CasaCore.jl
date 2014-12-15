@@ -17,13 +17,6 @@ function referenceframefinalizer(rf::ReferenceFrame)
     ccall(("deleteMeasures",libcasacorewrapper),Void,(Ptr{Void},),rf.ptr)
 end
 
-type Quantity{T<:FloatingPoint,S<:String}
-    value::T
-    unit::S
-end
-
-Quantity(record::CasaRecord) = Quantity(record["value"],record["unit"])
-
 type Measure{T<:FloatingPoint,S<:String,N}
     measuretype::S
     system::S
@@ -31,6 +24,9 @@ type Measure{T<:FloatingPoint,S<:String,N}
 end
 
 Measure(measuretype,system,m...) = Measure(measuretype,system,m)
+Epoch(system,m1) = Measure("epoch",system,(m1,))
+Direction(system,m1,m2) = Measure("direction",system,(m1,m2))
+Position(system,m1,m2,m3) = Measure("position",system,(m1,m2,m3))
 
 function Measure(record::CasaRecord)
     measuretype = record["type"]
@@ -72,7 +68,7 @@ function set!(rf::ReferenceFrame,measurement::Measure)
           rf.ptr,record.ptr)
 end
 
-function measure(rf::ReferenceFrame,measurement::Measure,newsystem::String)
+function measure(rf::ReferenceFrame,newsystem::String,measurement::Measure)
     record = CasaRecord(measurement)
     newrecord = CasaRecord(ccall(("measure",libcasacorewrapper),
                                  Ptr{Void},(Ptr{Void},Ptr{Void},Ptr{Cchar}),

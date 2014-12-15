@@ -6,14 +6,24 @@ const Table_TableOption_Scratch      = 4
 const Table_TableOption_Update       = 5
 const Table_TableOption_Delete       = 6
 
+@doc """
+The Table type simply contains a pointer to an instance of the
+casa::TableProxy class.
+""" ->
 type Table
     ptr::Ptr{Void}
 end
 
-function Table(name::ASCIIString)
-    table = Table(ccall(("newTable",libcasacorewrapper),
-                        Ptr{Void},(Ptr{Cchar},Cint),
-                        name,Table_TableOption_Update))
+function Table(name::String)
+    if isdir(name)
+        table = Table(ccall(("newTable_existing",libcasacorewrapper),
+                            Ptr{Void},(Ptr{Cchar},Cint),
+                            name,Table_TableOption_Update))
+    else
+        table = Table(ccall(("newTable",libcasacorewrapper),
+                            Ptr{Void},(Ptr{Cchar},Ptr{Cchar},Ptr{Cchar},Cint),
+                            name,"local","plain",0))
+    end
     finalizer(table,tablefinalizer)
     table
 end
@@ -39,6 +49,46 @@ for f in (:nrows,:ncolumns)
     @eval function $f(table::Table)
         ccall(($(string(f)),libcasacorewrapper),Cint,(Ptr{Void},),table.ptr)
     end
+end
+
+function addRows!{T<:Integer}(table::Table,nrows::T)
+    ccall(("addRow",libcasacorewrapper),Void,(Ptr{Void},Cint),table.ptr,nrows)
+end
+
+function removeRows!{T<:Integer}(table::Table,rows::Vector{T})
+    if ccall(("canRemoveRow",libcasacorewrapper),Bool,(Ptr{Void},),table.ptr)
+        rows = rows - 1 # correct for difference in indexing between C and Julia
+        ccall(("removeRow",libcasacorewrapper),
+              Void,(Ptr{Void},Ptr{Cint},Csize_t),
+              table.ptr,pointer(rows),length(rows))
+    else
+        error("Rows cannot be removed from this table.")
+    end
+    nothing
+end
+
+function addScalarColumn!(table::Table,name::AbstractString,typestring::AbstractString)
+    ccall(("addScalarColumn",libcasacorewrapper),
+          Void,(Ptr{Void},Ptr{Cchar},Cint),
+          table.ptr,name,str2enum[typestring])
+end
+
+function addArrayColumn!{T<:Integer}(table::Table,name::AbstractString,typestring::AbstractString,
+                                     dimensions::Vector{T})
+    dimensions_cint = convert(Vector{Cint},dimensions)
+    ccall(("addArrayColumn",libcasacorewrapper),
+          Void,(Ptr{Void},Ptr{Cchar},Cint,Ptr{Cint},Csize_t),
+          table.ptr,name,str2enum[typestring],pointer(dimensions_cint),length(dimensions))
+end
+
+function removeColumn!(table::Table,name::AbstractString)
+    ccall(("removeColumn",libcasacorewrapper),
+          Void,(Ptr{Void},Ptr{Cchar}),
+          table.ptr,name)
+end
+
+function changeColumnStorageManager!(table::Table)
+    ccall(("changeColumnStorageManager",libcasacorewrapper),Void,(Ptr{Void},),table.ptr)
 end
 
 function nKeywords(table::Table)
@@ -112,8 +162,8 @@ end
 @doc """
 This functions writes a column to an open table.
 """ ->
-function putcolumn(table::Table,column::String,array::Array)
-    putcolumn_helper(table,column,array)
+function putColumn!(table::Table,column::String,array::Array)
+    putColumn_helper(table,column,array)
     nothing
 end
 
