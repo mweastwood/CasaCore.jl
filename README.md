@@ -15,7 +15,7 @@ set!(frame,time)
 After the reference frame is defined, you can convert between various coordinate systems:
 ```
 dir   = Direction("AZEL",q"0.0rad",q"1.0rad")
-j2000 = measure(frame,"J2000",dir1)
+j2000 = measure(frame,"J2000",dir)
 ```
 
 ## Tables
@@ -31,3 +31,7 @@ addScalarColumn!(table,"ANTENNA2","int")
 addRows!(table,10)
 removeRows!(table,[6:10])
 ```
+
+## Development
+
+At the moment, the functionality of this package is largely focused on my own requirements. If you need additional features, open an issue or a pull request. In the short term, you can use the excellent `PyCall` package to access the Python wrapper of CasaCore (`pyrap`).
