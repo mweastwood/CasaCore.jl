@@ -1,27 +1,55 @@
 using CasaCore
 using Base.Test
 
-tol = 10eps(Float64)
+function test_approx_eq(q1::Quantity,q2::Quantity,tol = 5eps(Float64))
+    @test_approx_eq_eps q1.value q2.value tol
+    @test q1.unit == q2.unit
+end
 
 function test_approx_eq(m1::Measure,m2::Measure)
     @test m1.measuretype == m2.measuretype
     @test m1.system == m2.system
     for (q1,q2) in zip(m1.m,m2.m)
-        @test_approx_eq_eps q1.value q2.value tol
-        @test q1.unit == q2.unit
+        test_approx_eq(q1,q2)
     end
 end
 
 let
-    @test q"1234.5s" == Quantity(1234.5,"s")
-    @test q"1.23e4s" == Quantity(1.23e4,"s")
-    @test q"1.23rad" == Quantity(1.23,"rad")
-    @test q"12h00m00.00s" == Quantity(float(π),"rad")
-    @test q"12h00m00s"    == Quantity(float(π),"rad")
-    @test q"12h00.00m"    == Quantity(float(π),"rad")
-    @test q"12h00m"       == Quantity(float(π),"rad")
-    @test q"12.00h"       == Quantity(float(π),"rad")
-    @test q"12h"          == Quantity(float(π),"rad")
+    @test q"1234.5s"  == Quantity(1234.5,"s")
+    @test q"1.23e4s"  == Quantity(1.23e4,"s")
+    @test q"1.23rad"  == Quantity(1.23,"rad")
+    @test q"+1234.5s" == Quantity(1234.5,"s")
+    @test q"+1.23e4s" == Quantity(1.23e4,"s")
+    @test q"+1.23rad" == Quantity(1.23,"rad")
+    @test q"-1234.5s" == Quantity(-1234.5,"s")
+    @test q"-1.23e4s" == Quantity(-1.23e4,"s")
+    @test q"-1.23rad" == Quantity(-1.23,"rad")
+
+    test_approx_eq(q"12h34m56.78s",Quantity(π/12.*(12.+34/60.+56.78/3600),"rad"))
+    test_approx_eq(q"12h34m56s",   Quantity(π/12.*(12.+34/60.+56./3600),"rad"))
+    test_approx_eq(q"12h34.56m",   Quantity(π/12.*(12.+34.56/60.),"rad"))
+    test_approx_eq(q"12h34m",      Quantity(π/12.*(12.+34./60.),"rad"))
+    test_approx_eq(q"12.34h",      Quantity(π/12.*(12.34),"rad"))
+    test_approx_eq(q"12h",         Quantity(π/12.*(12.),"rad"))
+
+    test_approx_eq(q"12d34m56.78s", Quantity(π/180.*(12.+34/60.+56.78/3600),"rad"))
+    test_approx_eq(q"12d34m56s",    Quantity(π/180.*(12.+34/60.+56./3600),"rad"))
+    test_approx_eq(q"12d34.56m",    Quantity(π/180.*(12.+34.56/60.),"rad"))
+    test_approx_eq(q"12d34m",       Quantity(π/180.*(12.+34./60.),"rad"))
+    test_approx_eq(q"12.34d",       Quantity(π/180.*(12.34),"rad"))
+    test_approx_eq(q"12d",          Quantity(π/180.*(12.),"rad"))
+    test_approx_eq(q"+12d34m56.78s",Quantity(π/180.*(12.+34/60.+56.78/3600),"rad"))
+    test_approx_eq(q"+12d34m56s",   Quantity(π/180.*(12.+34/60.+56./3600),"rad"))
+    test_approx_eq(q"+12d34.56m",   Quantity(π/180.*(12.+34.56/60.),"rad"))
+    test_approx_eq(q"+12d34m",      Quantity(π/180.*(12.+34./60.),"rad"))
+    test_approx_eq(q"+12.34d",      Quantity(π/180.*(12.34),"rad"))
+    test_approx_eq(q"+12d",         Quantity(π/180.*(12.),"rad"))
+    test_approx_eq(q"-12d34m56.78s",Quantity(-π/180.*(12.+34/60.+56.78/3600),"rad"))
+    test_approx_eq(q"-12d34m56s",   Quantity(-π/180.*(12.+34/60.+56./3600),"rad"))
+    test_approx_eq(q"-12d34.56m",   Quantity(-π/180.*(12.+34.56/60.),"rad"))
+    test_approx_eq(q"-12d34m",      Quantity(-π/180.*(12.+34./60.),"rad"))
+    test_approx_eq(q"-12.34d",      Quantity(-π/180.*(12.34),"rad"))
+    test_approx_eq(q"-12d",         Quantity(-π/180.*(12.),"rad"))
 end
 
 let
