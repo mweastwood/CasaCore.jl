@@ -13,6 +13,18 @@ function test_approx_eq(m1::Measure,m2::Measure)
 end
 
 let
+    @test q"1234.5s" == Quantity(1234.5,"s")
+    @test q"1.23e4s" == Quantity(1.23e4,"s")
+    @test q"1.23rad" == Quantity(1.23,"rad")
+    @test q"12h00m00.00s" == Quantity(float(π),"rad")
+    @test q"12h00m00s"    == Quantity(float(π),"rad")
+    @test q"12h00.00m"    == Quantity(float(π),"rad")
+    @test q"12h00m"       == Quantity(float(π),"rad")
+    @test q"12.00h"       == Quantity(float(π),"rad")
+    @test q"12h"          == Quantity(float(π),"rad")
+end
+
+let
     frame = ReferenceFrame()
     position = observatory(frame,"OVRO_MMA")
     time = Epoch("UTC",q"4.905577293531662e9s")
@@ -28,7 +40,6 @@ end
 
 let
     name  = tempname()*".ms"
-    println(name)
     table = Table(name)
     addScalarColumn!(table,"ANTENNA1","int")
     addScalarColumn!(table,"ANTENNA2","int")

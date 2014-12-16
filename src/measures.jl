@@ -23,11 +23,6 @@ type Measure{T<:FloatingPoint,S<:String,N}
     m::NTuple{N,Quantity{T,S}}
 end
 
-Measure(measuretype,system,m...) = Measure(measuretype,system,m)
-Epoch(system,m1) = Measure("epoch",system,(m1,))
-Direction(system,m1,m2) = Measure("direction",system,(m1,m2))
-Position(system,m1,m2,m3) = Measure("position",system,(m1,m2,m3))
-
 function Measure(record::CasaRecord)
     measuretype = record["type"]
     system = record["refer"]
@@ -37,6 +32,11 @@ function Measure(record::CasaRecord)
     end
     Measure(measuretype,system,m...)
 end
+
+Measure(measuretype,system,m...) = Measure(measuretype,system,m)
+Epoch(system,m1) = Measure("epoch",system,(m1,))
+Direction(system,m1,m2) = Measure("direction",system,(m1,m2))
+Position(system,m1,m2,m3) = Measure("position",system,(m1,m2,m3))
 
 function CasaRecord{T,S,N}(measurement::Measure{T,S,N})
     description = CasaRecordDesc()
