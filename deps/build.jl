@@ -1,6 +1,9 @@
 using BinDeps
 @BinDeps.setup
 
+# TODO: Set RPATHs properly
+# (see: https://groups.google.com/forum/#!topic/julia-users/ckxs2pC2Fw0)
+
 # OpenBLAS
 blas = library_dependency("libblas",aliases=["libopenblas"])
 provides(AptGet,Dict("libopenblas-dev" => blas))
@@ -27,7 +30,7 @@ provides(BuildProcess,
                 @build_steps begin
                         ChangeDirectory(builddir)
                         FileRule(files,@build_steps begin
-                                `cmake -DMODULE="tables" -DMODULE="measures" -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_CXX_FLAGS="-w" $srcdir`
+                                `cmake -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_CXX_FLAGS="-w" $srcdir`
                                 `make -j2`
                                 `make install`
                         end)
@@ -54,10 +57,9 @@ provides(BuildProcess,
                         FileRule(files,@build_steps begin
                                 `make`
                                 `make install`
-                                `ls -la ../../usr/lib`
                         end)
                 end
         end),casacorewrapper)
 
-@BinDeps.install
+@BinDeps.install Dict(:libcasacorewrapper => :libcasacorewrapper)
 
