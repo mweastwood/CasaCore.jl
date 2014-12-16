@@ -1,18 +1,19 @@
 using BinDeps
-@BinDeps.setup
-
 # TODO: Set RPATHs properly
 # (see: https://groups.google.com/forum/#!topic/julia-users/ckxs2pC2Fw0)
 
-# OpenBLAS
-blas = library_dependency("libblas",aliases=["libopenblas"])
-provides(AptGet,Dict("libopenblas-dev" => blas))
+@BinDeps.setup
 
-# CasaCore
+blas = library_dependency("libblas",aliases=["libopenblas"])
 casa_tables     = library_dependency("libcasa_tables")
 casa_measures   = library_dependency("libcasa_measures")
 casacore_libraries = [casa_tables,casa_measures]
+casacorewrapper = library_dependency("libcasacorewrapper")
 
+# OpenBLAS
+provides(AptGet,Dict("libopenblas-dev" => blas))
+
+# CasaCore
 version = "1.7.0"
 url = "ftp://ftp.atnf.csiro.au/pub/software/casacore/casacore-$version.tar.bz2"
 provides(Sources, URI(url), casacore_libraries, unpacked_dir="casacore-$version")
@@ -38,8 +39,6 @@ provides(BuildProcess,
         end),casacore_libraries)
 
 # CasaCore Wrapper
-casacorewrapper = library_dependency("libcasacorewrapper")
-
 version = "1.7.0"
 url = "ftp://ftp.atnf.csiro.au/pub/software/casacore/casacore-$version.tar.bz2"
 provides(Sources, URI(url), casacorewrapper, unpacked_dir="casacore-$version")
@@ -61,5 +60,5 @@ provides(BuildProcess,
                 end
         end),casacorewrapper)
 
-@BinDeps.install Dict(:libcasacorewrapper => :libcasacorewrapper)
+@BinDeps.install Dict("libcasacorewrapper" => "libcasacorewrapper")
 

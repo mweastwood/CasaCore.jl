@@ -22,7 +22,7 @@ export Measure, Epoch, Direction, Position
 export measure, observatory
 
 # TODO: Check to make sure this file exists
-include("../deps/deps.jl")
+const libcasacorewrapper = joinpath(Pkg.dir("CasaCore"),"deps/usr/lib/libcasacorewrapper.so")
 
 import Base: show
 
