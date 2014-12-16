@@ -6,3 +6,4 @@ before_install:
     - sudo apt-get update -qq -y
     - sudo apt-get install libcasacore-dev -y
     - sudo apt-get install casacore-data -y
+
