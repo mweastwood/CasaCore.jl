@@ -95,12 +95,11 @@ function nKeywords(table::Table)
     ccall(("nKeywords",libcasacorewrapper),Cuint,(Ptr{Void},),table.ptr)
 end
 
-function getKeyword_string(table::Table,keyword::String,buffersize::Int=200)
-    output = Array(Cchar,buffersize)
-    ccall(("getKeyword_string",libcasacorewrapper),
-          Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar},Csize_t),
-          table.ptr,keyword,output,length(output))
-    bytestring(Ptr{Cchar}(output))
+function getKeyword_string(table::Table,keyword::String)
+    output = ccall(("getKeyword_string",libcasacorewrapper),
+                   Ptr{Cchar},(Ptr{Void},Ptr{Cchar}),
+                   table.ptr,keyword)
+    bytestring(output)
 end
 
 function getColumnType(table::Table,column::String)
@@ -167,7 +166,7 @@ function putColumn!(table::Table,column::String,array::Array)
     nothing
 end
 
-for typestr in ("complex",)
+for typestr in ("int","double","complex")
     T = str2type[typestr]
     cfunc = "putColumn_$typestr"
     @eval function putColumn_helper(table::Table,column::String,array::Array{$T})

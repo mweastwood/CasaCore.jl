@@ -68,15 +68,35 @@ end
 
 let
     name  = tempname()*".ms"
+    println(name)
     table = Table(name)
     addScalarColumn!(table,"ANTENNA1","int")
     addScalarColumn!(table,"ANTENNA2","int")
+    addArrayColumn!(table,"UVW","double",[3])
+    addArrayColumn!(table,"DATA","complex",[4,109])
     addRows!(table,10)
 
     @test    nrows(table) == 10
-    @test ncolumns(table) == 2
+    @test ncolumns(table) == 4
+
     removeRows!(table,[6:10])
+
     @test    nrows(table) == 5
-    @test ncolumns(table) == 2
+    @test ncolumns(table) == 4
+
+    ant1 = Int32[1:5]
+    ant2 = Int32[6:10]
+    uvw  = ones(Float64,3,5)
+    data = ones(Complex64,4,109,5)
+
+    putColumn!(table,"ANTENNA1",ant1)
+    putColumn!(table,"ANTENNA2",ant2)
+    putColumn!(table,"UVW",uvw)
+    putColumn!(table,"DATA",data)
+
+    @test getColumn(table,"ANTENNA1") == ant1
+    @test getColumn(table,"ANTENNA2") == ant2
+    @test getColumn(table,"UVW") == uvw
+    @test getColumn(table,"DATA") == data
 end
 
