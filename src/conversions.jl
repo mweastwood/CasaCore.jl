@@ -1,3 +1,4 @@
+immutable TpEnum{N}; end
 const TpBool          =  0
 const TpChar          =  1
 const TpUChar         =  2
