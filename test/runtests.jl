@@ -68,7 +68,7 @@ end
 
 let
     name  = tempname()*".ms"
-    println(name)
+    @show name
     table = Table(name)
     addScalarColumn!(table,"ANTENNA1","int")
     addScalarColumn!(table,"ANTENNA2","int")
@@ -86,8 +86,8 @@ let
 
     ant1 = Int32[1:5]
     ant2 = Int32[6:10]
-    uvw  = ones(Float64,3,5)
-    data = ones(Complex64,4,109,5)
+    uvw  = reshape(Float64[1:3*5],3,5)
+    data = reshape(Complex64[1:4*109*5],4,109,5)
 
     putColumn!(table,"ANTENNA1",ant1)
     putColumn!(table,"ANTENNA2",ant2)
@@ -98,5 +98,16 @@ let
     @test getColumn(table,"ANTENNA2") == ant2
     @test getColumn(table,"UVW") == uvw
     @test getColumn(table,"DATA") == data
+
+    # Close the table and open it as a MeasurementSet
+    finalize(table)
+    ms = MeasurementSet(name)
+
+    @test getData(ms) == data
+    @test getData(ms) == data
+    data = reshape(Complex64[1:4*109*5]+1,4,109,5)
+    putData!(ms,data)
+    @test getData(ms) == data
+    @test getData(ms) == data
 end
 
