@@ -11,6 +11,7 @@ export getColumn, putColumn!
 export MeasurementSet
 export getData,  getModelData,  getCorrectedData
 export putData!, putModelData!, putCorrectedData!
+export getAntenna1, getAntenna2, getUVW, getFreq, getTime
 
 # Quanta
 export Quantity, @q_str

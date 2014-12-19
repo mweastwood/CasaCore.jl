@@ -45,11 +45,21 @@ extern "C" {
         for (uint i = 0; i < ndim; ++i) {
             dimensions[i] = dim[i];
         }
-        switch (type) {
-        case TpInt:
+        if (type == TpInt) {
             ArrayColumnDesc<Int> column(name,"",dimensions);
             t->table().addColumn(column);
-            break;
+        }
+        else if (type == TpFloat) {
+            ArrayColumnDesc<Float> column(name,"",dimensions);
+            t->table().addColumn(column);
+        }
+        else if (type == TpDouble) {
+            ArrayColumnDesc<Double> column(name,"",dimensions);
+            t->table().addColumn(column);
+        }
+        else if (type == TpComplex) {
+            ArrayColumnDesc<Complex> column(name,"",dimensions);
+            t->table().addColumn(column);
         }
     }
 
@@ -64,13 +74,10 @@ extern "C" {
         return record.nfields();
     }
 
-    void getKeyword_string(TableProxy* t, char* keyword, char* output, size_t outputlength) {
-        ValueHolder value = t->getKeyword(String(),String(keyword),-1);
+    char const* getKeyword_string(TableProxy* t, char* keyword) {
+        ValueHolder value = t->getKeyword(String(),keyword,-1);
         String str = value.asString();
-        for (uint i = 0; i < str.length() && i < outputlength; ++i) {
-            output[i] = str[i];
-        }
-        output[str.length()] = '\0';
+        return str.c_str();
     }
 
     void getColumnType(TableProxy* t, char* column, char* output, size_t outputlength) {
@@ -135,6 +142,36 @@ extern "C" {
         }
     }
 
+    void putColumn_int(TableProxy* t, char* column, int* input,
+                       size_t* shape, size_t ndim) {
+        IPosition dimensions(ndim);
+        for (uint i = 0; i < ndim; ++i)
+            dimensions[i] = shape[i];
+        Array<Int> arr(dimensions);
+        int idx = 0;
+        for (Array<Int>::IteratorSTL it = arr.begin(); it != arr.end(); ++it) {
+            *it = input[idx];
+            ++idx;
+        }
+        ValueHolder value(arr);
+        t->putColumn(String(column),0,-1,1,value);
+    }
+    
+    void putColumn_double(TableProxy* t, char* column, double* input,
+                          size_t* shape, size_t ndim) {
+        IPosition dimensions(ndim);
+        for (uint i = 0; i < ndim; ++i)
+            dimensions[i] = shape[i];
+        Array<Double> arr(dimensions);
+        int idx = 0;
+        for (Array<Double>::IteratorSTL it = arr.begin(); it != arr.end(); ++it) {
+            *it = input[idx];
+            ++idx;
+        }
+        ValueHolder value(arr);
+        t->putColumn(String(column),0,-1,1,value);
+    }
+    
     void putColumn_complex(TableProxy* t, char* column, std::complex<float>* input,
                            size_t* shape, size_t ndim) {
         IPosition dimensions(ndim);

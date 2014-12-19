@@ -43,3 +43,30 @@ for (col,getf,putf) in zip(columns,getfunc,putfunc)
     end
 end
 
+columns = ["ANTENNA1", "ANTENNA2"]
+getfunc = [:getAntenna1, :getAntenna2]
+for (col,getf) in zip(columns,getfunc)
+    @eval begin
+        function $getf(ms::MeasurementSet)
+            # Add one to convert to a 1-based indexing scheme
+            getColumn(ms,$col) + 1
+        end
+    end
+end
+
+function getUVW(ms::MeasurementSet)
+    uvw = getColumn(ms,"UVW")
+    uvw[1,:],uvw[2,:],uvw[3,:]
+end
+
+function getFreq(ms::MeasurementSet)
+    table_string = replace(getKeyword_string(ms.table,"SPECTRAL_WINDOW"),"Table: ","",1)
+    table = Table(table_string)
+    squeeze(getColumn(table,"CHAN_FREQ"),2)
+end
+
+function getTime(ms::MeasurementSet)
+    # TODO: rewrite this with getCell instead
+    Epoch("UTC",Quantity(getColumn(ms,"TIME")[1],"s"))
+end
+
