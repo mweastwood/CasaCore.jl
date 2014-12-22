@@ -95,7 +95,7 @@ function nKeywords(table::Table)
     ccall(("nKeywords",libcasacorewrapper),Cuint,(Ptr{Void},),table.ptr)
 end
 
-function getKeyword_string(table::Table,keyword::ASCIIString)
+function getKeyword(table::Table,keyword::ASCIIString,::Type{ASCIIString})
     output = ccall(("getKeyword_string",libcasacorewrapper),
                    Ptr{Cchar},(Ptr{Void},Ptr{Cchar}),
                    table.ptr,keyword)

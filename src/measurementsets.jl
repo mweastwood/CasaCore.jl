@@ -59,7 +59,7 @@ function getUVW(ms::MeasurementSet)
 end
 
 function getFreq(ms::MeasurementSet)
-    table_string = replace(getKeyword_string(ms.table,"SPECTRAL_WINDOW"),"Table: ","",1)
+    table_string = replace(getKeyword(ms.table,"SPECTRAL_WINDOW",ASCIIString),"Table: ","",1)
     table = Table(table_string)
     shape = getColumnShape(table,"CHAN_FREQ")
     freq  = Array(Cdouble,shape[1],shape[2])

@@ -33,6 +33,20 @@ void putColumn(TableProxy* t, char* column, T* input, size_t* shape, size_t ndim
     t->putColumn(String(column),0,-1,1,value);
 }
 
+template <class T>
+T getKeyword(TableProxy* t, char* keyword) {
+    ValueHolder value = t->getKeyword(String(),keyword,-1);
+    T output;
+    value.getValue(output);
+    return output;
+}
+
+template <class T>
+void putKeyword(TableProxy* t, char* keyword, T const& keywordvalue) {
+    ValueHolder value(keywordvalue);
+    t->putKeyword("",keyword,-1,false,value);
+}
+
 extern "C" {
     TableProxy* newTable(char* name, char* endianFormat, char* memType, int nrow) {
         return new TableProxy(String(name),Record(),endianFormat,memType,nrow,Record(),Record());
@@ -102,14 +116,11 @@ extern "C" {
     }
 
     char const* getKeyword_string(TableProxy* t, char* keyword) {
-        ValueHolder value = t->getKeyword(String(),keyword,-1);
-        String str = value.asString();
-        return str.c_str();
+        return getKeyword<String>(t,keyword).c_str();
     }
 
     void putKeyword_string(TableProxy* t, char* keyword, char* keywordvalue) {
-        ValueHolder value(keywordvalue);
-        t->putKeyword("",keyword,-1,false,value);
+        putKeyword<String>(t,keyword,keywordvalue);
     }
 
     char const* getColumnType(TableProxy* t, char* column) {
