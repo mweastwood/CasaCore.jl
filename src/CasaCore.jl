@@ -5,7 +5,7 @@ export Table
 export nrows, ncolumns
 export addRows!, removeRows!
 export addScalarColumn!, addArrayColumn!, removeColumn!
-export getColumn, putColumn!
+export getColumn, getColumn!, putColumn!
 
 # Measurement Sets
 export MeasurementSet
