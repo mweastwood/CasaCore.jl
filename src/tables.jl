@@ -14,7 +14,7 @@ type Table
     ptr::Ptr{Void}
 end
 
-function Table(name::String)
+function Table(name::ASCIIString)
     if isdir(name)
         table = Table(ccall(("newTable_existing",libcasacorewrapper),
                             Ptr{Void},(Ptr{Cchar},Cint),
