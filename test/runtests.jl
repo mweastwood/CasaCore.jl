@@ -67,6 +67,8 @@ let
 end
 
 let
+    srand(123)
+
     name  = tempname()*".ms"
     @show name
     table = Table(name)
@@ -74,40 +76,69 @@ let
     addScalarColumn!(table,"ANTENNA2","int")
     addArrayColumn!(table,"UVW","double",[3])
     addArrayColumn!(table,"DATA","complex",[4,109])
+    addArrayColumn!(table,"MODEL_DATA","complex",[4,109])
+    addArrayColumn!(table,"CORRECTED_DATA","complex",[4,109])
     addRows!(table,10)
 
     @test    nrows(table) == 10
-    @test ncolumns(table) == 4
-
+    @test ncolumns(table) ==  6
     removeRows!(table,[6:10])
+    @test    nrows(table) ==  5
+    @test ncolumns(table) ==  6
 
-    @test    nrows(table) == 5
-    @test ncolumns(table) == 4
-
-    ant1 = Int32[1:5]
-    ant2 = Int32[6:10]
-    uvw  = reshape(Float64[1:3*5],3,5)
-    data = reshape(Complex64[1:4*109*5],4,109,5)
-
+    ant1 = Array(Cint,5)
+    ant2 = Array(Cint,5)
+    rand!(ant1); rand!(ant2)
     putColumn!(table,"ANTENNA1",ant1)
     putColumn!(table,"ANTENNA2",ant2)
-    putColumn!(table,"UVW",uvw)
-    putColumn!(table,"DATA",data)
-
     @test getColumn(table,"ANTENNA1") == ant1
     @test getColumn(table,"ANTENNA2") == ant2
+
+    uvw = Array(Cdouble,3,5)
+    rand!(uvw)
+    putColumn!(table,"UVW",uvw)
     @test getColumn(table,"UVW") == uvw
+
+    data      = Array(Complex{Cfloat},4,109,5)
+    model     = Array(Complex{Cfloat},4,109,5)
+    corrected = Array(Complex{Cfloat},4,109,5)
+    rand!(data); rand!(model); rand!(corrected)
+    putColumn!(table,"DATA",data)
+    putColumn!(table,"MODEL_DATA",model)
+    putColumn!(table,"CORRECTED_DATA",corrected)
     @test getColumn(table,"DATA") == data
+    @test getColumn(table,"MODEL_DATA") == model
+    @test getColumn(table,"CORRECTED_DATA") == corrected
 
     # Close the table and open it as a MeasurementSet
     finalize(table)
     ms = MeasurementSet(name)
 
+    @test getAntenna1(ms) == ant1+1
+    @test getAntenna2(ms) == ant2+1
+
+    u,v,w = getUVW(ms)
+    @test u == uvw[1,:]
+    @test v == uvw[2,:]
+    @test w == uvw[3,:]
+
+    # Test getData/getModelData/getCorrectedData twice
+    # to make sure the cache is being used properly.
     @test getData(ms) == data
     @test getData(ms) == data
-    data = reshape(Complex64[1:4*109*5]+1,4,109,5)
+    @test getModelData(ms) == model
+    @test getModelData(ms) == model
+    @test getCorrectedData(ms) == corrected
+    @test getCorrectedData(ms) == corrected
+    rand!(data); rand!(model); rand!(corrected)
     putData!(ms,data)
+    putModelData!(ms,model)
+    putCorrectedData!(ms,corrected)
     @test getData(ms) == data
     @test getData(ms) == data
+    @test getModelData(ms) == model
+    @test getModelData(ms) == model
+    @test getCorrectedData(ms) == corrected
+    @test getCorrectedData(ms) == corrected
 end
 
