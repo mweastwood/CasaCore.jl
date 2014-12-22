@@ -11,9 +11,6 @@ function MeasurementSet(name::String)
     MeasurementSet(Table(name),Dict{ASCIIString,Complex64}())
 end
 
-getColumn (ms::MeasurementSet,name::String) = getColumn(ms.table,name)
-putColumn!(ms::MeasurementSet,name::String,data) = putColumn!(ms.table,name,data)
-
 # Define methods for `get`ing and `put`ing of the
 # DATA, MODEL_DATA, and CORRECTED_DATA columns.
 columns = ["DATA", "MODEL_DATA", "CORRECTED_DATA"]
@@ -27,7 +24,7 @@ for (col,getf,putf) in zip(columns,getfunc,putfunc)
         """ ->
         function $getf(ms::MeasurementSet)
             if !haskey(ms.cache,$col)
-                ms.cache[$col] = getColumn(ms,$col)
+                ms.cache[$col] = getColumn(ms.table,$col)
             end
             ms.cache[$col]
         end
@@ -38,7 +35,7 @@ for (col,getf,putf) in zip(columns,getfunc,putfunc)
         """ ->
         function $putf(ms::MeasurementSet,column::Array{Complex64,3})
             ms.cache[$col] = column
-            putColumn!(ms,$col,column)
+            putColumn!(ms.table,$col,column)
         end
     end
 end
@@ -48,21 +45,25 @@ getfunc = [:getAntenna1, :getAntenna2]
 for (col,getf) in zip(columns,getfunc)
     @eval begin
         function $getf(ms::MeasurementSet)
-            # Add one to convert to a 1-based indexing scheme
-            getColumn(ms,$col) + 1
+            ant = Array(Cint,nrows(ms.table))
+            getColumn!(ant,ms.table,$col)
+            ant + 1 # add one to convert to a 1-based indexing scheme
         end
     end
 end
 
 function getUVW(ms::MeasurementSet)
-    uvw = getColumn(ms,"UVW")
+    uvw = Array(Cdouble,3,nrows(ms.table))
+    getColumn!(uvw,ms.table,"UVW")
     uvw[1,:],uvw[2,:],uvw[3,:]
 end
 
 function getFreq(ms::MeasurementSet)
     table_string = replace(getKeyword_string(ms.table,"SPECTRAL_WINDOW"),"Table: ","",1)
     table = Table(table_string)
-    squeeze(getColumn(table,"CHAN_FREQ"),2)
+    freq  = Array(Cfloat,nrows(ms.table))
+    getColumn!(freq,table,"CHAN_FREQ")
+    freq
 end
 
 function getTime(ms::MeasurementSet)
