@@ -14,7 +14,7 @@ type Table
     ptr::Ptr{Void}
 end
 
-function Table(name::String)
+function Table(name::ASCIIString)
     if isdir(name)
         table = Table(ccall(("newTable_existing",libcasacorewrapper),
                             Ptr{Void},(Ptr{Cchar},Cint),
@@ -95,11 +95,17 @@ function nKeywords(table::Table)
     ccall(("nKeywords",libcasacorewrapper),Cuint,(Ptr{Void},),table.ptr)
 end
 
-function getKeyword_string(table::Table,keyword::String)
+function getKeyword(table::Table,keyword::ASCIIString,::Type{ASCIIString})
     output = ccall(("getKeyword_string",libcasacorewrapper),
                    Ptr{Cchar},(Ptr{Void},Ptr{Cchar}),
                    table.ptr,keyword)
     bytestring(output)::ASCIIString
+end
+
+function putKeyword!(table::Table,keyword::ASCIIString,keywordvalue::ASCIIString)
+    ccall(("putKeyword_string",libcasacorewrapper),
+          Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
+          table.ptr,keyword,keywordvalue)
 end
 
 ################################################################################
@@ -148,7 +154,7 @@ function getColumn(table::Table,column::String)
     array
 end
 
-for typestr in ("int","double","complex")
+for typestr in ("int","float","double","complex")
     T = str2type[typestr]
     cfunc = "getColumn_$typestr"
     @eval function getColumn!(output::Array{$T},table::Table,column::String)
@@ -163,7 +169,7 @@ end
 ################################################################################
 # putColumn!
 
-for typestr in ("int","double","complex")
+for typestr in ("int","float","double","complex")
     T = str2type[typestr]
     cfunc = "putColumn_$typestr"
     @eval function putColumn!(table::Table,column::String,array::Array{$T})

@@ -110,6 +110,15 @@ let
     @test getColumn(table,"MODEL_DATA") == model
     @test getColumn(table,"CORRECTED_DATA") == corrected
 
+    subtable = Table("$name/SPECTRAL_WINDOW")
+    addArrayColumn!(subtable,"CHAN_FREQ","double",[109])
+    addRows!(subtable,1)
+    freq = Array(Cdouble,109,1)
+    rand!(freq)
+    putColumn!(subtable,"CHAN_FREQ",freq)
+    finalize(subtable)
+    putKeyword!(table,"SPECTRAL_WINDOW","Table: $name/SPECTRAL_WINDOW")
+
     # Close the table and open it as a MeasurementSet
     finalize(table)
     ms = MeasurementSet(name)
@@ -121,6 +130,8 @@ let
     @test u == uvw[1,:]
     @test v == uvw[2,:]
     @test w == uvw[3,:]
+
+    @test getFreq(ms) == squeeze(freq,2)
 
     # Test getData/getModelData/getCorrectedData twice
     # to make sure the cache is being used properly.
