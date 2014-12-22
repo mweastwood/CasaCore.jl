@@ -20,7 +20,7 @@ j2000 = measure(frame,"J2000",dir)
 
 ## Tables
 
-Interacting with CasaCore tables requires you to first open the  table:
+Interacting with CasaCore tables requires you to first open the table:
 ```
 table = Table("/path/to/table")
 ```
@@ -30,6 +30,16 @@ addScalarColumn!(table,"ANTENNA1","int")
 addScalarColumn!(table,"ANTENNA2","int")
 addRows!(table,10)
 removeRows!(table,[6:10])
+```
+
+### Measurement Sets
+
+A convenience interface for interacting with [CASA Measurement Sets](http://casa.nrao.edu/Memos/229.html) can be used by using the `MeasurementSet` type:
+```
+ms = MeasurementSet("/path/to/measurementset.ms")
+data = getData(ms)
+modeldata = function_to_gen_model_visibilities()
+putModelData!(modeldata)
 ```
 
 ## Development
