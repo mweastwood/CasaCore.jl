@@ -80,12 +80,8 @@ extern "C" {
         return str.c_str();
     }
 
-    void getColumnType(TableProxy* t, char* column, char* output, size_t outputlength) {
-        String typestr = t->columnDataType(String(column));
-        for (uint i = 0; i < typestr.length() && i < outputlength; ++i) {
-            output[i] = typestr[i];
-        }
-        output[typestr.length()] = '\0';
+    char const* getColumnType(TableProxy* t, char* column) {
+        return t->columnDataType(column).c_str();
     }
 
     void getColumnShape(TableProxy* t, char* column, int* output, size_t outputlength) {

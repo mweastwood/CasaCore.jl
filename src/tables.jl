@@ -99,15 +99,17 @@ function getKeyword_string(table::Table,keyword::String)
     output = ccall(("getKeyword_string",libcasacorewrapper),
                    Ptr{Cchar},(Ptr{Void},Ptr{Cchar}),
                    table.ptr,keyword)
-    bytestring(output)
+    bytestring(output)::ASCIIString
 end
 
-function getColumnType(table::Table,column::String)
-    output = Array(Cchar,30)
-    ccall(("getColumnType",libcasacorewrapper),
-           Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar},Csize_t),
-           table.ptr,column,output,length(output))
-    str2type[bytestring(Ptr{Cchar}(output))]
+################################################################################
+# getColumn
+
+function getColumnType(table::Table,column::ASCIIString)
+    output = ccall(("getColumnType",libcasacorewrapper),
+                   Ptr{Cchar},(Ptr{Void},Ptr{Cchar}),
+                   table.ptr,column)
+    str2type[bytestring(output)::ASCIIString]
 end
 
 @doc """
@@ -132,44 +134,39 @@ function getColumnShape(table::Table,column::String,buffersize::Int=4)
 end
 
 @doc """
-This function reads in a column from an open table.
+Read a column from an open table.
 
-The type and shape of the column is determined from the
-appropriate function. Depending on the data type, the
-correct C function is chosen using multiple dispatch with
-the function getColumn_helper!(...)
+Note that this function is not type stable (the type
+and shape of the column is not known until run time).
+If you need type stability, use getColumn!
 """ ->
 function getColumn(table::Table,column::String)
     T = getColumnType(table,column)
-    S = tuple(getColumnShape(table,column)...)
-    vector = Array(T,prod(S))
-    getColumn_helper!(vector,table,column)
-    reshape(vector,S)
+    S = getColumnShape(table,column)
+    array = Array(T,S...)
+    getColumn!(array,table,column)
+    array
 end
 
 for typestr in ("int","double","complex")
     T = str2type[typestr]
     cfunc = "getColumn_$typestr"
-    @eval function getColumn_helper!(output::Vector{$T},table::Table,column::String)
+    @eval function getColumn!(output::Array{$T},table::Table,column::String)
         ccall(($cfunc,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar},Ptr{$T},Csize_t),
               table.ptr,column,pointer(output),length(output))
         nothing
     end
 end
+@doc "Read a column from an open table." getColumn!
 
-@doc """
-This functions writes a column to an open table.
-""" ->
-function putColumn!(table::Table,column::String,array::Array)
-    putColumn_helper(table,column,array)
-    nothing
-end
+################################################################################
+# putColumn!
 
 for typestr in ("int","double","complex")
     T = str2type[typestr]
     cfunc = "putColumn_$typestr"
-    @eval function putColumn_helper(table::Table,column::String,array::Array{$T})
+    @eval function putColumn!(table::Table,column::String,array::Array{$T})
         S = [size(array)...]
         ndim = length(S)
         ccall(($cfunc,libcasacorewrapper),
@@ -178,4 +175,5 @@ for typestr in ("int","double","complex")
         nothing
     end
 end
+@doc "Write a column to an open table." putColumn!
 
