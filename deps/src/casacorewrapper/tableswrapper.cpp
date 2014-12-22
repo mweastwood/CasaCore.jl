@@ -107,6 +107,11 @@ extern "C" {
         return str.c_str();
     }
 
+    void putKeyword_string(TableProxy* t, char* keyword, char* keywordvalue) {
+        ValueHolder value(keywordvalue);
+        t->putKeyword("",keyword,-1,false,value);
+    }
+
     char const* getColumnType(TableProxy* t, char* column) {
         return t->columnDataType(column).c_str();
     }
