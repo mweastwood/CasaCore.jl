@@ -148,7 +148,7 @@ function getColumn(table::Table,column::String)
     array
 end
 
-for typestr in ("int","double","complex")
+for typestr in ("int","float","double","complex")
     T = str2type[typestr]
     cfunc = "getColumn_$typestr"
     @eval function getColumn!(output::Array{$T},table::Table,column::String)
@@ -163,7 +163,7 @@ end
 ################################################################################
 # putColumn!
 
-for typestr in ("int","double","complex")
+for typestr in ("int","float","double","complex")
     T = str2type[typestr]
     cfunc = "putColumn_$typestr"
     @eval function putColumn!(table::Table,column::String,array::Array{$T})
