@@ -2,7 +2,7 @@ module CasaCore
 
 # Tables
 export Table
-export nrows, ncolumns
+export numRows, numColumns, numKeywords
 export addRows!, removeRows!
 export addScalarColumn!, addArrayColumn!, removeColumn!
 export getColumn, getColumn!, putColumn!
@@ -12,7 +12,10 @@ export getKeyword, putKeyword!
 export MeasurementSet
 export getData,  getModelData,  getCorrectedData
 export putData!, putModelData!, putCorrectedData!
-export getAntenna1, getAntenna2, getUVW, getFreq, getTime
+export getAntenna1,  getAntenna2
+export putAntenna1!, putAntenna2!
+export getUVW,  getFreq,  getTime
+export putUVW!, putFreq!
 
 # Quanta
 export Quantity, @q_str
@@ -23,8 +26,8 @@ export set!
 export Measure, Epoch, Direction, Position
 export measure, observatory
 
-# TODO: Check to make sure this file exists
 const libcasacorewrapper = joinpath(Pkg.dir("CasaCore"),"deps/usr/lib/libcasacorewrapper.so")
+isfile(libcasacorewrapper) || error("Run Pkg.build(\"CasaCore\")")
 
 import Base: show
 

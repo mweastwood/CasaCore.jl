@@ -7,6 +7,22 @@
 using namespace casa;
 
 template <class T>
+void addScalarColumn(TableProxy* t, char* name) {
+    ScalarColumnDesc<T> column(name);
+    t->table().addColumn(column);
+}
+
+template <class T>
+void addArrayColumn(TableProxy* t, char* name, int* dim, size_t ndim) {
+    IPosition dimensions(ndim);
+    for (uint i = 0; i < ndim; ++i) {
+        dimensions[i] = dim[i];
+    }
+    ArrayColumnDesc<T> column(name,"",dimensions);
+    t->table().addColumn(column);
+}
+
+template <class T>
 void getColumn(TableProxy* t, char* column, T* output, size_t length) {
     ValueHolder value = t->getColumn(String(column),0,-1,1);
     Array<T> arr(IPosition(1,length));
@@ -61,8 +77,8 @@ extern "C" {
     bool isReadable(TableProxy const* t) {return t->isReadable();}
     bool isWritable(TableProxy const* t) {return t->isWritable();}
 
-    int nrows(TableProxy* t) {return t->nrows();}
-    int ncolumns(TableProxy* t) {return t->ncolumns();}
+    int numRows(TableProxy* t) {return t->nrows();}
+    int numColumns(TableProxy* t) {return t->ncolumns();}
 
     void addRow(TableProxy* t, int nrows) {t->addRow(nrows);}
 
@@ -72,36 +88,36 @@ extern "C" {
         t->removeRow(rows);
     }
 
-    void addScalarColumn(TableProxy* t, char* name, int type) {
-        switch(type) {
-        case TpInt:
-            ScalarColumnDesc<Int> column(name);
-            t->table().addColumn(column);
-            break;
-        }
+    void addScalarColumn_int(TableProxy* t, char* name) {
+        addScalarColumn<Int>(t,name);
     }
 
-    void addArrayColumn(TableProxy* t, char* name, int type, int* dim, size_t ndim) {
-        IPosition dimensions(ndim);
-        for (uint i = 0; i < ndim; ++i) {
-            dimensions[i] = dim[i];
-        }
-        if (type == TpInt) {
-            ArrayColumnDesc<Int> column(name,"",dimensions);
-            t->table().addColumn(column);
-        }
-        else if (type == TpFloat) {
-            ArrayColumnDesc<Float> column(name,"",dimensions);
-            t->table().addColumn(column);
-        }
-        else if (type == TpDouble) {
-            ArrayColumnDesc<Double> column(name,"",dimensions);
-            t->table().addColumn(column);
-        }
-        else if (type == TpComplex) {
-            ArrayColumnDesc<Complex> column(name,"",dimensions);
-            t->table().addColumn(column);
-        }
+    void addScalarColumn_float(TableProxy* t, char* name) {
+        addScalarColumn<Float>(t,name);
+    }
+
+    void addScalarColumn_double(TableProxy* t, char* name) {
+        addScalarColumn<Double>(t,name);
+    }
+
+    void addScalarColumn_complex(TableProxy* t, char* name) {
+        addScalarColumn<Complex>(t,name);
+    }
+
+    void addArrayColumn_int(TableProxy* t, char* name, int* dim, size_t ndim) {
+        addArrayColumn<Int>(t,name,dim,ndim);
+    }
+
+    void addArrayColumn_float(TableProxy* t, char* name, int* dim, size_t ndim) {
+        addArrayColumn<Float>(t,name,dim,ndim);
+    }
+
+    void addArrayColumn_double(TableProxy* t, char* name, int* dim, size_t ndim) {
+        addArrayColumn<Double>(t,name,dim,ndim);
+    }
+
+    void addArrayColumn_complex(TableProxy* t, char* name, int* dim, size_t ndim) {
+        addArrayColumn<Complex>(t,name,dim,ndim);
     }
 
     void removeColumn(TableProxy* t, char* name) {
@@ -110,7 +126,7 @@ extern "C" {
         t->removeColumns(column);
     }
 
-    unsigned int nKeywords(TableProxy* t) {
+    int numKeywords(TableProxy* t) {
         Record record = t->getKeywordSet(String());
         return record.nfields();
     }
@@ -130,7 +146,7 @@ extern "C" {
     void getColumnShape(TableProxy* t, char* column, int* output, size_t outputlength) {
         if (t->isScalarColumn(String(column))) {
             if (outputlength > 1) {
-                output[0] = nrows(t);
+                output[0] = numRows(t);
                 output[1] = -1;
             }
         }
@@ -145,7 +161,7 @@ extern "C" {
                 output[i] = shape[i];
             }
             if (outputlength > ndim+1) {
-                output[ndim]   = nrows(t);
+                output[ndim]   = numRows(t);
                 output[ndim+1] = -1;
             }
         }
