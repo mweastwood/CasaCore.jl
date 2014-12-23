@@ -72,12 +72,12 @@ let
     name  = tempname()*".ms"
     @show name
     table = Table(name)
-    addScalarColumn!(table,"ANTENNA1","int")
-    addScalarColumn!(table,"ANTENNA2","int")
-    addArrayColumn!(table,"UVW","double",[3])
-    addArrayColumn!(table,"DATA","complex",[4,109])
-    addArrayColumn!(table,"MODEL_DATA","complex",[4,109])
-    addArrayColumn!(table,"CORRECTED_DATA","complex",[4,109])
+    addScalarColumn!(table,"ANTENNA1",Cint)
+    addScalarColumn!(table,"ANTENNA2",Cint)
+    addArrayColumn!(table,"UVW",Cdouble,[3])
+    addArrayColumn!(table,"DATA",Complex64,[4,109])
+    addArrayColumn!(table,"MODEL_DATA",Complex64,[4,109])
+    addArrayColumn!(table,"CORRECTED_DATA",Complex64,[4,109])
     addRows!(table,10)
 
     @test    nrows(table) == 10
@@ -111,7 +111,7 @@ let
     @test getColumn(table,"CORRECTED_DATA") == corrected
 
     subtable = Table("$name/SPECTRAL_WINDOW")
-    addArrayColumn!(subtable,"CHAN_FREQ","double",[109])
+    addArrayColumn!(subtable,"CHAN_FREQ",Cdouble,[109])
     addRows!(subtable,1)
     freq = Array(Cdouble,109,1)
     rand!(freq)

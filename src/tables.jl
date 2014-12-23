@@ -51,6 +51,29 @@ for f in (:nrows,:ncolumns)
     end
 end
 
+function nKeywords(table::Table)
+    ccall(("nKeywords",libcasacorewrapper),Cuint,(Ptr{Void},),table.ptr)
+end
+
+################################################################################
+# Keyword Operations
+
+function getKeyword(table::Table,keyword::ASCIIString,::Type{ASCIIString})
+    output = ccall(("getKeyword_string",libcasacorewrapper),
+                   Ptr{Cchar},(Ptr{Void},Ptr{Cchar}),
+                   table.ptr,keyword)
+    bytestring(output)::ASCIIString
+end
+
+function putKeyword!(table::Table,keyword::ASCIIString,keywordvalue::ASCIIString)
+    ccall(("putKeyword_string",libcasacorewrapper),
+          Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
+          table.ptr,keyword,keywordvalue)
+end
+
+################################################################################
+# Row Operations
+
 function addRows!{T<:Integer}(table::Table,nrows::T)
     ccall(("addRow",libcasacorewrapper),Void,(Ptr{Void},Cint),table.ptr,nrows)
 end
@@ -67,18 +90,26 @@ function removeRows!{T<:Integer}(table::Table,rows::Vector{T})
     nothing
 end
 
-function addScalarColumn!(table::Table,name::AbstractString,typestring::AbstractString)
-    ccall(("addScalarColumn",libcasacorewrapper),
-          Void,(Ptr{Void},Ptr{Cchar},Cint),
-          table.ptr,name,str2enum[typestring])
-end
+################################################################################
+# Column Operations
 
-function addArrayColumn!{T<:Integer}(table::Table,name::AbstractString,typestring::AbstractString,
-                                     dimensions::Vector{T})
-    dimensions_cint = convert(Vector{Cint},dimensions)
-    ccall(("addArrayColumn",libcasacorewrapper),
-          Void,(Ptr{Void},Ptr{Cchar},Cint,Ptr{Cint},Csize_t),
-          table.ptr,name,str2enum[typestring],pointer(dimensions_cint),length(dimensions))
+for typestr in ("int","float","double","complex")
+    T = str2type[typestr]
+    cfunc_addscalarcolumn = "addScalarColumn_$typestr"
+    cfunc_addarraycolumn = "addArrayColumn_$typestr"
+
+    @eval function addScalarColumn!(table::Table,name::AbstractString,::Type{$T})
+        ccall(($cfunc_addscalarcolumn,libcasacorewrapper),
+              Void,(Ptr{Void},Ptr{Cchar}),
+              table.ptr,name)
+    end
+
+    @eval function addArrayColumn!{I<:Integer}(table::Table,name::AbstractString,::Type{$T},dimensions::Vector{I})
+        dimensions_cint = convert(Vector{Cint},dimensions)
+        ccall(($cfunc_addarraycolumn,libcasacorewrapper),
+              Void,(Ptr{Void},Ptr{Cchar},Ptr{Cint},Csize_t),
+              table.ptr,name,pointer(dimensions_cint),length(dimensions))
+    end
 end
 
 function removeColumn!(table::Table,name::AbstractString)
@@ -86,26 +117,6 @@ function removeColumn!(table::Table,name::AbstractString)
           Void,(Ptr{Void},Ptr{Cchar}),
           table.ptr,name)
 end
-
-function nKeywords(table::Table)
-    ccall(("nKeywords",libcasacorewrapper),Cuint,(Ptr{Void},),table.ptr)
-end
-
-function getKeyword(table::Table,keyword::ASCIIString,::Type{ASCIIString})
-    output = ccall(("getKeyword_string",libcasacorewrapper),
-                   Ptr{Cchar},(Ptr{Void},Ptr{Cchar}),
-                   table.ptr,keyword)
-    bytestring(output)::ASCIIString
-end
-
-function putKeyword!(table::Table,keyword::ASCIIString,keywordvalue::ASCIIString)
-    ccall(("putKeyword_string",libcasacorewrapper),
-          Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
-          table.ptr,keyword,keywordvalue)
-end
-
-################################################################################
-# getColumn
 
 function getColumnType(table::Table,column::ASCIIString)
     output = ccall(("getColumnType",libcasacorewrapper),
@@ -161,9 +172,6 @@ for typestr in ("int","float","double","complex")
     end
 end
 @doc "Read a column from an open table." getColumn!
-
-################################################################################
-# putColumn!
 
 for typestr in ("int","float","double","complex")
     T = str2type[typestr]
