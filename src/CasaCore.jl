@@ -23,8 +23,8 @@ export set!
 export Measure, Epoch, Direction, Position
 export measure, observatory
 
-# TODO: Check to make sure this file exists
 const libcasacorewrapper = joinpath(Pkg.dir("CasaCore"),"deps/usr/lib/libcasacorewrapper.so")
+isfile(libcasacorewrapper) || error("Run Pkg.build(\"CasaCore\")")
 
 import Base: show
 
