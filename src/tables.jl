@@ -24,14 +24,14 @@ function Table(name::ASCIIString)
                             Ptr{Void},(Ptr{Cchar},Ptr{Cchar},Ptr{Cchar},Cint),
                             name,"local","plain",0))
     end
-    finalizer(table,tablefinalizer)
+    finalizer(table,close)
     table
 end
 
 @doc """
 Call the table destructor.
 """ ->
-function tablefinalizer(table::Table)
+function close(table::Table)
     ccall(("deleteTable",libcasacorewrapper),Void,(Ptr{Void},),table.ptr)
 end
 
