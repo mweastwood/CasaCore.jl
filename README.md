@@ -39,7 +39,7 @@ A convenience interface for interacting with [CASA Measurement Sets](http://casa
 ms = MeasurementSet("/path/to/measurementset.ms")
 data = getData(ms)
 modeldata = function_to_gen_model_visibilities()
-putModelData!(modeldata)
+putModelData!(ms,modeldata)
 ```
 
 ## Development
