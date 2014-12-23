@@ -87,10 +87,6 @@ function removeColumn!(table::Table,name::AbstractString)
           table.ptr,name)
 end
 
-function changeColumnStorageManager!(table::Table)
-    ccall(("changeColumnStorageManager",libcasacorewrapper),Void,(Ptr{Void},),table.ptr)
-end
-
 function nKeywords(table::Table)
     ccall(("nKeywords",libcasacorewrapper),Cuint,(Ptr{Void},),table.ptr)
 end
