@@ -1,7 +1,7 @@
 module CasaCore
 
 # Tables
-export Table, close
+export Table
 export nrows, ncolumns
 export addRows!, removeRows!
 export addScalarColumn!, addArrayColumn!, removeColumn!
