@@ -40,14 +40,28 @@ for (col,getf,putf) in zip(columns,getfunc,putfunc)
     end
 end
 
+# Define methods for `get`ing and `put`ing of the
+# ANTENNA1, and ANTENNA2 columns.
 columns = ["ANTENNA1", "ANTENNA2"]
 getfunc = [:getAntenna1, :getAntenna2]
-for (col,getf) in zip(columns,getfunc)
+putfunc = [:putAntenna1, :putAntenna2]
+for (col,getf,putf) in zip(columns,getfunc,putfunc)
     @eval begin
+        @doc """
+        Read the $col column from the given Measurement Set.
+        """ ->
         function $getf(ms::MeasurementSet)
             ant = Array(Cint,nrows(ms.table))
             getColumn!(ant,ms.table,$col)
             ant + 1 # add one to convert to a 1-based indexing scheme
+        end
+
+        @doc """
+        Write the $col column to the given Measurement Set.
+        """ ->
+        function $putf(ms::MeasurementSet,column::Vector{Cint})
+            # subtract one to convert to a 0-based indexing scheme
+            putColumn!(ms.table,$col,column-1)
         end
     end
 end

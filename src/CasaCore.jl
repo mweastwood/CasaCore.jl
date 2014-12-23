@@ -12,7 +12,9 @@ export getKeyword, putKeyword!
 export MeasurementSet
 export getData,  getModelData,  getCorrectedData
 export putData!, putModelData!, putCorrectedData!
-export getAntenna1, getAntenna2, getUVW, getFreq, getTime
+export getAntenna1, getAntenna2
+export putAntenna1, putAntenna2
+export getUVW, getFreq, getTime
 
 # Quanta
 export Quantity, @q_str
