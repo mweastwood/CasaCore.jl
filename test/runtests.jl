@@ -80,11 +80,13 @@ let
     addArrayColumn!(table,"CORRECTED_DATA",Complex64,[4,109])
     addRows!(table,10)
 
-    @test    nrows(table) == 10
-    @test ncolumns(table) ==  6
+    @test     numRows(table) == 10
+    @test  numColumns(table) ==  6
+    @test numKeywords(table) ==  0
     removeRows!(table,[6:10])
-    @test    nrows(table) ==  5
-    @test ncolumns(table) ==  6
+    @test     numRows(table) ==  5
+    @test  numColumns(table) ==  6
+    @test numKeywords(table) ==  0
 
     ant1 = Array(Cint,5)
     ant2 = Array(Cint,5)
@@ -118,6 +120,7 @@ let
     putColumn!(subtable,"CHAN_FREQ",freq)
     finalize(subtable)
     putKeyword!(table,"SPECTRAL_WINDOW","Table: $name/SPECTRAL_WINDOW")
+    @test numKeywords(table) ==  1
 
     # Close the table and open it as a MeasurementSet
     finalize(table)
@@ -125,12 +128,26 @@ let
 
     @test getAntenna1(ms) == ant1+1
     @test getAntenna2(ms) == ant2+1
+    rand!(ant1); rand!(ant2)
+    putAntenna1!(ms,ant1)
+    putAntenna2!(ms,ant2)
+    @test getAntenna1(ms) == ant1
+    @test getAntenna2(ms) == ant2
 
     u,v,w = getUVW(ms)
-    @test u == uvw[1,:]
-    @test v == uvw[2,:]
-    @test w == uvw[3,:]
+    @test u == squeeze(uvw[1,:],1)
+    @test v == squeeze(uvw[2,:],1)
+    @test w == squeeze(uvw[3,:],1)
+    rand!(u); rand!(v); rand!(w)
+    putUVW!(ms,u,v,w)
+    u_,v_,w_ = getUVW(ms)
+    @test u == u_
+    @test v == v_
+    @test w == w_
 
+    @test getFreq(ms) == squeeze(freq,2)
+    rand!(freq)
+    putFreq!(ms,squeeze(freq,2))
     @test getFreq(ms) == squeeze(freq,2)
 
     # Test getData/getModelData/getCorrectedData twice

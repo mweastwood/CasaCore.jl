@@ -45,14 +45,10 @@ for f in (:isWritable,:isReadable)
     end
 end
 
-for f in (:nrows,:ncolumns)
+for f in (:numRows,:numColumns,:numKeywords)
     @eval function $f(table::Table)
         ccall(($(string(f)),libcasacorewrapper),Cint,(Ptr{Void},),table.ptr)
     end
-end
-
-function nKeywords(table::Table)
-    ccall(("nKeywords",libcasacorewrapper),Cuint,(Ptr{Void},),table.ptr)
 end
 
 ################################################################################

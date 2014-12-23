@@ -77,8 +77,8 @@ extern "C" {
     bool isReadable(TableProxy const* t) {return t->isReadable();}
     bool isWritable(TableProxy const* t) {return t->isWritable();}
 
-    int nrows(TableProxy* t) {return t->nrows();}
-    int ncolumns(TableProxy* t) {return t->ncolumns();}
+    int numRows(TableProxy* t) {return t->nrows();}
+    int numColumns(TableProxy* t) {return t->ncolumns();}
 
     void addRow(TableProxy* t, int nrows) {t->addRow(nrows);}
 
@@ -126,7 +126,7 @@ extern "C" {
         t->removeColumns(column);
     }
 
-    unsigned int nKeywords(TableProxy* t) {
+    int numKeywords(TableProxy* t) {
         Record record = t->getKeywordSet(String());
         return record.nfields();
     }
@@ -146,7 +146,7 @@ extern "C" {
     void getColumnShape(TableProxy* t, char* column, int* output, size_t outputlength) {
         if (t->isScalarColumn(String(column))) {
             if (outputlength > 1) {
-                output[0] = nrows(t);
+                output[0] = numRows(t);
                 output[1] = -1;
             }
         }
@@ -161,7 +161,7 @@ extern "C" {
                 output[i] = shape[i];
             }
             if (outputlength > ndim+1) {
-                output[ndim]   = nrows(t);
+                output[ndim]   = numRows(t);
                 output[ndim+1] = -1;
             }
         }
