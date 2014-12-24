@@ -75,17 +75,18 @@ let
     addScalarColumn!(table,"ANTENNA1",Cint)
     addScalarColumn!(table,"ANTENNA2",Cint)
     addArrayColumn!(table,"UVW",Cdouble,[3])
+    addScalarColumn!(table,"TIME",Cdouble)
     addArrayColumn!(table,"DATA",Complex64,[4,109])
     addArrayColumn!(table,"MODEL_DATA",Complex64,[4,109])
     addArrayColumn!(table,"CORRECTED_DATA",Complex64,[4,109])
     addRows!(table,10)
 
     @test     numRows(table) == 10
-    @test  numColumns(table) ==  6
+    @test  numColumns(table) ==  7
     @test numKeywords(table) ==  0
     removeRows!(table,[6:10])
     @test     numRows(table) ==  5
-    @test  numColumns(table) ==  6
+    @test  numColumns(table) ==  7
     @test numKeywords(table) ==  0
 
     ant1 = Array(Cint,5)
@@ -100,6 +101,11 @@ let
     rand!(uvw)
     putColumn!(table,"UVW",uvw)
     @test getColumn(table,"UVW") == uvw
+
+    time = Array(Cdouble,5)
+    rand!(time)
+    putColumn!(table,"TIME",time)
+    @test getColumn(table,"TIME") == time
 
     data      = Array(Complex{Cfloat},4,109,5)
     model     = Array(Complex{Cfloat},4,109,5)
@@ -144,6 +150,11 @@ let
     @test u == u_
     @test v == v_
     @test w == w_
+
+    @test time == getTime(ms)
+    rand!(time)
+    putTime!(ms,time)
+    @test time == getTime(ms)
 
     @test getFreq(ms) == squeeze(freq,2)
     rand!(freq)
