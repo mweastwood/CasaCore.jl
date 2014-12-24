@@ -108,8 +108,20 @@ function putFreq!(ms::MeasurementSet,freq::Vector{Cdouble})
     putColumn!(table,"CHAN_FREQ",reshape(freq,length(freq),1))
 end
 
+@doc """
+Read the TIME column from the given Measurement Set.
+""" ->
 function getTime(ms::MeasurementSet)
-    # TODO: rewrite this with getCell instead
-    Epoch("UTC",Quantity(getColumn(ms.table,"TIME")[1],"s"))
+    # TODO: Use column keywords to correctly map this to a measure?
+    time = Array(Cdouble,numRows(ms.table))
+    getColumn!(time,ms.table,"TIME")
+    time
+end
+
+@doc """
+Write the TIME column to the given Measurement Set.
+""" ->
+function putTime!(ms::MeasurementSet,time::Vector{Cdouble})
+    putColumn!(ms.table,"TIME",time)
 end
 

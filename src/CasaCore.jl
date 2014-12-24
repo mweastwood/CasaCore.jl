@@ -15,7 +15,7 @@ export putData!, putModelData!, putCorrectedData!
 export getAntenna1,  getAntenna2
 export putAntenna1!, putAntenna2!
 export getUVW,  getFreq,  getTime
-export putUVW!, putFreq!
+export putUVW!, putFreq!, putTime!
 
 # Quanta
 export Quantity, @q_str
