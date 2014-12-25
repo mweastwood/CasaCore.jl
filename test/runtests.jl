@@ -89,6 +89,9 @@ let
     @test  numColumns(table) ==  7
     @test numKeywords(table) ==  0
 
+    @test checkColumnExists(table,"FABRICATED_DATA") == false
+    @test_throws ErrorException getColumn(table,"FABRICATED_DATA")
+
     ant1 = Array(Cint,5)
     ant2 = Array(Cint,5)
     rand!(ant1); rand!(ant2)

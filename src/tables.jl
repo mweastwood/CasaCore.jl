@@ -114,6 +114,16 @@ function removeColumn!(table::Table,name::ASCIIString)
           table.ptr,name)
 end
 
+@doc """
+Returns true if the column exists in the table. Otherwise
+returns false.
+""" ->
+function checkColumnExists(table::Table,name::ASCIIString)
+    ccall(("columnExists",libcasacorewrapper),
+          Bool,(Ptr{Void},Ptr{Cchar}),
+          table.ptr,name)
+end
+
 function getColumnType(table::Table,column::ASCIIString)
     output = ccall(("getColumnType",libcasacorewrapper),
                    Ptr{Cchar},(Ptr{Void},Ptr{Cchar}),
@@ -150,6 +160,7 @@ and shape of the column is not known until run time).
 If you need type stability, use getColumn!
 """ ->
 function getColumn(table::Table,column::ASCIIString)
+    checkColumnExists(table,column) || error("Column $column does not exist.")
     T = getColumnType(table,column)
     S = getColumnShape(table,column)
     array = Array(T,S...)

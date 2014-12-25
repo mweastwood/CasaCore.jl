@@ -4,7 +4,7 @@ module CasaCore
 export Table
 export numRows, numColumns, numKeywords
 export addRows!, removeRows!
-export addScalarColumn!, addArrayColumn!, removeColumn!
+export addScalarColumn!, addArrayColumn!, removeColumn!, checkColumnExists
 export getColumn, getColumn!, putColumn!
 export getKeyword, putKeyword!
 

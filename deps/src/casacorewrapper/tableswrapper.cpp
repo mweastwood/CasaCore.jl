@@ -88,6 +88,14 @@ extern "C" {
         t->removeRow(rows);
     }
 
+    bool columnExists(TableProxy* t,char* name) {
+        Vector<String> colnames = t->columnNames();
+        for (int i = 0; i < numColumns(t); ++i) {
+            if (colnames[i].compare(name) == 0) return true;
+        }
+        return false;
+    }
+
     void addScalarColumn_int(TableProxy* t, char* name) {
         addScalarColumn<Int>(t,name);
     }
