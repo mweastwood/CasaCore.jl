@@ -16,6 +16,7 @@ export getAntenna1,  getAntenna2
 export putAntenna1!, putAntenna2!
 export getUVW,  getFreq,  getTime
 export putUVW!, putFreq!, putTime!
+export checkImagingColumnsExist
 
 # Quanta
 export Quantity, @q_str
