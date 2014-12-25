@@ -94,13 +94,13 @@ for typestr in ("int","float","double","complex")
     cfunc_addscalarcolumn = "addScalarColumn_$typestr"
     cfunc_addarraycolumn = "addArrayColumn_$typestr"
 
-    @eval function addScalarColumn!(table::Table,name::AbstractString,::Type{$T})
+    @eval function addScalarColumn!(table::Table,name::ASCIIString,::Type{$T})
         ccall(($cfunc_addscalarcolumn,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar}),
               table.ptr,name)
     end
 
-    @eval function addArrayColumn!{I<:Integer}(table::Table,name::AbstractString,::Type{$T},dimensions::Vector{I})
+    @eval function addArrayColumn!{I<:Integer}(table::Table,name::ASCIIString,::Type{$T},dimensions::Vector{I})
         dimensions_cint = convert(Vector{Cint},dimensions)
         ccall(($cfunc_addarraycolumn,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar},Ptr{Cint},Csize_t),
@@ -108,9 +108,19 @@ for typestr in ("int","float","double","complex")
     end
 end
 
-function removeColumn!(table::Table,name::AbstractString)
+function removeColumn!(table::Table,name::ASCIIString)
     ccall(("removeColumn",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar}),
+          table.ptr,name)
+end
+
+@doc """
+Returns true if the column exists in the table. Otherwise
+returns false.
+""" ->
+function checkColumnExists(table::Table,name::ASCIIString)
+    ccall(("columnExists",libcasacorewrapper),
+          Bool,(Ptr{Void},Ptr{Cchar}),
           table.ptr,name)
 end
 
@@ -127,7 +137,7 @@ shape of the first cell in the column is representative of the
 shape of every cell in the column. This is not a safe assumption
 in general, but works for LWA datasets.
 """ ->
-function getColumnShape(table::Table,column::String,buffersize::Int=4)
+function getColumnShape(table::Table,column::ASCIIString,buffersize::Int=4)
     output = Array(Cint,buffersize)
     ccall(("getColumnShape",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Ptr{Cint},Csize_t),
@@ -149,7 +159,8 @@ Note that this function is not type stable (the type
 and shape of the column is not known until run time).
 If you need type stability, use getColumn!
 """ ->
-function getColumn(table::Table,column::String)
+function getColumn(table::Table,column::ASCIIString)
+    checkColumnExists(table,column) || error("Column $column does not exist.")
     T = getColumnType(table,column)
     S = getColumnShape(table,column)
     array = Array(T,S...)
@@ -160,7 +171,7 @@ end
 for typestr in ("int","float","double","complex")
     T = str2type[typestr]
     cfunc = "getColumn_$typestr"
-    @eval function getColumn!(output::Array{$T},table::Table,column::String)
+    @eval function getColumn!(output::Array{$T},table::Table,column::ASCIIString)
         ccall(($cfunc,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar},Ptr{$T},Csize_t),
               table.ptr,column,pointer(output),length(output))
@@ -172,7 +183,7 @@ end
 for typestr in ("int","float","double","complex")
     T = str2type[typestr]
     cfunc = "putColumn_$typestr"
-    @eval function putColumn!(table::Table,column::String,array::Array{$T})
+    @eval function putColumn!(table::Table,column::ASCIIString,array::Array{$T})
         S = [size(array)...]
         ndim = length(S)
         ccall(($cfunc,libcasacorewrapper),

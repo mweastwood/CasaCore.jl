@@ -4,7 +4,7 @@ module CasaCore
 export Table
 export numRows, numColumns, numKeywords
 export addRows!, removeRows!
-export addScalarColumn!, addArrayColumn!, removeColumn!
+export addScalarColumn!, addArrayColumn!, removeColumn!, checkColumnExists
 export getColumn, getColumn!, putColumn!
 export getKeyword, putKeyword!
 
@@ -16,6 +16,7 @@ export getAntenna1,  getAntenna2
 export putAntenna1!, putAntenna2!
 export getUVW,  getFreq,  getTime
 export putUVW!, putFreq!, putTime!
+export checkImagingColumnsExist
 
 # Quanta
 export Quantity, @q_str

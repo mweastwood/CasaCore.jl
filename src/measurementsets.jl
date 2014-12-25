@@ -125,3 +125,7 @@ function putTime!(ms::MeasurementSet,time::Vector{Cdouble})
     putColumn!(ms.table,"TIME",time)
 end
 
+function checkImagingColumnsExist(ms::MeasurementSet)
+    checkColumnExists(ms.table,"MODEL_DATA") && checkColumnExists(ms.table,"CORRECTED_DATA")
+end
+
