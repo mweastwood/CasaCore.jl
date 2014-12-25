@@ -2,6 +2,16 @@
 
 [![Build Status](https://travis-ci.org/mweastwood/CasaCore.jl.svg?branch=master)](https://travis-ci.org/mweastwood/CasaCore.jl)
 
+## Getting Started
+
+CasaCore is currently an unregistered package. Therefore, to get started using CasaCore, run:
+```julia
+Pkg.clone("https://github.com/mweastwood/CasaCore.jl.git")
+Pkg.build("CasaCore")
+using CasaCore
+```
+The build process will attempt to download, build, and install [CasaCore](https://code.google.com/p/casacore/) if it does not already exist on your system.
+
 ## Measures
 
 To use the the measures module of CasaCore, you first need to define a reference frame:
