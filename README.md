@@ -8,6 +8,7 @@ CasaCore is currently an unregistered package. Therefore, to get started using C
 ```julia
 Pkg.clone("https://github.com/mweastwood/CasaCore.jl.git")
 Pkg.build("CasaCore")
+Pkg.test("CasaCore")
 using CasaCore
 ```
 The build process will attempt to download, build, and install [CasaCore](https://code.google.com/p/casacore/) if it does not already exist on your system.
