@@ -1,6 +1,7 @@
 # CasaCore
 
 [![Build Status](https://travis-ci.org/mweastwood/CasaCore.jl.svg?branch=master)](https://travis-ci.org/mweastwood/CasaCore.jl)
+[![Coverage Status](https://img.shields.io/coveralls/mweastwood/CasaCore.jl.svg)](https://coveralls.io/r/mweastwood/CasaCore.jl?branch=master)
 
 ## Getting Started
 
