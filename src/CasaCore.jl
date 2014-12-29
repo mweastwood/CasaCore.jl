@@ -1,43 +1,41 @@
 module CasaCore
 
-# Tables
-export Table
-export numRows, numColumns, numKeywords
-export addRows!, removeRows!
-export addScalarColumn!, addArrayColumn!, removeColumn!, checkColumnExists
-export getColumn, getColumn!, putColumn!
-export getKeyword, putKeyword!
+module Private
+    # Do not depend on this submodule!
+    export libcasacorewrapper
+    const libcasacorewrapper = joinpath(Pkg.dir("CasaCore"),"deps/usr/lib/libcasacorewrapper.so")
+    isfile(libcasacorewrapper) || error("Run Pkg.build(\"CasaCore\")")
 
-# Measurement Sets
-export MeasurementSet
-export getData,  getModelData,  getCorrectedData
-export putData!, putModelData!, putCorrectedData!
-export getAntenna1,  getAntenna2
-export putAntenna1!, putAntenna2!
-export getUVW,  getFreq,  getTime
-export putUVW!, putFreq!, putTime!
-export checkImagingColumnsExist
+    export type2str, str2type, type2enum, enum2type
+    include("conversions.jl")
 
-# Quanta
-export Quantity, @q_str
+    export RecordField
+    export RecordDesc, addfield!
+    export Record, nfields
+    include("containers.jl")
+end
 
-# Measures
-export ReferenceFrame
-export set!
-export Measure, Epoch, Direction, Position
-export measure, observatory
+module Tables
+    export Table
+    export numrows, numcolumns, numkeywords
+    export @kw_str
 
-const libcasacorewrapper = joinpath(Pkg.dir("CasaCore"),"deps/usr/lib/libcasacorewrapper.so")
-isfile(libcasacorewrapper) || error("Run Pkg.build(\"CasaCore\")")
+    importall ..Private
+    include("tables.jl")
+end
 
-import Base: show
+module Measures
+    export Quantity, @q_str
 
-include("conversions.jl")
-include("containers.jl")
-include("tables.jl")
-include("measurementsets.jl")
-include("quanta.jl")
-include("measures.jl")
+    export ReferenceFrame
+    export Measure, Epoch, Direction, Position
+    export set!, measure
+
+    importall ..Private
+    import Base: show, convert
+    include("quanta.jl")
+    include("measures.jl")
+end
 
 end
 

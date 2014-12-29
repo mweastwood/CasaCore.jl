@@ -1,4 +1,3 @@
-immutable TpEnum{N}; end
 const TpBool          =  0
 const TpChar          =  1
 const TpUChar         =  2
@@ -32,31 +31,20 @@ const TpInt64         = 29
 const TpArrayInt64    = 30
 const TpNumberOfTypes = 31
 
-@doc """
-Map type strings to enumerate values
-""" ->
-const str2enum = Dict{UTF8String,Int}("bool"    => TpBool,
-                                      "int"     => TpInt,
-                                      "float"   => TpFloat,
-                                      "double"  => TpDouble,
-                                      "complex" => TpComplex,
-                                      "string"  => TpString)
+const type2str = Dict{Type,ASCIIString}()
+const str2type = Dict{ASCIIString,Type}()
+const type2enum = Dict{Type,Int}()
+const enum2type = Dict{Int,Type}()
 
-@doc """
-Map type strings to Julia types.
-""" ->
-const str2type = Dict{UTF8String,Type}("bool"    => Bool,
-                                       "int"     => Cint,
-                                       "float"   => Cfloat,
-                                       "double"  => Cdouble,
-                                       "complex" => Complex{Cfloat})
-
-@doc """
-Map Julia types to Julia enumerate values.
-""" ->
-const type2enum = Dict{Type,Int}(Bool            => TpBool,
-                                 Cint            => TpInt,
-                                 Cfloat          => TpFloat,
-                                 Cdouble         => TpDouble,
-                                 Complex{Cfloat} => TpComplex)
+for (T,str,enum) in ((Bool,"bool",TpBool),
+                     (Int32,"int",TpInt),
+                     (Float32,"float",TpFloat),
+                     (Float64,"double",TpDouble),
+                     (Complex64,"complex",TpComplex),
+                     (ASCIIString,"string",TpString))
+    type2str[T] = str
+    str2type[str] = T
+    type2enum[T] = enum
+    enum2type[enum] = T
+end
 

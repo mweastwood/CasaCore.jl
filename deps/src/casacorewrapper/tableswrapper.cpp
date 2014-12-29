@@ -77,8 +77,8 @@ extern "C" {
     bool isReadable(TableProxy const* t) {return t->isReadable();}
     bool isWritable(TableProxy const* t) {return t->isWritable();}
 
-    int numRows(TableProxy* t) {return t->nrows();}
-    int numColumns(TableProxy* t) {return t->ncolumns();}
+    int numrows(TableProxy* t) {return t->nrows();}
+    int numcolumns(TableProxy* t) {return t->ncolumns();}
 
     void addRow(TableProxy* t, int nrows) {t->addRow(nrows);}
 
@@ -90,7 +90,7 @@ extern "C" {
 
     bool columnExists(TableProxy* t,char* name) {
         Vector<String> colnames = t->columnNames();
-        for (int i = 0; i < numColumns(t); ++i) {
+        for (int i = 0; i < numcolumns(t); ++i) {
             if (colnames[i].compare(name) == 0) return true;
         }
         return false;
@@ -134,9 +134,14 @@ extern "C" {
         t->removeColumns(column);
     }
 
-    int numKeywords(TableProxy* t) {
+    int numkeywords(TableProxy* t) {
         Record record = t->getKeywordSet(String());
         return record.nfields();
+    }
+
+    int getKeywordType(TableProxy* t, char* keyword) {
+        ValueHolder value = t->getKeyword(String(),keyword,-1);
+        return value.dataType();
     }
 
     char const* getKeyword_string(TableProxy* t, char* keyword) {
@@ -154,7 +159,7 @@ extern "C" {
     void getColumnShape(TableProxy* t, char* column, int* output, size_t outputlength) {
         if (t->isScalarColumn(String(column))) {
             if (outputlength > 1) {
-                output[0] = numRows(t);
+                output[0] = numrows(t);
                 output[1] = -1;
             }
         }
@@ -169,7 +174,7 @@ extern "C" {
                 output[i] = shape[i];
             }
             if (outputlength > ndim+1) {
-                output[ndim]   = numRows(t);
+                output[ndim]   = numrows(t);
                 output[ndim+1] = -1;
             }
         }

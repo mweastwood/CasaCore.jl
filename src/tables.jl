@@ -45,7 +45,7 @@ for f in (:isWritable,:isReadable)
     end
 end
 
-for f in (:numRows,:numColumns,:numKeywords)
+for f in (:numrows,:numcolumns,:numkeywords)
     @eval function $f(table::Table)
         ccall(($(string(f)),libcasacorewrapper),Cint,(Ptr{Void},),table.ptr)
     end
@@ -54,17 +54,42 @@ end
 ################################################################################
 # Keyword Operations
 
-function getKeyword(table::Table,keyword::ASCIIString,::Type{ASCIIString})
+immutable Keyword
+    name::ASCIIString
+end
+
+macro kw_str(string)
+    quote
+        Keyword($string)
+    end
+end
+
+getindex(table::Table,keyword::Keyword) = getKeyword(table,keyword.name)
+setindex!(table::Table,value,keyword::Keyword) = putKeyword!(table,keyword.name,value)
+
+function getKeywordType(table::Table,name::ASCIIString)
+    output = ccall(("getKeywordType",libcasacorewrapper),
+                   Cint,(Ptr{Void},Ptr{Cchar}),
+                   table.ptr,name)
+    enum2type[output]
+end
+
+function getKeyword(table::Table,name::ASCIIString)
+    T = getKeywordType(table,name)
+    getKeyword(table,name,T)
+end
+
+function getKeyword(table::Table,name::ASCIIString,::Type{ASCIIString})
     output = ccall(("getKeyword_string",libcasacorewrapper),
                    Ptr{Cchar},(Ptr{Void},Ptr{Cchar}),
-                   table.ptr,keyword)
+                   table.ptr,name)
     bytestring(output)::ASCIIString
 end
 
-function putKeyword!(table::Table,keyword::ASCIIString,keywordvalue::ASCIIString)
+function putKeyword!(table::Table,name::ASCIIString,value::ASCIIString)
     ccall(("putKeyword_string",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
-          table.ptr,keyword,keywordvalue)
+          table.ptr,name,value)
 end
 
 ################################################################################
@@ -89,39 +114,42 @@ end
 ################################################################################
 # Column Operations
 
+getindex(table::Table,column::ASCIIString) = getColumn(table,column)
+setindex!(table::Table,value,column::ASCIIString) = putColumn!(table,column,value)
+
 for typestr in ("int","float","double","complex")
     T = str2type[typestr]
     cfunc_addscalarcolumn = "addScalarColumn_$typestr"
     cfunc_addarraycolumn = "addArrayColumn_$typestr"
 
-    @eval function addScalarColumn!(table::Table,name::ASCIIString,::Type{$T})
+    @eval function addScalarColumn!(table::Table,column::ASCIIString,::Type{$T})
         ccall(($cfunc_addscalarcolumn,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar}),
-              table.ptr,name)
+              table.ptr,column)
     end
 
-    @eval function addArrayColumn!{I<:Integer}(table::Table,name::ASCIIString,::Type{$T},dimensions::Vector{I})
+    @eval function addArrayColumn!{I<:Integer}(table::Table,column::ASCIIString,::Type{$T},dimensions::Vector{I})
         dimensions_cint = convert(Vector{Cint},dimensions)
         ccall(($cfunc_addarraycolumn,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar},Ptr{Cint},Csize_t),
-              table.ptr,name,pointer(dimensions_cint),length(dimensions))
+              table.ptr,column,pointer(dimensions_cint),length(dimensions))
     end
 end
 
-function removeColumn!(table::Table,name::ASCIIString)
+function removeColumn!(table::Table,column::ASCIIString)
     ccall(("removeColumn",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar}),
-          table.ptr,name)
+          table.ptr,column)
 end
 
 @doc """
 Returns true if the column exists in the table. Otherwise
 returns false.
 """ ->
-function checkColumnExists(table::Table,name::ASCIIString)
+function checkColumnExists(table::Table,column::ASCIIString)
     ccall(("columnExists",libcasacorewrapper),
           Bool,(Ptr{Void},Ptr{Cchar}),
-          table.ptr,name)
+          table.ptr,column)
 end
 
 function getColumnType(table::Table,column::ASCIIString)
@@ -152,13 +180,6 @@ function getColumnShape(table::Table,column::ASCIIString,buffersize::Int=4)
     shape
 end
 
-@doc """
-Read a column from an open table.
-
-Note that this function is not type stable (the type
-and shape of the column is not known until run time).
-If you need type stability, use getColumn!
-""" ->
 function getColumn(table::Table,column::ASCIIString)
     checkColumnExists(table,column) || error("Column $column does not exist.")
     T = getColumnType(table,column)
@@ -186,10 +207,17 @@ for typestr in ("int","float","double","complex")
     @eval function putColumn!(table::Table,column::ASCIIString,array::Array{$T})
         S = [size(array)...]
         ndim = length(S)
+        # Create the column if it doesn't exist
+        if !checkColumnExists(table,column)
+            if ndim == 1
+                addScalarColumn!(table,column,$T)
+            else
+                addArrayColumn!(table,column,$T,S[1:end-1])
+            end
+        end
         ccall(($cfunc,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar},Ptr{$T},Ptr{Csize_t},Csize_t),
               table.ptr,column,pointer(array),pointer(S),ndim)
-        nothing
     end
 end
 @doc "Write a column to an open table." putColumn!
