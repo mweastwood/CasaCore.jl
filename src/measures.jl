@@ -17,69 +17,77 @@ function referenceframefinalizer(rf::ReferenceFrame)
     ccall(("deleteMeasures",libcasacorewrapper),Void,(Ptr{Void},),rf.ptr)
 end
 
-type Measure{T<:FloatingPoint,S<:String,N}
-    measuretype::S
-    system::S
-    m::NTuple{N,Quantity{T,S}}
+abstract Measure
+
+const measure2string = Dict(:Epoch     => "epoch",
+                            :Direction => "direction",
+                            :Position  => "position")
+
+const measure2dim = Dict(:Epoch     => 1,
+                         :Direction => 2,
+                         :Position  => 3)
+
+const recordtype  = RecordField(ASCIIString,"type")
+const recordrefer = RecordField(ASCIIString,"refer")
+recordm(n) = RecordField(Record,"m$(n-1)")
+
+for T in keys(measure2string)
+    str = measure2string[T]
+    N   = measure2dim[T]
+
+    @eval type $T <: Measure
+        system::ASCIIString
+        m::NTuple{$N,Quantity}
+    end
+
+    @eval $T(system::ASCIIString,m::Quantity...) = $T(system,m)
+
+    @eval function $T(record::Record)
+        system = record[recordrefer]
+        m = Array(Quantity,$N)
+        for i = 1:$N
+            m[i] = Quantity(record[recordm(i)])
+        end
+        $T(system,m...)
+    end
+
+    @eval function Record(measure::$T)
+        description = RecordDesc()
+        addfield!(description,recordtype)
+        addfield!(description,recordrefer)
+        for i = 1:$N
+            addfield!(description,recordm(i))
+        end
+
+        record = Record(description)
+        record[recordtype]  = $str
+        record[recordrefer] = measure.system
+        for i = 1:$N
+            record[recordm(i)] = Record(measure.m[i])
+        end
+        record
+    end
 end
 
-function Measure(record::CasaRecord)
-    measuretype = record["type"]
-    system = record["refer"]
-    m = Quantity[]
-    for i = 1:nfields(record)-2
-        push!(m,Quantity(record["m$(i-1)"]))
-    end
-    Measure(measuretype,system,m...)
-end
-
-Measure(measuretype,system,m...) = Measure(measuretype,system,m)
-Epoch(system,m1) = Measure("epoch",system,(m1,))
-Direction(system,m1,m2) = Measure("direction",system,(m1,m2))
-Position(system,m1,m2,m3) = Measure("position",system,(m1,m2,m3))
-
-function CasaRecord{T,S,N}(measurement::Measure{T,S,N})
-    description = CasaRecordDesc()
-    addField(description,"type", TpString)
-    addField(description,"refer",TpString)
-    for i = 1:N
-        addField(description,"m$(i-1)",TpRecord)
-    end
-    
-    record = CasaRecord(description)
-    record["type"]  = measurement.measuretype
-    record["refer"] = measurement.system
-    for i = 1:N
-        _description = CasaRecordDesc()
-        addField(_description,"value",type2enum[T])
-        addField(_description,"unit", TpString)
-        _record = CasaRecord(_description)
-        _record["value"]  = measurement.m[i].value
-        _record["unit"]   = measurement.m[i].unit
-        record["m$(i-1)"] = _record
-    end
-    record
-end
-
-function set!(rf::ReferenceFrame,measurement::Measure)
-    record = CasaRecord(measurement)
+function set!(rf::ReferenceFrame,measure::Measure)
+    record = Record(measure)
     ccall(("doframe",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Void}),
           rf.ptr,record.ptr)
 end
 
-function measure(rf::ReferenceFrame,newsystem::String,measurement::Measure)
-    record = CasaRecord(measurement)
-    newrecord = CasaRecord(ccall(("measure",libcasacorewrapper),
-                                 Ptr{Void},(Ptr{Void},Ptr{Void},Ptr{Cchar}),
-                                 rf.ptr,record.ptr,newsystem))
-    Measure(newrecord)
+function measure{T<:Measure}(rf::ReferenceFrame,measure::T,newsystem::String)
+    record = Record(measure)
+    newrecord = Record(ccall(("measure",libcasacorewrapper),
+                             Ptr{Void},(Ptr{Void},Ptr{Void},Ptr{Cchar}),
+                             rf.ptr,record.ptr,newsystem))
+    T(newrecord)
 end
 
 function observatory(rf::ReferenceFrame,name::String)
-    record = CasaRecord(ccall(("observatory",libcasacorewrapper),
-                              Ptr{Void},(Ptr{Void},Ptr{Cchar}),
-                              rf.ptr,name))
-    Measure(record)
+    record = Record(ccall(("observatory",libcasacorewrapper),
+                          Ptr{Void},(Ptr{Void},Ptr{Cchar}),
+                          rf.ptr,name))
+    Position(record)
 end
 

@@ -1,9 +1,22 @@
-type Quantity{T<:FloatingPoint,S<:String}
-    value::T
-    unit::S
+type Quantity
+    value::Float64
+    unit::ASCIIString
 end
 
-Quantity(record::CasaRecord) = Quantity(record["value"],record["unit"])
+const recordvalue = RecordField(Float64,"value")
+const recordunit  = RecordField(ASCIIString,"unit")
+Quantity(record::Record) = Quantity(record[recordvalue],record[recordunit])
+
+function Record(quantity::Quantity)
+    description = RecordDesc()
+    addfield!(description,recordvalue)
+    addfield!(description,recordunit)
+
+    record = Record(description)
+    record[recordvalue] = quantity.value
+    record[recordunit]  = quantity.unit
+    record
+end
 
 ==(q1::Quantity,q2::Quantity) = (q1.value == q2.value) && (q1.unit == q2.unit)
 

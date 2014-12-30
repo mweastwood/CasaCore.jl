@@ -1,113 +1,111 @@
+immutable RecordField{T}
+    name::ASCIIString
+end
+RecordField(T::Type,name::ASCIIString) = RecordField{T}(name)
+
 @doc """
 Pointer to a casa::RecordDesc object.
 """ ->
-type CasaRecordDesc
+type RecordDesc
     ptr::Ptr{Void}
-    function CasaRecordDesc(ptr::Ptr{Void})
+    function RecordDesc(ptr::Ptr{Void})
         recorddesc = new(ptr)
         finalizer(recorddesc,recorddescfinalizer)
         recorddesc
     end
 end
 
-CasaRecordDesc() = CasaRecordDesc(ccall(("createRecordDesc",libcasacorewrapper),Ptr{Void},()))
-function recorddescfinalizer(recorddesc::CasaRecordDesc)
+RecordDesc() = RecordDesc(ccall(("createRecordDesc",libcasacorewrapper),Ptr{Void},()))
+function recorddescfinalizer(recorddesc::RecordDesc)
     ccall(("deleteRecordDesc",libcasacorewrapper),Void,(Ptr{Void},),recorddesc.ptr)
 end
 
-function addField(recorddesc::CasaRecordDesc,field::String,fieldtype)
+function addfield!{T}(recorddesc::RecordDesc,field::RecordField{T})
+    tpenum = type2enum[T]
     ccall(("addRecordDescField",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Cint),
-          recorddesc.ptr,field,fieldtype)
+          recorddesc.ptr,field.name,tpenum)
 end
 
 @doc """
 Pointer to a casa::Record object.
 """ ->
-type CasaRecord
+type Record
     ptr::Ptr{Void}
-    function CasaRecord(ptr::Ptr{Void})
+    function Record(ptr::Ptr{Void})
         record = new(ptr)
         finalizer(record,recordfinalizer)
         record
     end
 end
 
-function CasaRecord(recorddesc::CasaRecordDesc)
-    CasaRecord(ccall(("createRecord",libcasacorewrapper),Ptr{Void},(Ptr{Void},),recorddesc.ptr))
+function Record(recorddesc::RecordDesc)
+    Record(ccall(("createRecord",libcasacorewrapper),Ptr{Void},(Ptr{Void},),recorddesc.ptr))
 end
-function recordfinalizer(record::CasaRecord)
+function recordfinalizer(record::Record)
     ccall(("deleteRecord",libcasacorewrapper),Void,(Ptr{Void},),record.ptr)
 end
 
-function nfields(record::CasaRecord)
+# Add Record to the type dictionairy.
+# (this can only be done after the type is defined)
+type2enum[Record] = TpRecord
+
+function nfields(record::Record)
     ccall(("nfields",libcasacorewrapper),
           Cuint,(Ptr{Void},),
           record.ptr)
 end
 
-setindex!(record::CasaRecord,value,field::String) = putField(record,field,value)
-getindex (record::CasaRecord,      field::String) = getField(record,field)
-
-@doc """
-Put the given field value into the casa::Record object.
-""" ->
-function putField(record::CasaRecord,field::String,value)
-    putField_helper(record,field,value)
-end
-
-@doc """
-Get the field value from the casa::Record object.
-""" ->
-function getField(record::CasaRecord,field::String)
-    N = Int(ccall(("fieldType",libcasacorewrapper),
-                  Cint,(Ptr{Void},Ptr{Cchar}),
-                  record.ptr,field))
-    getField_helper(TpEnum{N}(),record,field)
-end
+setindex!(record::Record,value,field::RecordField) = putfield!(record,field,value)
+getindex (record::Record,      field::RecordField) = getfield(record,field)
 
 for typestr in ("float","double")
-    T  = str2type[typestr]
-    Tp = str2enum[typestr]
+    T = str2type[typestr]
+    tpenum = type2enum[T]
     putcfunc = "putRecordField_$typestr"
     getcfunc = "getRecordField_$typestr"
 
-    @eval function putField_helper(record::CasaRecord,field::String,value::$T)
+    @eval function putfield!(record::Record,field::RecordField{$T},value::$T)
         ccall(($putcfunc,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar},$T),
-              record.ptr,field,value)
+              record.ptr,field.name,value)
     end
 
-    @eval function getField_helper(::TpEnum{$Tp},record::CasaRecord,field::String)
+    @eval function getfield(record::Record,field::RecordField{$T})
         output = ccall(($getcfunc,libcasacorewrapper),
                        $T,(Ptr{Void},Ptr{Cchar}),
-                       record.ptr,field)
+                       record.ptr,field.name)
     end
 end
 
-function putField_helper(record::CasaRecord,field::ASCIIString,value::ASCIIString)
+@doc "Put the given field value into the casa::Record object." putfield!
+@doc "Get the field value from the casa::Record object." getfield
+
+# Deal with special cases (strings and sub-records)
+
+function putfield!(record::Record,field::RecordField{ASCIIString},value::ASCIIString)
     ccall(("putRecordField_string",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
-          record.ptr,field,value)
+          record.ptr,field.name,value)
 end
 
-function getField_helper(::TpEnum{TpString},record::CasaRecord,field::ASCIIString)
+function getfield(record::Record,field::RecordField{ASCIIString})
     output = ccall(("getRecordField_string",libcasacorewrapper),
                    Ptr{Cchar},(Ptr{Void},Ptr{Cchar}),
-                   record.ptr,field)
+                   record.ptr,field.name)
     bytestring(output)
 end
 
-function putField_helper(record::CasaRecord,field::ASCIIString,value::CasaRecord)
+function putfield!(record::Record,field::RecordField{Record},value::Record)
     ccall(("putRecordField_record",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Ptr{Void}),
-          record.ptr,field,value.ptr)
+          record.ptr,field.name,value.ptr)
 end
 
-function getField_helper(::TpEnum{TpRecord},record::CasaRecord,field::String)
+function getfield(record::Record,field::RecordField{Record})
     output = ccall(("getRecordField_record",libcasacorewrapper),
                    Ptr{Void},(Ptr{Void},Ptr{Cchar}),
-                   record.ptr,field)
-    CasaRecord(output)
+                   record.ptr,field.name)
+    Record(output)
 end
 

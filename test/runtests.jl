@@ -1,4 +1,5 @@
-using CasaCore
+using CasaCore.Tables
+using CasaCore.Measures
 using Base.Test
 
 function test_approx_eq(q1::Quantity,q2::Quantity,tol = 5eps(Float64))
@@ -6,8 +7,7 @@ function test_approx_eq(q1::Quantity,q2::Quantity,tol = 5eps(Float64))
     @test q1.unit == q2.unit
 end
 
-function test_approx_eq(m1::Measure,m2::Measure)
-    @test m1.measuretype == m2.measuretype
+function test_approx_eq{T<:Measure}(m1::T,m2::T)
     @test m1.system == m2.system
     for (q1,q2) in zip(m1.m,m2.m)
         test_approx_eq(q1,q2)
@@ -54,14 +54,14 @@ end
 
 let
     frame = ReferenceFrame()
-    position = observatory(frame,"OVRO_MMA")
+    position = Measures.observatory(frame,"OVRO_MMA")
     time = Epoch("UTC",q"4.905577293531662e9s")
     set!(frame,position)
     set!(frame,time)
 
     dir1  = Direction("AZEL",q"0.0rad",q"1.0rad")
-    j2000 = measure(frame,"J2000",dir1)
-    dir2  = measure(frame,"AZEL",j2000)
+    j2000 = measure(frame,dir1,"J2000")
+    dir2  = measure(frame,j2000,"AZEL")
 
     test_approx_eq(dir1,dir2)
 end
@@ -72,115 +72,66 @@ let
     name  = tempname()*".ms"
     @show name
     table = Table(name)
-    addScalarColumn!(table,"ANTENNA1",Cint)
-    addScalarColumn!(table,"ANTENNA2",Cint)
-    addArrayColumn!(table,"UVW",Cdouble,[3])
-    addScalarColumn!(table,"TIME",Cdouble)
-    addArrayColumn!(table,"DATA",Complex64,[4,109])
-    addArrayColumn!(table,"MODEL_DATA",Complex64,[4,109])
-    addArrayColumn!(table,"CORRECTED_DATA",Complex64,[4,109])
-    addRows!(table,10)
 
-    @test     numRows(table) == 10
-    @test  numColumns(table) ==  7
-    @test numKeywords(table) ==  0
-    removeRows!(table,[6:10])
-    @test     numRows(table) ==  5
-    @test  numColumns(table) ==  7
-    @test numKeywords(table) ==  0
+    Tables.addRows!(table,10)
+    @test numrows(table) == 10
+    Tables.removeRows!(table,[6:10])
+    @test numrows(table) ==  5
 
-    @test checkColumnExists(table,"FABRICATED_DATA") == false
-    @test_throws ErrorException getColumn(table,"FABRICATED_DATA")
+    ant1 = Array(Int32,5)
+    ant2 = Array(Int32,5)
+    uvw  = Array(Float64,3,5)
+    time = Array(Float64,5)
+    data      = Array(Complex64,4,109,5)
+    model     = Array(Complex64,4,109,5)
+    corrected = Array(Complex64,4,109,5)
+    freq = Array(Float64,109,1)
 
-    ant1 = Array(Cint,5)
-    ant2 = Array(Cint,5)
-    rand!(ant1); rand!(ant2)
-    putColumn!(table,"ANTENNA1",ant1)
-    putColumn!(table,"ANTENNA2",ant2)
-    @test getColumn(table,"ANTENNA1") == ant1
-    @test getColumn(table,"ANTENNA2") == ant2
-
-    uvw = Array(Cdouble,3,5)
+    rand!(ant1)
+    rand!(ant2)
     rand!(uvw)
-    putColumn!(table,"UVW",uvw)
-    @test getColumn(table,"UVW") == uvw
-
-    time = Array(Cdouble,5)
     rand!(time)
-    putColumn!(table,"TIME",time)
-    @test getColumn(table,"TIME") == time
+    rand!(data)
+    rand!(model)
+    rand!(corrected)
+    rand!(freq)
 
-    data      = Array(Complex{Cfloat},4,109,5)
-    model     = Array(Complex{Cfloat},4,109,5)
-    corrected = Array(Complex{Cfloat},4,109,5)
-    rand!(data); rand!(model); rand!(corrected)
-    putColumn!(table,"DATA",data)
-    putColumn!(table,"MODEL_DATA",model)
-    putColumn!(table,"CORRECTED_DATA",corrected)
-    @test getColumn(table,"DATA") == data
-    @test getColumn(table,"MODEL_DATA") == model
-    @test getColumn(table,"CORRECTED_DATA") == corrected
+    table["ANTENNA1"] = ant1
+    table["ANTENNA2"] = ant2
+    table["UVW"]      = uvw
+    table["TIME"]     = time
+    table["DATA"]           = data
+    table["MODEL_DATA"]     = model
+    table["CORRECTED_DATA"] = corrected
+
+    @test numcolumns(table) == 7
+    @test Tables.checkColumnExists(table,"ANTENNA1") == true
+    @test Tables.checkColumnExists(table,"ANTENNA2") == true
+    @test Tables.checkColumnExists(table,"UVW")      == true
+    @test Tables.checkColumnExists(table,"TIME")     == true
+    @test Tables.checkColumnExists(table,"DATA")            == true
+    @test Tables.checkColumnExists(table,"MODEL_DATA")      == true
+    @test Tables.checkColumnExists(table,"CORRECTED_DATA")  == true
+    @test Tables.checkColumnExists(table,"FABRICATED_DATA") == false
+
+    @test table["ANTENNA1"] == ant1
+    @test table["ANTENNA2"] == ant2
+    @test table["UVW"]      == uvw
+    @test table["TIME"]     == time
+    @test table["DATA"]           == data
+    @test table["MODEL_DATA"]     == model
+    @test table["CORRECTED_DATA"] == corrected
+    @test_throws ErrorException table["FABRICATED_DATA"]
 
     subtable = Table("$name/SPECTRAL_WINDOW")
-    addArrayColumn!(subtable,"CHAN_FREQ",Cdouble,[109])
-    addRows!(subtable,1)
-    freq = Array(Cdouble,109,1)
-    rand!(freq)
-    putColumn!(subtable,"CHAN_FREQ",freq)
+    Tables.addRows!(subtable,1)
+    subtable["CHAN_FREQ"] = freq
+    @test subtable["CHAN_FREQ"] == freq
     finalize(subtable)
-    putKeyword!(table,"SPECTRAL_WINDOW","Table: $name/SPECTRAL_WINDOW")
-    @test numKeywords(table) ==  1
 
-    # Close the table and open it as a MeasurementSet
-    finalize(table)
-    ms = MeasurementSet(name)
-
-    @test getAntenna1(ms) == ant1+1
-    @test getAntenna2(ms) == ant2+1
-    rand!(ant1); rand!(ant2)
-    putAntenna1!(ms,ant1)
-    putAntenna2!(ms,ant2)
-    @test getAntenna1(ms) == ant1
-    @test getAntenna2(ms) == ant2
-
-    u,v,w = getUVW(ms)
-    @test u == squeeze(uvw[1,:],1)
-    @test v == squeeze(uvw[2,:],1)
-    @test w == squeeze(uvw[3,:],1)
-    rand!(u); rand!(v); rand!(w)
-    putUVW!(ms,u,v,w)
-    u_,v_,w_ = getUVW(ms)
-    @test u == u_
-    @test v == v_
-    @test w == w_
-
-    @test time == getTime(ms)
-    rand!(time)
-    putTime!(ms,time)
-    @test time == getTime(ms)
-
-    @test getFreq(ms) == squeeze(freq,2)
-    rand!(freq)
-    putFreq!(ms,squeeze(freq,2))
-    @test getFreq(ms) == squeeze(freq,2)
-
-    # Test getData/getModelData/getCorrectedData twice
-    # to make sure the cache is being used properly.
-    @test getData(ms) == data
-    @test getData(ms) == data
-    @test getModelData(ms) == model
-    @test getModelData(ms) == model
-    @test getCorrectedData(ms) == corrected
-    @test getCorrectedData(ms) == corrected
-    rand!(data); rand!(model); rand!(corrected)
-    putData!(ms,data)
-    putModelData!(ms,model)
-    putCorrectedData!(ms,corrected)
-    @test getData(ms) == data
-    @test getData(ms) == data
-    @test getModelData(ms) == model
-    @test getModelData(ms) == model
-    @test getCorrectedData(ms) == corrected
-    @test getCorrectedData(ms) == corrected
+    @test numkeywords(table) == 0
+    table[kw"SPECTRAL_WINDOW"] = "Table: $name/SPECTRAL_WINDOW"
+    @test numkeywords(table) == 1
+    @test table[kw"SPECTRAL_WINDOW"] == "Table: $name/SPECTRAL_WINDOW"
 end
 

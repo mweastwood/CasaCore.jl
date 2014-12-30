@@ -10,12 +10,14 @@ CasaCore is currently an unregistered package. Therefore, to get started using C
 Pkg.clone("https://github.com/mweastwood/CasaCore.jl.git")
 Pkg.build("CasaCore")
 Pkg.test("CasaCore")
-using CasaCore
 ```
 The build process will attempt to download, build, and install [CasaCore](https://code.google.com/p/casacore/) if it does not already exist on your system.
 
 ## Measures
 
+```julia
+using CasaCore.Measures
+```
 To use the the measures module of CasaCore, you first need to define a reference frame:
 ```julia
 frame = ReferenceFrame()
@@ -27,46 +29,49 @@ set!(frame,time)
 After the reference frame is defined, you can convert between various coordinate systems:
 ```julia
 dir   = Direction("AZEL",q"0.0rad",q"1.0rad")
-j2000 = measure(frame,"J2000",dir)
+j2000 = measure(frame,dir,"J2000")
 ```
 
 ## Tables
 
+```julia
+using CasaCore.Tables
+```
 Interacting with CasaCore tables requires you to first open the table:
 ```julia
 table = Table("/path/to/table")
 ```
-Then you can add/remove/write to/read from columns and rows of the table as follows:
+Then you can read and write columns of the table as follows:
 ```julia
-addScalarColumn!(table,"ANTENNA1",Int32)
-addArrayColumn!(table,"MODEL_DATA",Complex64,[4,109])
-addRows!(table,10)
-removeRows!(table,[6:10])
+data = table["DATA"] # type-unstable!
 modeldata = function_to_gen_model_visibilities()
-putColumn!(table,"MODEL_DATA",modeldata)
-modeldata = getColumn(table,"MODEL_DATA") # type-unstable!
+table["MODEL_DATA"] = modeldata
 ```
-Note that `getColumn` is necessarily type-unstable. That is, the return type of `getColumn` cannot be inferred from the types of the arguments. If you have prior knowledge of what is stored in the column, you can mitigate this issue with one of two solutions:
-
-1. Adding a type annotation
-2. Using `getColumn!`
-
-For example, write
+Note that reading a column is necessarily type-unstable. That is, the element type and shape of the column cannot be inferred from the types of the arguments. If you have prior knowledge of what is stored in the column, you can mitigate this issue by adding a type annotation. For example:
 ```julia
-modeldata = getColumn(table,"MODEL_DATA")::Array{Complex64,3}
-# or
-getColumn!(modeldata,table,"MODEL_DATA")
+data = table["DATA"]::Array{Complex64,3}
 ```
-
-### Measurement Sets
-
-A convenience interface for interacting with [CASA Measurement Sets](http://casa.nrao.edu/Memos/229.html) can be used by using the `MeasurementSet` type:
+Alternatively, you can separate the computational kernel into a separate function. For example:
 ```julia
-ms = MeasurementSet("/path/to/measurementset.ms")
-data = getData(ms)
-modeldata = function_to_gen_model_visibilities()
-putModelData!(ms,modeldata)
+function slow_func()
+    data = table["DATA"]
+    for i = 1:length(data)
+        data[i] = 2data[i]
+    end
+end
+
+function fast_func()
+    data = table["DATA"]
+    kernel!(data)
+end
+
+function kernel!(data)
+    for i = 1:length(data)
+        data[i] = 2data[i]
+    end
+end
 ```
+For more information on why this works, see the [Performance Tips](http://julia.readthedocs.org/en/latest/manual/performance-tips/#separate-kernel-functions) section of the manual.
 
 ## Development
 
