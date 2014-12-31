@@ -43,16 +43,22 @@ table = Table("/path/to/table")
 ```
 Then you can read and write columns of the table as follows:
 ```julia
-data = table["DATA"] # type-unstable!
+data = table["DATA"] # type-unstable (see below)
 modeldata = function_to_gen_model_visibilities()
 table["MODEL_DATA"] = modeldata
 ```
 You can read and write cells in a similar manner:
 ```julia
 row = 1 # Note that rows are numbered starting from 1
-cell = table["DATA",row] # type-unstable!
+cell = table["DATA",row] # type-unstable (see below)
 table["MODEL_DATA",row] = newcell
 ```
+Finally, keywords are accessed using the `kw"..."` string macro. For example:
+```julia
+spw = table[kw"SPECTRAL_WINDOW"]
+table[kw"SPECTRAL_WINDOW"] = newspw
+```
+
 Note that reading a column (or a cell) is necessarily type-unstable. That is, the element type and shape of the column cannot be inferred from the types of the arguments. If you have prior knowledge of what is stored in the column, you can mitigate this issue by adding a type annotation. For example:
 ```julia
 data = table["DATA"]::Array{Complex64,3}
