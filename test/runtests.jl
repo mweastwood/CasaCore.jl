@@ -132,6 +132,32 @@ let
     @test table["CORRECTED_DATA",1] == corrected[:,:,1]
     @test_throws ErrorException table["FABRICATED_DATA",1]
 
+    rand!(ant1)
+    rand!(ant2)
+    rand!(uvw)
+    rand!(time)
+    rand!(data)
+    rand!(model)
+    rand!(corrected)
+    rand!(freq)
+
+    table["ANTENNA1",1] = ant1[1]
+    table["ANTENNA2",1] = ant2[1]
+    table["UVW",1]      = uvw[:,1]
+    table["TIME",1]     = time[1]
+    table["DATA",1]           = data[:,:,1]
+    table["MODEL_DATA",1]     = model[:,:,1]
+    table["CORRECTED_DATA",1] = corrected[:,:,1]
+
+    @test table["ANTENNA1",1] == ant1[1]
+    @test table["ANTENNA2",1] == ant2[1]
+    @test table["UVW",1]      == uvw[:,1]
+    @test table["TIME",1]     == time[1]
+    @test table["DATA",1]           == data[:,:,1]
+    @test table["MODEL_DATA",1]     == model[:,:,1]
+    @test table["CORRECTED_DATA",1] == corrected[:,:,1]
+    @test_throws ErrorException table["FABRICATED_DATA",1]
+
     subtable = Table("$name/SPECTRAL_WINDOW")
     Tables.addRows!(subtable,1)
     subtable["CHAN_FREQ"] = freq
