@@ -23,8 +23,7 @@ void addArrayColumn(TableProxy* t, char* name, int* dim, size_t ndim) {
 }
 
 template <class T>
-void getColumn(TableProxy* t, char* column, T* output, size_t length) {
-    ValueHolder value = t->getColumn(String(column),0,-1,1);
+void outputValueHolder(ValueHolder& value, T* output, size_t length) {
     Array<T> arr(IPosition(1,length));
     value.getValue(arr);
     int idx = 0;
@@ -32,6 +31,12 @@ void getColumn(TableProxy* t, char* column, T* output, size_t length) {
         output[idx] = *it;
         ++idx;
     }
+}
+
+template <class T>
+void getColumn(TableProxy* t, char* column, T* output, size_t length) {
+    ValueHolder value = t->getColumn(column,0,-1,1);
+    outputValueHolder<T>(value,output,length);
 }
 
 template <class T>
@@ -47,6 +52,12 @@ void putColumn(TableProxy* t, char* column, T* input, size_t* shape, size_t ndim
     }
     ValueHolder value(arr);
     t->putColumn(String(column),0,-1,1,value);
+}
+
+template <class T>
+void getCell(TableProxy* t, char* column, int row, T* output, size_t length) {
+    ValueHolder value = t->getCell(column,row);
+    outputValueHolder<T>(value,output,length);
 }
 
 template <class T>
@@ -220,6 +231,26 @@ extern "C" {
                            std::complex<float>* input,
                            size_t* shape, size_t ndim) {
         putColumn<Complex>(t,column,input,shape,ndim);
+    }
+
+    void getCell_int(TableProxy* t, char* column, int row,
+                     int* output, size_t length) {
+        getCell<Int>(t,column,row,output,length);
+    }
+
+    void getCell_float(TableProxy* t, char* column, int row,
+                       float* output, size_t length) {
+        getCell<Float>(t,column,row,output,length);
+    }
+
+    void getCell_double(TableProxy* t, char* column, int row,
+                        double* output, size_t length) {
+        getCell<Double>(t,column,row,output,length);
+    }
+
+    void getCell_complex(TableProxy* t, char* column, int row,
+                         std::complex<float>* output, size_t length) {
+        getCell<Complex>(t,column,row,output,length);
     }
 }
 
