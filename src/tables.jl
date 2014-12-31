@@ -15,14 +15,16 @@ type Table
 end
 
 function Table(name::ASCIIString)
-    if isdir(name)
+    # Remove the "Table: " prefix, if it exists
+    strippedname = replace(name,"Table: ","",1)
+    if isdir(strippedname)
         table = Table(ccall(("newTable_existing",libcasacorewrapper),
                             Ptr{Void},(Ptr{Cchar},Cint),
-                            name,Table_TableOption_Update))
+                            strippedname,Table_TableOption_Update))
     else
         table = Table(ccall(("newTable",libcasacorewrapper),
                             Ptr{Void},(Ptr{Cchar},Ptr{Cchar},Ptr{Cchar},Cint),
-                            name,"local","plain",0))
+                            strippedname,"local","plain",0))
     end
     finalizer(table,close)
     table
