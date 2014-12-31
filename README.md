@@ -47,7 +47,13 @@ data = table["DATA"] # type-unstable!
 modeldata = function_to_gen_model_visibilities()
 table["MODEL_DATA"] = modeldata
 ```
-Note that reading a column is necessarily type-unstable. That is, the element type and shape of the column cannot be inferred from the types of the arguments. If you have prior knowledge of what is stored in the column, you can mitigate this issue by adding a type annotation. For example:
+You can read and write cells in a similar manner:
+```julia
+row = 1 # Note that rows are numbered starting from 1
+cell = table["DATA",row] # type-unstable!
+table["MODEL_DATA",row] = newcell
+```
+Note that reading a column (or a cell) is necessarily type-unstable. That is, the element type and shape of the column cannot be inferred from the types of the arguments. If you have prior knowledge of what is stored in the column, you can mitigate this issue by adding a type annotation. For example:
 ```julia
 data = table["DATA"]::Array{Complex64,3}
 ```

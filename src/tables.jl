@@ -191,6 +191,7 @@ end
 
 for typestr in ("int","float","double","complex")
     T = str2type[typestr]
+
     cfunc = "getColumn_$typestr"
     @eval function getColumn!(output::Array{$T},table::Table,column::ASCIIString)
         ccall(($cfunc,libcasacorewrapper),
@@ -198,11 +199,7 @@ for typestr in ("int","float","double","complex")
               table.ptr,column,pointer(output),length(output))
         nothing
     end
-end
-@doc "Read a column from an open table." getColumn!
 
-for typestr in ("int","float","double","complex")
-    T = str2type[typestr]
     cfunc = "putColumn_$typestr"
     @eval function putColumn!(table::Table,column::ASCIIString,array::Array{$T})
         S = [size(array)...]
@@ -220,5 +217,59 @@ for typestr in ("int","float","double","complex")
               table.ptr,column,pointer(array),pointer(S),ndim)
     end
 end
+
+@doc "Read a column from an open table." getColumn!
 @doc "Write a column to an open table." putColumn!
+
+################################################################################
+# Cell Operations
+
+getindex(table::Table,column::ASCIIString,row::Int) = getCell(table,column,row)
+setindex!(table::Table,value,column::ASCIIString,row::Int) = putCell!(table,column,row,value)
+
+function getCell(table::Table,column::ASCIIString,row::Int)
+    checkColumnExists(table,column) || error("Column $column does not exist.")
+    T = getColumnType(table,column)
+    S = getColumnShape(table,column)
+    cell = Array(T,S[1:end-1]...)
+    getCell!(cell,table,column,row)
+    if length(S) == 1
+        # Scalar columns have scalar cells
+        # (don't return 0-dim arrays)
+        return cell[1]
+    end
+    cell
+end
+
+for typestr in ("int","float","double","complex")
+    T = str2type[typestr]
+    cfunc = "getCell_$typestr"
+    @eval function getCell!(output::Array{$T},table::Table,
+                            column::ASCIIString,row::Int)
+        # Subtract 1 from the row number to convert to a 0-based indexing scheme
+        ccall(($cfunc,libcasacorewrapper),
+              Void,(Ptr{Void},Ptr{Cchar},Cint,Ptr{$T},Csize_t),
+              table.ptr,column,row-1,pointer(output),length(output))
+    end
+
+    cfunc = "putCell_$typestr"
+    @eval function putCell!(table::Table,column::ASCIIString,row::Int,array::Array{$T})
+        checkColumnExists(table,column) || error("Column $column does not exist.")
+        S = [size(array)...]
+        ndim = length(S)
+        # Subtract 1 from the row number to convert to a 0-based indexing scheme
+        ccall(($cfunc,libcasacorewrapper),
+              Void,(Ptr{Void},Ptr{Cchar},Cint,Ptr{$T},Ptr{Csize_t},Csize_t),
+              table.ptr,column,row-1,pointer(array),pointer(S),ndim)
+    end
+
+    cfunc = "putCell_scalar_$typestr"
+    @eval function putCell!(table::Table,column::ASCIIString,row::Int,scalar::$T)
+        checkColumnExists(table,column) || error("Column $column does not exist.")
+        # Subtract 1 from the row number to convert to a 0-based indexing scheme
+        ccall(($cfunc,libcasacorewrapper),
+              Void,(Ptr{Void},Ptr{Cchar},Cint,$T),
+              table.ptr,column,row-1,scalar)
+    end
+end
 

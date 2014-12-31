@@ -23,8 +23,7 @@ void addArrayColumn(TableProxy* t, char* name, int* dim, size_t ndim) {
 }
 
 template <class T>
-void getColumn(TableProxy* t, char* column, T* output, size_t length) {
-    ValueHolder value = t->getColumn(String(column),0,-1,1);
+void outputValueHolder(ValueHolder& value, T* output, size_t length) {
     Array<T> arr(IPosition(1,length));
     value.getValue(arr);
     int idx = 0;
@@ -35,7 +34,7 @@ void getColumn(TableProxy* t, char* column, T* output, size_t length) {
 }
 
 template <class T>
-void putColumn(TableProxy* t, char* column, T* input, size_t* shape, size_t ndim) {
+ValueHolder createValueHolder(T* input, size_t* shape, size_t ndim) {
     IPosition dimensions(ndim);
     for (uint i = 0; i < ndim; ++i)
         dimensions[i] = shape[i];
@@ -45,8 +44,39 @@ void putColumn(TableProxy* t, char* column, T* input, size_t* shape, size_t ndim
         *it = input[idx];
         ++idx;
     }
-    ValueHolder value(arr);
-    t->putColumn(String(column),0,-1,1,value);
+    return ValueHolder(arr);
+}
+
+template <class T>
+void getColumn(TableProxy* t, char* column, T* output, size_t length) {
+    ValueHolder value = t->getColumn(column,0,-1,1);
+    outputValueHolder<T>(value,output,length);
+}
+
+template <class T>
+void putColumn(TableProxy* t, char* column, T* input, size_t* shape, size_t ndim) {
+    ValueHolder value = createValueHolder(input,shape,ndim);
+    t->putColumn(column,0,-1,1,value);
+}
+
+template <class T>
+void getCell(TableProxy* t, char* column, int row, T* output, size_t length) {
+    ValueHolder value = t->getCell(column,row);
+    outputValueHolder<T>(value,output,length);
+}
+
+template <class T>
+void putCell(TableProxy* t, char* column, int row, T* input, size_t* shape, size_t ndim) {
+    ValueHolder value = createValueHolder(input,shape,ndim);
+    Vector<Int> rows(1); rows[0] = row;
+    t->putCell(column,rows,value);
+}
+
+template <class T>
+void putCell_scalar(TableProxy* t, char* column, int row, T input) {
+    ValueHolder value(input);
+    Vector<Int> rows(1); rows[0] = row;
+    t->putCell(column,rows,value);
 }
 
 template <class T>
@@ -220,6 +250,64 @@ extern "C" {
                            std::complex<float>* input,
                            size_t* shape, size_t ndim) {
         putColumn<Complex>(t,column,input,shape,ndim);
+    }
+
+    void getCell_int(TableProxy* t, char* column, int row,
+                     int* output, size_t length) {
+        getCell<Int>(t,column,row,output,length);
+    }
+
+    void getCell_float(TableProxy* t, char* column, int row,
+                       float* output, size_t length) {
+        getCell<Float>(t,column,row,output,length);
+    }
+
+    void getCell_double(TableProxy* t, char* column, int row,
+                        double* output, size_t length) {
+        getCell<Double>(t,column,row,output,length);
+    }
+
+    void getCell_complex(TableProxy* t, char* column, int row,
+                         std::complex<float>* output, size_t length) {
+        getCell<Complex>(t,column,row,output,length);
+    }
+
+    void putCell_int(TableProxy* t, char* column, int row,
+                     int* input, size_t* shape, size_t ndim) {
+        putCell<Int>(t,column,row,input,shape,ndim);
+    }
+
+    void putCell_float(TableProxy* t, char* column, int row,
+                       float* input, size_t* shape, size_t ndim) {
+        putCell<Float>(t,column,row,input,shape,ndim);
+    }
+    
+    void putCell_double(TableProxy* t, char* column, int row,
+                        double* input, size_t* shape, size_t ndim) {
+        putCell<Double>(t,column,row,input,shape,ndim);
+    }
+    
+    void putCell_complex(TableProxy* t, char* column, int row,
+                         std::complex<float>* input,
+                         size_t* shape, size_t ndim) {
+        putCell<Complex>(t,column,row,input,shape,ndim);
+    }
+
+    void putCell_scalar_int(TableProxy* t, char* column, int row, int input) {
+        putCell_scalar<Int>(t,column,row,input);
+    }
+
+    void putCell_scalar_float(TableProxy* t, char* column, int row, float input) {
+        putCell_scalar<Float>(t,column,row,input);
+    }
+
+    void putCell_scalar_double(TableProxy* t, char* column, int row, double input) {
+        putCell_scalar<Double>(t,column,row,input);
+    }
+
+    void putCell_scalar_complex(TableProxy* t, char* column, int row,
+                                std::complex<float> input) {
+        putCell_scalar<Complex>(t,column,row,input);
     }
 }
 
