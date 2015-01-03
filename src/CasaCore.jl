@@ -21,6 +21,7 @@ module Tables
     export @kw_str
 
     importall ..Private
+    import Base: close
     include("tables.jl")
 end
 
