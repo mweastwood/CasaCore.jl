@@ -5,9 +5,9 @@
 
 ## Getting Started
 
-CasaCore is currently an unregistered package. Therefore, to get started using CasaCore, run:
+To get started using CasaCore, run:
 ```julia
-Pkg.clone("https://github.com/mweastwood/CasaCore.jl.git")
+Pkg.add("CasaCore")
 Pkg.build("CasaCore")
 Pkg.test("CasaCore")
 ```
