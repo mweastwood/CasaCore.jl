@@ -42,43 +42,41 @@ const measure2dim = Dict(:Epoch     => 1,
                          :Direction => 2,
                          :Position  => 3)
 
-const recordtype  = RecordField(ASCIIString,"type")
-const recordrefer = RecordField(ASCIIString,"refer")
-recordm(n) = RecordField(Record,"m$(n-1)")
+for sym in keys(measure2string)
+    str = measure2string[sym]
+    N = measure2dim[sym]
+    T = SIUnits.SIQuantity
 
-for T in keys(measure2string)
-    str = measure2string[T]
-    N   = measure2dim[T]
 
-    @eval type $T <: Measure
+    @eval type $sym <: Measure
         system::ASCIIString
-        m::NTuple{$N,Quantity}
+        m::NTuple{$N,$T}
     end
 
-    @eval $T(system::ASCIIString,m::Quantity...) = $T(system,m)
+    @eval $sym(system::ASCIIString,m::$T...) = $sym(system,m)
 
-    @eval function $T(record::Record)
-        system = record[recordrefer]
-        m = Array(Quantity,$N)
+    @eval function $sym(record::Record)
+        system = record["refer"]
+        m = Array($T,$N)
         for i = 1:$N
-            m[i] = Quantity(record[recordm(i)])
+            m[i] = siquantity(record["m$(i-1)"])
         end
-        $T(system,m...)
+        $sym(system,m...)
     end
 
-    @eval function Record(measure::$T)
+    @eval function Record(measure::$sym)
         description = RecordDesc()
-        addfield!(description,recordtype)
-        addfield!(description,recordrefer)
+        addField!(description,"type",ASCIIString)
+        addField!(description,"refer",ASCIIString)
         for i = 1:$N
-            addfield!(description,recordm(i))
+            addField!(description,"m$(i-1)",Record)
         end
 
         record = Record(description)
-        record[recordtype]  = $str
-        record[recordrefer] = measure.system
+        record["type"]  = $str
+        record["refer"] = measure.system
         for i = 1:$N
-            record[recordm(i)] = Record(measure.m[i])
+            record["m$(i-1)"] = Record(measure.m[i])
         end
         record
     end

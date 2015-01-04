@@ -25,7 +25,7 @@ module Private
     include("conversions.jl")
 
     export RecordField
-    export RecordDesc, addfield!
+    export RecordDesc, addField!
     export Record, nfields
     include("containers.jl")
 end
@@ -41,7 +41,7 @@ module Tables
 end
 
 module Measures
-    export Quantity, @q_str
+    export @ra_str, @dec_str
 
     export ReferenceFrame
     export Measure, Epoch, Direction, Position
@@ -49,6 +49,7 @@ module Measures
 
     importall ..Private
     import Base: show, convert
+    using SIUnits
     include("quanta.jl")
     include("measures.jl")
 end
