@@ -38,30 +38,30 @@ const measure2string = Dict(:Epoch     => "epoch",
                             :Direction => "direction",
                             :Position  => "position")
 
-const measure2dim = Dict(:Epoch     => 1,
-                         :Direction => 2,
-                         :Position  => 3)
+const measure2fields = Dict(:Epoch     => (quantity(Float64,Second),),
+                            :Direction => (quantity(Float64,Radian),quantity(Float64,Radian)),
+                            :Position  => (quantity(Float64,Radian),quantity(Float64,Radian),quantity(Float64,Meter)))
 
 for sym in keys(measure2string)
     str = measure2string[sym]
-    N = measure2dim[sym]
-    T = SIUnits.SIQuantity
+    fields = measure2fields[sym]
+    N = length(fields)
 
 
     @eval type $sym <: Measure
         system::ASCIIString
-        m::NTuple{$N,$T}
+        m::$fields
     end
 
-    @eval $sym(system::ASCIIString,m::$T...) = $sym(system,m)
+    @eval $sym(system::ASCIIString,m::SIUnits.SIQuantity...) = $sym(system,m)
 
     @eval function $sym(record::Record)
         system = record["refer"]
-        m = Array($T,$N)
+        m = Array(SIUnits.SIQuantity,$N)
         for i = 1:$N
             m[i] = siquantity(record["m$(i-1)"])
         end
-        $sym(system,m...)
+        $sym(system,tuple(m...))
     end
 
     @eval function Record(measure::$sym)
