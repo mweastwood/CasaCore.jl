@@ -82,9 +82,9 @@ function getField(record::Record,field::ASCIIString)
     getField(record,field,T)
 end
 
-for typestr in ("float","double")
-    T = str2type[typestr]
-    tpenum = type2enum[T]
+for T in (Float32,Float64)
+    typestr = type2str[T]
+    tpenum  = type2enum[T]
     getcfunc = "getRecordField_$typestr"
     putcfunc = "putRecordField_$typestr"
 

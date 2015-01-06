@@ -56,7 +56,8 @@ for (T,str,enum) in ((Bool,"bool",TpBool),
                      (Float32,"float",TpFloat),
                      (Float64,"double",TpDouble),
                      (Complex64,"complex",TpComplex),
-                     (ASCIIString,"string",TpString))
+                     (ASCIIString,"string",TpString),
+                     (Array{ASCIIString},"arraystring",TpArrayString))
     type2str[T] = str
     str2type[str] = T
     type2enum[T] = enum

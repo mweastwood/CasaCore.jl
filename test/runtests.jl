@@ -160,5 +160,10 @@ let
     table[kw"SPECTRAL_WINDOW"] = "Table: $name/SPECTRAL_WINDOW"
     @test numkeywords(table) == 1
     @test table[kw"SPECTRAL_WINDOW"] == "Table: $name/SPECTRAL_WINDOW"
+
+    table["DATA",kw"Hello,"] = "World!"
+    @test table["DATA",kw"Hello,"] == "World!"
+    table["DATA",kw"Test"] = ["Hello,","World!"]
+    @test table["DATA",kw"Test"] == ["Hello,","World!"]
 end
 
