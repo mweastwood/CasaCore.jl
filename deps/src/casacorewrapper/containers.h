@@ -19,6 +19,43 @@
 #include <casa/Containers/Record.h>
 #include <casa/Containers/ValueHolder.h>
 
+// ValueHolder
+
+template <class T>
+casa::ValueHolder createValueHolder(T* input, size_t* shape, size_t ndim) {
+    casa::IPosition dimensions(ndim);
+    for (uint i = 0; i < ndim; ++i) {
+        dimensions[i] = shape[i];
+    }
+    casa::Array<T> arr(dimensions);
+    int idx = 0;
+    for (typename casa::Array<T>::IteratorSTL it = arr.begin(); it != arr.end(); ++it) {
+        *it = input[idx];
+        ++idx;
+    }
+    return casa::ValueHolder(arr);
+}
+
+template <class T>
+T outputValueHolder(casa::ValueHolder& value) {
+    T output;
+    value.getValue(output);
+    return output;
+}
+
+template <class T>
+void outputValueHolder(casa::ValueHolder& value, T* output, size_t length) {
+    casa::Array<T> arr(casa::IPosition(1,length));
+    value.getValue(arr);
+    int idx = 0;
+    for (typename casa::Array<T>::IteratorSTL it = arr.begin(); it != arr.end(); ++it) {
+        output[idx] = *it;
+        ++idx;
+    }
+}
+
+// Record
+
 extern "C" {
     casa::RecordDesc* createRecordDesc();
     void   deleteRecordDesc(casa::RecordDesc* recorddesc);
@@ -38,10 +75,6 @@ extern "C" {
     double        getRecordField_double(casa::Record* record, char* field);
     char const*   getRecordField_string(casa::Record* record, char* field);
     casa::Record* getRecordField_record(casa::Record* record, char* field);
-
-    float  read_float (casa::ValueHolder& value);
-    double read_double(casa::ValueHolder& value);
-    char const* read_string(casa::ValueHolder& value);
 }
 
 #endif
