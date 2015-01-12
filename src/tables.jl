@@ -184,7 +184,7 @@ end
 getindex(table::Table,column::ASCIIString) = getColumn(table,column)
 setindex!(table::Table,value,column::ASCIIString) = putColumn!(table,column,value)
 
-for T in (Int32,Float32,Float64,Complex64)
+for T in (Bool,Int32,Float32,Float64,Complex64)
     typestr = type2str[T]
     cfunc_addscalarcolumn = "addScalarColumn_$typestr"
     cfunc_addarraycolumn = "addArrayColumn_$typestr"
@@ -256,7 +256,7 @@ function getColumn(table::Table,column::ASCIIString)
     array
 end
 
-for T in (Int32,Float32,Float64,Complex64)
+for T in (Bool,Int32,Float32,Float64,Complex64)
     typestr = type2str[T]
 
     cfunc = "getColumn_$typestr"

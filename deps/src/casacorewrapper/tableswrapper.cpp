@@ -168,11 +168,13 @@ extern "C" {
         return false;
     }
 
+    void addScalarColumn_bool(   TableProxy* t, char* name) {addScalarColumn<Bool>(t,name);}
     void addScalarColumn_int(    TableProxy* t, char* name) {addScalarColumn<Int>(t,name);}
     void addScalarColumn_float(  TableProxy* t, char* name) {addScalarColumn<Float>(t,name);}
     void addScalarColumn_double( TableProxy* t, char* name) {addScalarColumn<Double>(t,name);}
     void addScalarColumn_complex(TableProxy* t, char* name) {addScalarColumn<Complex>(t,name);}
 
+    void addArrayColumn_bool(   TableProxy* t, char* name, int* dim, size_t ndim) {addArrayColumn<Bool>(t,name,dim,ndim);}
     void addArrayColumn_int(    TableProxy* t, char* name, int* dim, size_t ndim) {addArrayColumn<Int>(t,name,dim,ndim);}
     void addArrayColumn_float(  TableProxy* t, char* name, int* dim, size_t ndim) {addArrayColumn<Float>(t,name,dim,ndim);}
     void addArrayColumn_double( TableProxy* t, char* name, int* dim, size_t ndim) {addArrayColumn<Double>(t,name,dim,ndim);}
@@ -214,11 +216,13 @@ extern "C" {
 
     // Warning: there be long lines ahead
 
+    void getColumn_bool(   TableProxy* t, char* column,           bool* output, size_t length) {getColumn<Bool>(t,column,output,length);}
     void getColumn_int(    TableProxy* t, char* column,            int* output, size_t length) {getColumn<Int>(t,column,output,length);}
     void getColumn_float(  TableProxy* t, char* column,          float* output, size_t length) {getColumn<Float>(t,column,output,length);}
     void getColumn_double( TableProxy* t, char* column,         double* output, size_t length) {getColumn<Double>(t,column,output,length);}
     void getColumn_complex(TableProxy* t, char* column, complex<float>* output, size_t length) {getColumn<Complex>(t,column,output,length);}
 
+    void putColumn_bool(   TableProxy* t, char* column,           bool* input, size_t* shape, size_t ndim) {putColumn<Bool>(t,column,input,shape,ndim);}
     void putColumn_int(    TableProxy* t, char* column,            int* input, size_t* shape, size_t ndim) {putColumn<Int>(t,column,input,shape,ndim);}
     void putColumn_float(  TableProxy* t, char* column,          float* input, size_t* shape, size_t ndim) {putColumn<Float>(t,column,input,shape,ndim);}
     void putColumn_double( TableProxy* t, char* column,         double* input, size_t* shape, size_t ndim) {putColumn<Double>(t,column,input,shape,ndim);}
