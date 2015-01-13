@@ -54,7 +54,7 @@ function ra(hours,minutes=0.0,seconds=0.0)
     (hours+minutes/60.+seconds/3600.) * π/12. * Radian
 end
 
-macro ra_str(string)
+function ra_str(string)
     # Match eg. 12h34m56.7s
     regex = r"([0-9]?[0-9])h([0-9]?[0-9])m([0-9]?[0-9]\.?[0-9]*)s"
     if match(regex,string) != nothing
@@ -76,11 +76,15 @@ macro ra_str(string)
     error("Unknown right ascension format: $string")
 end
 
+macro ra_str(string)
+    ra_str(string)
+end
+
 function dec(sign,degrees,minutes=0.0,seconds=0.0)
     sign * (degrees+minutes/60.+seconds/3600.) * π/180. * Radian
 end
 
-macro dec_str(string)
+function dec_str(string)
     # Match eg. 23d34m56.7s
     regex = r"(\+|\-)?([0-9]?[0-9]?[0-9])d([0-9]?[0-9])m([0-9]?[0-9]\.?[0-9]*)s"
     if match(regex,string) != nothing
@@ -103,5 +107,9 @@ macro dec_str(string)
         return dec(sign,float(substrs[2]))
     end
     error("Unknown declination format: $string")
+end
+
+macro dec_str(string)
+    dec_str(string)
 end
 

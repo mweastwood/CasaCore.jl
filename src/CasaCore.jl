@@ -41,7 +41,8 @@ module Tables
 end
 
 module Measures
-    export @ra_str, @dec_str
+    export  ra_str,  @ra_str
+    export dec_str, @dec_str
 
     export ReferenceFrame
     export Measure, Epoch, Direction, Position
