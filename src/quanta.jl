@@ -54,7 +54,18 @@ function ra(hours,minutes=0.0,seconds=0.0)
     (hours+minutes/60.+seconds/3600.) * π/12. * Radian
 end
 
-function ra_str(string)
+function ra_str{T<:Number}(number::quantity(T,Radian))
+    number *= 12/(π*Radian)
+    number += (number < 0)? 24 : 0
+    hrs    = floor(Integer,number)
+    number = (number-hrs)*60
+    min    = floor(Integer,number)
+    number = (number-min)*60
+    sec    = number
+    @sprintf("%dh%02dm%05.2fs",hrs,min,sec)
+end
+
+function ra_str(string::AbstractString)
     # Match eg. 12h34m56.7s
     regex = r"([0-9]?[0-9])h([0-9]?[0-9])m([0-9]?[0-9]\.?[0-9]*)s"
     if match(regex,string) != nothing
@@ -84,7 +95,18 @@ function dec(sign,degrees,minutes=0.0,seconds=0.0)
     sign * (degrees+minutes/60.+seconds/3600.) * π/180. * Radian
 end
 
-function dec_str(string)
+function dec_str{T<:Number}(number::quantity(T,Radian))
+    s = sign(number.val)
+    number *= 180/(π*Radian) * s
+    deg    = floor(Integer,number)
+    number = (number-deg)*60
+    min    = floor(Integer,number)
+    number = (number-min)*60
+    sec    = number
+    @sprintf("%+dd%02dm%05.2fs",s*deg,min,sec)
+end
+
+function dec_str(string::AbstractString)
     # Match eg. 23d34m56.7s
     regex = r"(\+|\-)?([0-9]?[0-9]?[0-9])d([0-9]?[0-9])m([0-9]?[0-9]\.?[0-9]*)s"
     if match(regex,string) != nothing

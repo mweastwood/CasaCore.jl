@@ -42,6 +42,10 @@ let
     test_approx_eq(dec"-12d34m",       -1*π/180.*(12.+34./60.)*Radian)
     test_approx_eq(dec"-12.34d",       -1*π/180.*(12.34)*Radian)
     test_approx_eq(dec"-12d",          -1*π/180.*(12.)*Radian)
+
+    @test ra_str(ra"12h34m56.78s") == "12h34m56.78s"
+    @test dec_str(dec"+12d34m56.78s") == "+12d34m56.78s"
+    @test dec_str(dec"-12d34m56.78s") == "-12d34m56.78s"
 end
 
 let
