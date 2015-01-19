@@ -51,7 +51,7 @@ const str2type = Dict{ASCIIString,Type}()
 const type2enum = Dict{Type,Int}()
 const enum2type = Dict{Int,Type}()
 
-for (T,str,enum) in ((Bool,"bool",TpBool),
+for (T,str,enum) in ((Bool,"boolean",TpBool),
                      (Int32,"int",TpInt),
                      (Float32,"float",TpFloat),
                      (Float64,"double",TpDouble),
