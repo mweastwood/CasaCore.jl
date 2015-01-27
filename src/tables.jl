@@ -221,9 +221,9 @@ end
 
 function getColumnType(table::Table,column::ASCIIString)
     output = ccall(("getColumnType",libcasacorewrapper),
-                   Ptr{Cchar},(Ptr{Void},Ptr{Cchar}),
+                   Cint,(Ptr{Void},Ptr{Cchar}),
                    table.ptr,column)
-    str2type[bytestring(output)::ASCIIString]
+    enum2type[output]
 end
 
 @doc """

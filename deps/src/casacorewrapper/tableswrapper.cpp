@@ -186,8 +186,8 @@ extern "C" {
         t->removeColumns(column);
     }
 
-    char const* getColumnType(TableProxy* t, char* column) {
-        return t->columnDataType(column).c_str();
+    int getColumnType(TableProxy* t, char* column) {
+        return t->table().tableDesc().columnDesc(column).dataType();
     }
 
     void getColumnShape(TableProxy* t, char* column, int* output, size_t outputlength) {
