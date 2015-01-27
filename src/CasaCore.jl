@@ -53,6 +53,9 @@ module Measures
     export Measure, Epoch, Direction, Position
     export set!, measure
 
+    export source
+    export observatory
+
     importall ..Private
     import Base: show, convert
     using SIUnits

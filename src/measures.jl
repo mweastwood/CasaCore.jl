@@ -47,7 +47,6 @@ for sym in keys(measure2string)
     fields = measure2fields[sym]
     N = length(fields)
 
-
     @eval type $sym <: Measure
         system::ASCIIString
         m::$fields
@@ -82,6 +81,10 @@ for sym in keys(measure2string)
     end
 end
 
+# The `Direction` measure can accept solar system objects (eg. "SUN", "MOON", "JUPITER")
+# as its `system` field. In these cases we should provide a sane default value for `m`.
+Direction(system::ASCIIString) = Direction(system,as(0Degree,Radian),as(90Degree,Radian))
+
 function set!(rf::ReferenceFrame,measure::Measure)
     record = Record(measure)
     ccall(("doframe",libcasacorewrapper),
@@ -89,7 +92,7 @@ function set!(rf::ReferenceFrame,measure::Measure)
           rf.ptr,record.ptr)
 end
 
-function measure{T<:Measure}(rf::ReferenceFrame,measure::T,newsystem::String)
+function measure{T<:Measure}(rf::ReferenceFrame,measure::T,newsystem::ASCIIString)
     record = Record(measure)
     newrecord = Record(ccall(("measure",libcasacorewrapper),
                              Ptr{Void},(Ptr{Void},Ptr{Void},Ptr{Cchar}),
@@ -97,7 +100,14 @@ function measure{T<:Measure}(rf::ReferenceFrame,measure::T,newsystem::String)
     T(newrecord)
 end
 
-function observatory(rf::ReferenceFrame,name::String)
+function source(rf::ReferenceFrame,name::ASCIIString)
+    record = Record(ccall(("source",libcasacorewrapper),
+                          Ptr{Void},(Ptr{Void},Ptr{Cchar}),
+                          rf.ptr,name))
+    Direction(record)
+end
+
+function observatory(rf::ReferenceFrame,name::ASCIIString)
     record = Record(ccall(("observatory",libcasacorewrapper),
                           Ptr{Void},(Ptr{Void},Ptr{Cchar}),
                           rf.ptr,name))

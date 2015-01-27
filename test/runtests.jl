@@ -50,7 +50,7 @@ end
 
 let
     frame = ReferenceFrame()
-    position = Measures.observatory(frame,"OVRO_MMA")
+    position = observatory(frame,"OVRO_MMA")
     time = Epoch("UTC",4.905577293531662e9Second)
     set!(frame,position)
     set!(frame,time)
