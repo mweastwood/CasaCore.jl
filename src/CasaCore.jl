@@ -25,9 +25,14 @@ module Private
     include("conversions.jl")
 
     export RecordField
-    export RecordDesc, addfield!
+    export RecordDesc, addField!
     export Record, nfields
     include("containers.jl")
+
+    function __init__()
+        Base.rehash!(type2str)
+        Base.rehash!(type2enum)
+    end
 end
 
 module Tables
@@ -41,16 +46,25 @@ module Tables
 end
 
 module Measures
-    export Quantity, @q_str
+    export  ra_str,  @ra_str
+    export dec_str, @dec_str
 
     export ReferenceFrame
     export Measure, Epoch, Direction, Position
     export set!, measure
 
+    export source
+    export observatory
+
     importall ..Private
     import Base: show, convert
+    using SIUnits
     include("quanta.jl")
     include("measures.jl")
+
+    function __init__()
+        Base.rehash!(si2str)
+    end
 end
 
 end

@@ -16,6 +16,8 @@
 #include "containers.h"
 using namespace casa;
 
+// Record
+
 RecordDesc* createRecordDesc() {return new RecordDesc();}
 void deleteRecordDesc(RecordDesc* recorddesc) {delete recorddesc;}
 void addRecordDescField(RecordDesc* recorddesc, char* field, int type) {
@@ -56,12 +58,5 @@ char const* getRecordField_string(Record* record, char* field) {
 }
 Record* getRecordField_record(Record* record, char* field) {
     return new Record(record->asRecord(field));
-}
-
-float read_float(ValueHolder& value) {return value.asFloat();}
-double read_double(ValueHolder& value) {return value.asDouble();}
-char const* read_string(ValueHolder& value) {
-    String str = value.asString();
-    return str.c_str();
 }
 

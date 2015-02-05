@@ -26,8 +26,12 @@ extern "C" {
         return new Record(me->measure(Record(*record),str,Record()));
     }
 
+    Record* source(MeasuresProxy* me, char* name) {
+        return new Record(me->source(name));
+    }
+
     Record* observatory(MeasuresProxy* me, char* name) {
-        return new Record(me->observatory(String(name)));
+        return new Record(me->observatory(name));
     }
 }
 

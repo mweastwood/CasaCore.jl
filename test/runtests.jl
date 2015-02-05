@@ -1,10 +1,12 @@
 using CasaCore.Tables
 using CasaCore.Measures
 using Base.Test
+using SIUnits
 
-function test_approx_eq(q1::Quantity,q2::Quantity,tol = 5eps(Float64))
-    @test_approx_eq_eps q1.value q2.value tol
-    @test q1.unit == q2.unit
+function test_approx_eq(q1::SIUnits.SIQuantity,q2::SIUnits.SIQuantity,tol = 3eps(Float64))
+    # This function is necesary because SIUnits does not (yet) support @test_approx_eq.
+    # Note that this function does not test for the equality of the units.
+    @test_approx_eq_eps q1.val q2.val tol
 end
 
 function test_approx_eq{T<:Measure}(m1::T,m2::T)
@@ -15,51 +17,45 @@ function test_approx_eq{T<:Measure}(m1::T,m2::T)
 end
 
 let
-    @test q"1234.5s"  == Quantity(1234.5,"s")
-    @test q"1.23e4s"  == Quantity(1.23e4,"s")
-    @test q"1.23rad"  == Quantity(1.23,"rad")
-    @test q"+1234.5s" == Quantity(1234.5,"s")
-    @test q"+1.23e4s" == Quantity(1.23e4,"s")
-    @test q"+1.23rad" == Quantity(1.23,"rad")
-    @test q"-1234.5s" == Quantity(-1234.5,"s")
-    @test q"-1.23e4s" == Quantity(-1.23e4,"s")
-    @test q"-1.23rad" == Quantity(-1.23,"rad")
+    test_approx_eq(ra"12h34m56.78s",π/12.*(12.+34/60.+56.78/3600)*Radian)
+    test_approx_eq(ra"12h34m56s",   π/12.*(12.+34/60.+56./3600)*Radian)
+    test_approx_eq(ra"12h34.56m",   π/12.*(12.+34.56/60.)*Radian)
+    test_approx_eq(ra"12h34m",      π/12.*(12.+34./60.)*Radian)
+    test_approx_eq(ra"12.34h",      π/12.*(12.34)*Radian)
+    test_approx_eq(ra"12h",         π/12.*(12.)*Radian)
 
-    test_approx_eq(q"12h34m56.78s",Quantity(π/12.*(12.+34/60.+56.78/3600),"rad"))
-    test_approx_eq(q"12h34m56s",   Quantity(π/12.*(12.+34/60.+56./3600),"rad"))
-    test_approx_eq(q"12h34.56m",   Quantity(π/12.*(12.+34.56/60.),"rad"))
-    test_approx_eq(q"12h34m",      Quantity(π/12.*(12.+34./60.),"rad"))
-    test_approx_eq(q"12.34h",      Quantity(π/12.*(12.34),"rad"))
-    test_approx_eq(q"12h",         Quantity(π/12.*(12.),"rad"))
+    test_approx_eq(dec"12d34m56.78s",  π/180.*(12.+34/60.+56.78/3600)*Radian)
+    test_approx_eq(dec"12d34m56s",     π/180.*(12.+34/60.+56./3600)*Radian)
+    test_approx_eq(dec"12d34.56m",     π/180.*(12.+34.56/60.)*Radian)
+    test_approx_eq(dec"12d34m",        π/180.*(12.+34./60.)*Radian)
+    test_approx_eq(dec"12.34d",        π/180.*(12.34)*Radian)
+    test_approx_eq(dec"12d",           π/180.*(12.)*Radian)
+    test_approx_eq(dec"+12d34m56.78s", π/180.*(12.+34/60.+56.78/3600)*Radian)
+    test_approx_eq(dec"+12d34m56s",    π/180.*(12.+34/60.+56./3600)*Radian)
+    test_approx_eq(dec"+12d34.56m",    π/180.*(12.+34.56/60.)*Radian)
+    test_approx_eq(dec"+12d34m",       π/180.*(12.+34./60.)*Radian)
+    test_approx_eq(dec"+12.34d",       π/180.*(12.34)*Radian)
+    test_approx_eq(dec"+12d",          π/180.*(12.)*Radian)
+    test_approx_eq(dec"-12d34m56.78s", -1*π/180.*(12.+34/60.+56.78/3600)*Radian)
+    test_approx_eq(dec"-12d34m56s",    -1*π/180.*(12.+34/60.+56./3600)*Radian)
+    test_approx_eq(dec"-12d34.56m",    -1*π/180.*(12.+34.56/60.)*Radian)
+    test_approx_eq(dec"-12d34m",       -1*π/180.*(12.+34./60.)*Radian)
+    test_approx_eq(dec"-12.34d",       -1*π/180.*(12.34)*Radian)
+    test_approx_eq(dec"-12d",          -1*π/180.*(12.)*Radian)
 
-    test_approx_eq(q"12d34m56.78s", Quantity(π/180.*(12.+34/60.+56.78/3600),"rad"))
-    test_approx_eq(q"12d34m56s",    Quantity(π/180.*(12.+34/60.+56./3600),"rad"))
-    test_approx_eq(q"12d34.56m",    Quantity(π/180.*(12.+34.56/60.),"rad"))
-    test_approx_eq(q"12d34m",       Quantity(π/180.*(12.+34./60.),"rad"))
-    test_approx_eq(q"12.34d",       Quantity(π/180.*(12.34),"rad"))
-    test_approx_eq(q"12d",          Quantity(π/180.*(12.),"rad"))
-    test_approx_eq(q"+12d34m56.78s",Quantity(π/180.*(12.+34/60.+56.78/3600),"rad"))
-    test_approx_eq(q"+12d34m56s",   Quantity(π/180.*(12.+34/60.+56./3600),"rad"))
-    test_approx_eq(q"+12d34.56m",   Quantity(π/180.*(12.+34.56/60.),"rad"))
-    test_approx_eq(q"+12d34m",      Quantity(π/180.*(12.+34./60.),"rad"))
-    test_approx_eq(q"+12.34d",      Quantity(π/180.*(12.34),"rad"))
-    test_approx_eq(q"+12d",         Quantity(π/180.*(12.),"rad"))
-    test_approx_eq(q"-12d34m56.78s",Quantity(-π/180.*(12.+34/60.+56.78/3600),"rad"))
-    test_approx_eq(q"-12d34m56s",   Quantity(-π/180.*(12.+34/60.+56./3600),"rad"))
-    test_approx_eq(q"-12d34.56m",   Quantity(-π/180.*(12.+34.56/60.),"rad"))
-    test_approx_eq(q"-12d34m",      Quantity(-π/180.*(12.+34./60.),"rad"))
-    test_approx_eq(q"-12.34d",      Quantity(-π/180.*(12.34),"rad"))
-    test_approx_eq(q"-12d",         Quantity(-π/180.*(12.),"rad"))
+    @test ra_str(ra"12h34m56.78s") == "12h34m56.78s"
+    @test dec_str(dec"+12d34m56.78s") == "+12d34m56.78s"
+    @test dec_str(dec"-12d34m56.78s") == "-12d34m56.78s"
 end
 
 let
     frame = ReferenceFrame()
-    position = Measures.observatory(frame,"OVRO_MMA")
-    time = Epoch("UTC",q"4.905577293531662e9s")
+    position = observatory(frame,"OVRO_MMA")
+    time = Epoch("UTC",4.905577293531662e9Second)
     set!(frame,position)
     set!(frame,time)
 
-    dir1  = Direction("AZEL",q"0.0rad",q"1.0rad")
+    dir1  = Direction("AZEL",0.0Radian,1.0Radian)
     j2000 = measure(frame,dir1,"J2000")
     dir2  = measure(frame,j2000,"AZEL")
 
@@ -168,5 +164,10 @@ let
     table[kw"SPECTRAL_WINDOW"] = "Table: $name/SPECTRAL_WINDOW"
     @test numkeywords(table) == 1
     @test table[kw"SPECTRAL_WINDOW"] == "Table: $name/SPECTRAL_WINDOW"
+
+    table["DATA",kw"Hello,"] = "World!"
+    @test table["DATA",kw"Hello,"] == "World!"
+    table["DATA",kw"Test"] = ["Hello,","World!"]
+    @test table["DATA",kw"Test"] == ["Hello,","World!"]
 end
 

@@ -38,51 +38,52 @@ const measure2string = Dict(:Epoch     => "epoch",
                             :Direction => "direction",
                             :Position  => "position")
 
-const measure2dim = Dict(:Epoch     => 1,
-                         :Direction => 2,
-                         :Position  => 3)
+const measure2fields = Dict(:Epoch     => (quantity(Float64,Second),),
+                            :Direction => (quantity(Float64,Radian),quantity(Float64,Radian)),
+                            :Position  => (quantity(Float64,Radian),quantity(Float64,Radian),quantity(Float64,Meter)))
 
-const recordtype  = RecordField(ASCIIString,"type")
-const recordrefer = RecordField(ASCIIString,"refer")
-recordm(n) = RecordField(Record,"m$(n-1)")
+for sym in keys(measure2string)
+    str = measure2string[sym]
+    fields = measure2fields[sym]
+    N = length(fields)
 
-for T in keys(measure2string)
-    str = measure2string[T]
-    N   = measure2dim[T]
-
-    @eval type $T <: Measure
+    @eval type $sym <: Measure
         system::ASCIIString
-        m::NTuple{$N,Quantity}
+        m::$fields
     end
 
-    @eval $T(system::ASCIIString,m::Quantity...) = $T(system,m)
+    @eval $sym(system::ASCIIString,m::SIUnits.SIQuantity...) = $sym(system,m)
 
-    @eval function $T(record::Record)
-        system = record[recordrefer]
-        m = Array(Quantity,$N)
+    @eval function $sym(record::Record)
+        system = record["refer"]
+        m = Array(SIUnits.SIQuantity,$N)
         for i = 1:$N
-            m[i] = Quantity(record[recordm(i)])
+            m[i] = siquantity(record["m$(i-1)"])
         end
-        $T(system,m...)
+        $sym(system,tuple(m...))
     end
 
-    @eval function Record(measure::$T)
+    @eval function Record(measure::$sym)
         description = RecordDesc()
-        addfield!(description,recordtype)
-        addfield!(description,recordrefer)
+        addField!(description,"type",ASCIIString)
+        addField!(description,"refer",ASCIIString)
         for i = 1:$N
-            addfield!(description,recordm(i))
+            addField!(description,"m$(i-1)",Record)
         end
 
         record = Record(description)
-        record[recordtype]  = $str
-        record[recordrefer] = measure.system
+        record["type"]  = $str
+        record["refer"] = measure.system
         for i = 1:$N
-            record[recordm(i)] = Record(measure.m[i])
+            record["m$(i-1)"] = Record(measure.m[i])
         end
         record
     end
 end
+
+# The `Direction` measure can accept solar system objects (eg. "SUN", "MOON", "JUPITER")
+# as its `system` field. In these cases we should provide a sane default value for `m`.
+Direction(system::ASCIIString) = Direction(system,as(0Degree,Radian),as(90Degree,Radian))
 
 function set!(rf::ReferenceFrame,measure::Measure)
     record = Record(measure)
@@ -91,7 +92,7 @@ function set!(rf::ReferenceFrame,measure::Measure)
           rf.ptr,record.ptr)
 end
 
-function measure{T<:Measure}(rf::ReferenceFrame,measure::T,newsystem::String)
+function measure{T<:Measure}(rf::ReferenceFrame,measure::T,newsystem::ASCIIString)
     record = Record(measure)
     newrecord = Record(ccall(("measure",libcasacorewrapper),
                              Ptr{Void},(Ptr{Void},Ptr{Void},Ptr{Cchar}),
@@ -99,7 +100,14 @@ function measure{T<:Measure}(rf::ReferenceFrame,measure::T,newsystem::String)
     T(newrecord)
 end
 
-function observatory(rf::ReferenceFrame,name::String)
+function source(rf::ReferenceFrame,name::ASCIIString)
+    record = Record(ccall(("source",libcasacorewrapper),
+                          Ptr{Void},(Ptr{Void},Ptr{Cchar}),
+                          rf.ptr,name))
+    Direction(record)
+end
+
+function observatory(rf::ReferenceFrame,name::ASCIIString)
     record = Record(ccall(("observatory",libcasacorewrapper),
                           Ptr{Void},(Ptr{Void},Ptr{Cchar}),
                           rf.ptr,name))

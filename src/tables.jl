@@ -83,30 +83,80 @@ end
 
 getindex(table::Table,keyword::Keyword) = getKeyword(table,keyword.name)
 setindex!(table::Table,value,keyword::Keyword) = putKeyword!(table,keyword.name,value)
+getindex(table::Table,column::ASCIIString,keyword::Keyword) = getColumnKeyword(table,column,keyword.name)
+setindex!(table::Table,value,column::ASCIIString,keyword::Keyword) = putColumnKeyword!(table,column,keyword.name,value)
 
-function getKeywordType(table::Table,name::ASCIIString)
+function getKeywordType(table::Table,kw::ASCIIString)
     output = ccall(("getKeywordType",libcasacorewrapper),
-                   Cint,(Ptr{Void},Ptr{Cchar}),
-                   table.ptr,name)
+                   Cint,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
+                   table.ptr,"",kw)
     enum2type[output]
 end
 
-function getKeyword(table::Table,name::ASCIIString)
-    T = getKeywordType(table,name)
-    getKeyword(table,name,T)
+function getKeyword(table::Table,kw::ASCIIString)
+    T = getKeywordType(table,kw)
+    getKeyword(table,kw,T)
 end
 
-function getKeyword(table::Table,name::ASCIIString,::Type{ASCIIString})
+function getKeyword(table::Table,kw::ASCIIString,::Type{ASCIIString})
     output = ccall(("getKeyword_string",libcasacorewrapper),
-                   Ptr{Cchar},(Ptr{Void},Ptr{Cchar}),
-                   table.ptr,name)
+                   Ptr{Cchar},(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
+                   table.ptr,"",kw)
     bytestring(output)::ASCIIString
 end
 
-function putKeyword!(table::Table,name::ASCIIString,value::ASCIIString)
+function putKeyword!(table::Table,kw::ASCIIString,value::ASCIIString)
     ccall(("putKeyword_string",libcasacorewrapper),
-          Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
-          table.ptr,name,value)
+          Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar},Ptr{Cchar}),
+          table.ptr,"",kw,value)
+end
+
+function getColumnKeywordType(table::Table,column::ASCIIString,kw::ASCIIString)
+    output = ccall(("getKeywordType",libcasacorewrapper),
+                   Cint,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
+                   table.ptr,column,kw)
+    enum2type[output]
+end
+
+function getColumnKeyword(table::Table,column::ASCIIString,kw::ASCIIString)
+    T = getColumnKeywordType(table,column,kw)
+    getColumnKeyword(table,column,kw,T)
+end
+
+# Deal with special cases (strings and records)
+
+function getColumnKeyword(table::Table,column::ASCIIString,kw::ASCIIString,::Type{ASCIIString})
+    output = ccall(("getKeyword_string",libcasacorewrapper),
+                   Ptr{Cchar},(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
+                   table.ptr,column,kw)
+    bytestring(output)::ASCIIString
+end
+
+function getColumnKeyword(table::Table,column::ASCIIString,kw::ASCIIString,::Type{Array{ASCIIString}})
+    N = ccall(("getKeywordLength_string",libcasacorewrapper),
+              Cint,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
+              table.ptr,column,kw)
+    output = Array(ASCIIString,N)
+    temp   = Array(Ptr{Cchar},N)
+    ccall(("getKeywordArray_string",libcasacorewrapper),
+          Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar},Ptr{Ptr{Cchar}},Csize_t),
+          table.ptr,column,kw,pointer(temp),length(temp))
+    for i = 1:length(output)
+        output[i] = bytestring(temp[i])
+    end
+    output
+end
+
+function putColumnKeyword!(table::Table,column::ASCIIString,kw::ASCIIString,value::ASCIIString)
+    ccall(("putKeyword_string",libcasacorewrapper),
+          Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar},Ptr{Cchar}),
+          table.ptr,column,kw,value)
+end
+
+function putColumnKeyword!(table::Table,column::ASCIIString,kw::ASCIIString,value::Array{ASCIIString})
+    ccall(("putKeywordArray_string",libcasacorewrapper),
+          Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar},Ptr{Ptr{Cchar}},Csize_t),
+          table.ptr,column,kw,value,length(value))
 end
 
 ################################################################################
@@ -134,8 +184,8 @@ end
 getindex(table::Table,column::ASCIIString) = getColumn(table,column)
 setindex!(table::Table,value,column::ASCIIString) = putColumn!(table,column,value)
 
-for typestr in ("int","float","double","complex")
-    T = str2type[typestr]
+for T in (Bool,Int32,Float32,Float64,Complex64)
+    typestr = type2str[T]
     cfunc_addscalarcolumn = "addScalarColumn_$typestr"
     cfunc_addarraycolumn = "addArrayColumn_$typestr"
 
@@ -171,9 +221,9 @@ end
 
 function getColumnType(table::Table,column::ASCIIString)
     output = ccall(("getColumnType",libcasacorewrapper),
-                   Ptr{Cchar},(Ptr{Void},Ptr{Cchar}),
+                   Cint,(Ptr{Void},Ptr{Cchar}),
                    table.ptr,column)
-    str2type[bytestring(output)::ASCIIString]
+    enum2type[output]
 end
 
 @doc """
@@ -206,8 +256,8 @@ function getColumn(table::Table,column::ASCIIString)
     array
 end
 
-for typestr in ("int","float","double","complex")
-    T = str2type[typestr]
+for T in (Bool,Int32,Float32,Float64,Complex64)
+    typestr = type2str[T]
 
     cfunc = "getColumn_$typestr"
     @eval function getColumn!(output::Array{$T},table::Table,column::ASCIIString)
@@ -258,8 +308,8 @@ function getCell(table::Table,column::ASCIIString,row::Int)
     cell
 end
 
-for typestr in ("int","float","double","complex")
-    T = str2type[typestr]
+for T in (Int32,Float32,Float64,Complex64)
+    typestr = type2str[T]
     cfunc = "getCell_$typestr"
     @eval function getCell!(output::Array{$T},table::Table,
                             column::ASCIIString,row::Int)
