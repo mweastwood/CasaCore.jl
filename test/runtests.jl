@@ -71,7 +71,7 @@ let
 
     Tables.addRows!(table,10)
     @test numrows(table) == 10
-    Tables.removeRows!(table,[6:10])
+    Tables.removeRows!(table,[6:10;])
     @test numrows(table) ==  5
 
     ant1 = Array(Int32,5)
