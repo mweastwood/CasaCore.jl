@@ -98,6 +98,24 @@ function getKeyword(table::Table,kw::ASCIIString)
     getKeyword(table,kw,T)
 end
 
+for T in (Bool,Int32,Float32,Float64)
+    typestr = type2str[T]
+
+    cfunc = "getKeyword_$typestr"
+    @eval function getKeyword(table::Table,kw::ASCIIString,::Type{$T})
+        ccall(($cfunc,libcasacorewrapper),
+              $T,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
+              table.ptr,"",kw)
+    end
+
+    cfunc = "putKeyword_$typestr"
+    @eval function putKeyword!(table::Table,kw::ASCIIString,value::$T)
+        ccall(($cfunc,libcasacorewrapper),
+              Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar},$T),
+              table.ptr,"",kw,value)
+    end
+end
+
 function getKeyword(table::Table,kw::ASCIIString,::Type{ASCIIString})
     output = ccall(("getKeyword_string",libcasacorewrapper),
                    Ptr{Cchar},(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
