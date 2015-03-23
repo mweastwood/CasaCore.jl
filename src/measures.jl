@@ -96,21 +96,21 @@ function measure{T<:Measure}(rf::ReferenceFrame,measure::T,newsystem::ASCIIStrin
     record = Record(measure)
     newrecord = Record(ccall(("measure",libcasacorewrapper),
                              Ptr{Void},(Ptr{Void},Ptr{Void},Ptr{Cchar}),
-                             rf.ptr,record.ptr,newsystem))
+                             rf.ptr,record.ptr,pointer(newsystem)))
     T(newrecord)
 end
 
 function source(rf::ReferenceFrame,name::ASCIIString)
     record = Record(ccall(("source",libcasacorewrapper),
                           Ptr{Void},(Ptr{Void},Ptr{Cchar}),
-                          rf.ptr,name))
+                          rf.ptr,pointer(name)))
     Direction(record)
 end
 
 function observatory(rf::ReferenceFrame,name::ASCIIString)
     record = Record(ccall(("observatory",libcasacorewrapper),
                           Ptr{Void},(Ptr{Void},Ptr{Cchar}),
-                          rf.ptr,name))
+                          rf.ptr,pointer(name)))
     Position(record)
 end
 

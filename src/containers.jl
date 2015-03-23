@@ -34,7 +34,7 @@ function addField!{T}(recorddesc::RecordDesc,field::ASCIIString,::Type{T})
     tpenum = type2enum[T]
     ccall(("addRecordDescField",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Cint),
-          recorddesc.ptr,field,tpenum)
+          recorddesc.ptr,pointer(field),tpenum)
 end
 
 @doc """
@@ -73,7 +73,7 @@ setindex!(record::Record,value,field::ASCIIString) = putField!(record,field,valu
 function getFieldType(record::Record,field::ASCIIString)
     output = ccall(("fieldType",libcasacorewrapper),
                    Cint,(Ptr{Void},Ptr{Cchar}),
-                   record.ptr,field)
+                   record.ptr,pointer(field))
     enum2type[output]
 end
 
@@ -91,13 +91,13 @@ for T in (Float32,Float64)
     @eval function getField(record::Record,field::ASCIIString,::Type{$T})
         output = ccall(($getcfunc,libcasacorewrapper),
                        $T,(Ptr{Void},Ptr{Cchar}),
-                       record.ptr,field)
+                       record.ptr,pointer(field))
     end
 
     @eval function putField!(record::Record,field::ASCIIString,value::$T)
         ccall(($putcfunc,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar},$T),
-              record.ptr,field,value)
+              record.ptr,pointer(field),value)
     end
 end
 
@@ -109,26 +109,26 @@ end
 function getField(record::Record,field::ASCIIString,::Type{ASCIIString})
     output = ccall(("getRecordField_string",libcasacorewrapper),
                    Ptr{Cchar},(Ptr{Void},Ptr{Cchar}),
-                   record.ptr,field)
+                   record.ptr,pointer(field))
     bytestring(output)
 end
 
 function putField!(record::Record,field::ASCIIString,value::ASCIIString)
     ccall(("putRecordField_string",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
-          record.ptr,field,value)
+          record.ptr,pointer(field),pointer(value))
 end
 
 function getField(record::Record,field::ASCIIString,::Type{Record})
     output = ccall(("getRecordField_record",libcasacorewrapper),
                    Ptr{Void},(Ptr{Void},Ptr{Cchar}),
-                   record.ptr,field)
+                   record.ptr,pointer(field))
     Record(output)
 end
 
 function putField!(record::Record,field::ASCIIString,value::Record)
     ccall(("putRecordField_record",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Ptr{Void}),
-          record.ptr,field,value.ptr)
+          record.ptr,pointer(field),value.ptr)
 end
 

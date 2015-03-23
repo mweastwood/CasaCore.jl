@@ -35,11 +35,11 @@ function Table(name::ASCIIString)
     if isdir(strippedname)
         table = Table(ccall(("newTable_existing",libcasacorewrapper),
                             Ptr{Void},(Ptr{Cchar},Cint),
-                            strippedname,Table_TableOption_Update))
+                            pointer(strippedname),Table_TableOption_Update))
     else
         table = Table(ccall(("newTable",libcasacorewrapper),
                             Ptr{Void},(Ptr{Cchar},Ptr{Cchar},Ptr{Cchar},Cint),
-                            strippedname,"local","plain",0))
+                            pointer(strippedname),pointer("local"),pointer("plain"),0))
     end
     finalizer(table,close)
     table
@@ -89,7 +89,7 @@ setindex!(table::Table,value,column::ASCIIString,keyword::Keyword) = putColumnKe
 function getKeywordType(table::Table,kw::ASCIIString)
     output = ccall(("getKeywordType",libcasacorewrapper),
                    Cint,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
-                   table.ptr,"",kw)
+                   table.ptr,pointer(""),pointer(kw))
     enum2type[output]
 end
 
@@ -105,34 +105,34 @@ for T in (Bool,Int32,Float32,Float64)
     @eval function getKeyword(table::Table,kw::ASCIIString,::Type{$T})
         ccall(($cfunc,libcasacorewrapper),
               $T,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
-              table.ptr,"",kw)
+              table.ptr,pointer(""),pointer(kw))
     end
 
     cfunc = "putKeyword_$typestr"
     @eval function putKeyword!(table::Table,kw::ASCIIString,value::$T)
         ccall(($cfunc,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar},$T),
-              table.ptr,"",kw,value)
+              table.ptr,pointer(""),pointer(kw),value)
     end
 end
 
 function getKeyword(table::Table,kw::ASCIIString,::Type{ASCIIString})
     output = ccall(("getKeyword_string",libcasacorewrapper),
                    Ptr{Cchar},(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
-                   table.ptr,"",kw)
+                   table.ptr,pointer(""),pointer(kw))
     bytestring(output)::ASCIIString
 end
 
 function putKeyword!(table::Table,kw::ASCIIString,value::ASCIIString)
     ccall(("putKeyword_string",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar},Ptr{Cchar}),
-          table.ptr,"",kw,value)
+          table.ptr,pointer(""),pointer(kw),pointer(value))
 end
 
 function getColumnKeywordType(table::Table,column::ASCIIString,kw::ASCIIString)
     output = ccall(("getKeywordType",libcasacorewrapper),
                    Cint,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
-                   table.ptr,column,kw)
+                   table.ptr,pointer(column),pointer(kw))
     enum2type[output]
 end
 
@@ -146,19 +146,19 @@ end
 function getColumnKeyword(table::Table,column::ASCIIString,kw::ASCIIString,::Type{ASCIIString})
     output = ccall(("getKeyword_string",libcasacorewrapper),
                    Ptr{Cchar},(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
-                   table.ptr,column,kw)
+                   table.ptr,pointer(column),pointer(kw))
     bytestring(output)::ASCIIString
 end
 
 function getColumnKeyword(table::Table,column::ASCIIString,kw::ASCIIString,::Type{Array{ASCIIString}})
     N = ccall(("getKeywordLength_string",libcasacorewrapper),
               Cint,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
-              table.ptr,column,kw)
+              table.ptr,pointer(column),pointer(kw))
     output = Array(ASCIIString,N)
     temp   = Array(Ptr{Cchar},N)
     ccall(("getKeywordArray_string",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar},Ptr{Ptr{Cchar}},Csize_t),
-          table.ptr,column,kw,pointer(temp),length(temp))
+          table.ptr,pointer(column),pointer(kw),pointer(temp),length(temp))
     for i = 1:length(output)
         output[i] = bytestring(temp[i])
     end
@@ -168,13 +168,14 @@ end
 function putColumnKeyword!(table::Table,column::ASCIIString,kw::ASCIIString,value::ASCIIString)
     ccall(("putKeyword_string",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar},Ptr{Cchar}),
-          table.ptr,column,kw,value)
+          table.ptr,pointer(column),pointer(kw),pointer(value))
 end
 
 function putColumnKeyword!(table::Table,column::ASCIIString,kw::ASCIIString,value::Array{ASCIIString})
+    pointers = [pointer(v) for v in value]
     ccall(("putKeywordArray_string",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar},Ptr{Ptr{Cchar}},Csize_t),
-          table.ptr,column,kw,value,length(value))
+          table.ptr,pointer(column),pointer(kw),pointer(pointers),length(value))
 end
 
 ################################################################################
@@ -210,21 +211,21 @@ for T in (Bool,Int32,Float32,Float64,Complex64)
     @eval function addScalarColumn!(table::Table,column::ASCIIString,::Type{$T})
         ccall(($cfunc_addscalarcolumn,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar}),
-              table.ptr,column)
+              table.ptr,pointer(column))
     end
 
     @eval function addArrayColumn!{I<:Integer}(table::Table,column::ASCIIString,::Type{$T},dimensions::Vector{I})
         dimensions_cint = convert(Vector{Cint},dimensions)
         ccall(($cfunc_addarraycolumn,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar},Ptr{Cint},Csize_t),
-              table.ptr,column,pointer(dimensions_cint),length(dimensions))
+              table.ptr,pointer(column),pointer(dimensions_cint),length(dimensions))
     end
 end
 
 function removeColumn!(table::Table,column::ASCIIString)
     ccall(("removeColumn",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar}),
-          table.ptr,column)
+          table.ptr,pointer(column))
 end
 
 @doc """
@@ -234,13 +235,13 @@ returns false.
 function checkColumnExists(table::Table,column::ASCIIString)
     ccall(("columnExists",libcasacorewrapper),
           Bool,(Ptr{Void},Ptr{Cchar}),
-          table.ptr,column)
+          table.ptr,pointer(column))
 end
 
 function getColumnType(table::Table,column::ASCIIString)
     output = ccall(("getColumnType",libcasacorewrapper),
                    Cint,(Ptr{Void},Ptr{Cchar}),
-                   table.ptr,column)
+                   table.ptr,pointer(column))
     enum2type[output]
 end
 
@@ -254,7 +255,7 @@ function getColumnShape(table::Table,column::ASCIIString,buffersize::Int=4)
     output = Array(Cint,buffersize)
     ccall(("getColumnShape",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Ptr{Cint},Csize_t),
-          table.ptr,column,output,length(output))
+          table.ptr,pointer(column),output,length(output))
     # The output is terminated with a negative integer (-1).
     # Numbers preceding this negative value determine the shape.
     shape = Int[]
@@ -281,7 +282,7 @@ for T in (Bool,Int32,Float32,Float64,Complex64)
     @eval function getColumn!(output::Array{$T},table::Table,column::ASCIIString)
         ccall(($cfunc,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar},Ptr{$T},Csize_t),
-              table.ptr,column,pointer(output),length(output))
+              table.ptr,pointer(column),pointer(output),length(output))
         nothing
     end
 
@@ -299,7 +300,7 @@ for T in (Bool,Int32,Float32,Float64,Complex64)
         end
         ccall(($cfunc,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar},Ptr{$T},Ptr{Csize_t},Csize_t),
-              table.ptr,column,pointer(array),pointer(S),ndim)
+              table.ptr,pointer(column),pointer(array),pointer(S),ndim)
     end
 end
 
@@ -334,7 +335,7 @@ for T in (Int32,Float32,Float64,Complex64)
         # Subtract 1 from the row number to convert to a 0-based indexing scheme
         ccall(($cfunc,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar},Cint,Ptr{$T},Csize_t),
-              table.ptr,column,row-1,pointer(output),length(output))
+              table.ptr,pointer(column),row-1,pointer(output),length(output))
     end
 
     cfunc = "putCell_$typestr"
@@ -345,7 +346,7 @@ for T in (Int32,Float32,Float64,Complex64)
         # Subtract 1 from the row number to convert to a 0-based indexing scheme
         ccall(($cfunc,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar},Cint,Ptr{$T},Ptr{Csize_t},Csize_t),
-              table.ptr,column,row-1,pointer(array),pointer(S),ndim)
+              table.ptr,pointer(column),row-1,pointer(array),pointer(S),ndim)
     end
 
     cfunc = "putCell_scalar_$typestr"
@@ -354,7 +355,7 @@ for T in (Int32,Float32,Float64,Complex64)
         # Subtract 1 from the row number to convert to a 0-based indexing scheme
         ccall(($cfunc,libcasacorewrapper),
               Void,(Ptr{Void},Ptr{Cchar},Cint,$T),
-              table.ptr,column,row-1,scalar)
+              table.ptr,pointer(column),row-1,scalar)
     end
 end
 
