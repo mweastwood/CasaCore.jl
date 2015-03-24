@@ -28,11 +28,6 @@ module Private
     export RecordDesc, addField!
     export Record, nfields
     include("containers.jl")
-
-    function __init__()
-        Base.rehash!(type2str)
-        Base.rehash!(type2enum)
-    end
 end
 
 module Tables

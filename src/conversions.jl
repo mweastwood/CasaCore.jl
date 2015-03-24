@@ -46,9 +46,9 @@ const TpInt64         = 29
 const TpArrayInt64    = 30
 const TpNumberOfTypes = 31
 
-const type2str = Dict{Type,ASCIIString}()
+const type2str = ObjectIdDict()
 const str2type = Dict{ASCIIString,Type}()
-const type2enum = Dict{Type,Int}()
+const type2enum = ObjectIdDict()
 const enum2type = Dict{Int,Type}()
 
 for (T,str,enum) in ((Bool,"boolean",TpBool),

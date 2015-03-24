@@ -31,7 +31,7 @@ function recorddescfinalizer(recorddesc::RecordDesc)
 end
 
 function addField!{T}(recorddesc::RecordDesc,field::ASCIIString,::Type{T})
-    tpenum = type2enum[T]
+    tpenum = type2enum[T]::Int
     ccall(("addRecordDescField",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Cint),
           recorddesc.ptr,pointer(field),tpenum)
