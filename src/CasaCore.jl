@@ -18,7 +18,7 @@ module CasaCore
 module Private
     # Do not depend on this submodule!
     export libcasacorewrapper
-    const libcasacorewrapper = joinpath(Pkg.dir("CasaCore"),"deps/usr/lib/libcasacorewrapper.so")
+    const libcasacorewrapper = joinpath(dirname(@__FILE__),"../deps/libcasacorewrapper.so")
     isfile(libcasacorewrapper) || error("Run Pkg.build(\"CasaCore\")")
 
     export type2str, str2type, type2enum, enum2type
