@@ -11,7 +11,7 @@ Pkg.add("CasaCore")
 Pkg.build("CasaCore")
 Pkg.test("CasaCore")
 ```
-The build process will attempt to download, build, and install [CasaCore](https://code.google.com/p/casacore/) if it does not already exist on your system.
+The build process does not attempt to install [CasaCore](http://casacore.github.io/casacore/). This must be done prior to using this package.
 
 ## Measures
 
