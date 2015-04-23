@@ -23,11 +23,6 @@ module Private
 
     export type2str, str2type, type2enum, enum2type
     include("conversions.jl")
-
-    export RecordField
-    export RecordDesc, addField!
-    export Record, nfields
-    include("containers.jl")
 end
 
 module Tables
