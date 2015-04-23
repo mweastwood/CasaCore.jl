@@ -16,21 +16,21 @@ The build process does not attempt to install [CasaCore](http://casacore.github.
 ## Measures
 
 ```julia
+using CasaCore.Quanta
 using CasaCore.Measures
-using SIUnits
 ```
 To use the the measures module of CasaCore, you first need to define a reference frame:
 ```julia
 frame = ReferenceFrame()
-position = observatory(frame,"OVRO_MMA")
-time = Epoch("UTC",4.905577293531662e9*Second)
+position = observatory("OVRO_MMA")
+time = Epoch(Measures.UTC,Quantity(50237.29,Day))
 set!(frame,position)
 set!(frame,time)
 ```
 After the reference frame is defined, you can convert between various coordinate systems:
 ```julia
-dir   = Direction("AZEL",0.0*Radian,1.0*Radian)
-j2000 = measure(frame,dir,"J2000")
+j2000 = Direction(Measures.J2000,ra"19h59m28.35663s",dec"+40d44m02.0970s")
+azel  = measure(frame,j2000,Measures.AZEL)
 ```
 
 ## Tables

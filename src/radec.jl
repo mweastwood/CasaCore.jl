@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 function ra(hours,minutes=0.0,seconds=0.0)
-    Quantity((hours+minutes/60.+seconds/3600.),Hour)
+    Quantity(15.*(hours+minutes/60.+seconds/3600.),Degree)
 end
 
 function ra_str(string::AbstractString)

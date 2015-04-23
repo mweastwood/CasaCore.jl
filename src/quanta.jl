@@ -35,7 +35,6 @@ end
 pointer(unit::Unit) = unit.ptr
 
 const Second = Unit("s")
-const Hour   = Unit("h")
 const Day    = Unit("d")
 const Radian = Unit("rad")
 const Degree = Unit("deg")

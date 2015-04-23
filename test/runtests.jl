@@ -44,6 +44,13 @@ let
 
     @test_approx_eq  latitude(dir1)  latitude(dir2)
     @test_approx_eq longitude(dir1) longitude(dir2)
+
+    dir1 = Direction(Measures.J2000,ra"19h59m28.35663s",dec"+40d44m02.0970s")
+    azel = measure(frame,dir1,Measures.AZEL)
+    dir2 = measure(frame,azel,Measures.J2000)
+
+    @test_approx_eq  latitude(dir1)  latitude(dir2)
+    @test_approx_eq longitude(dir1) longitude(dir2)
 end
 
 let
