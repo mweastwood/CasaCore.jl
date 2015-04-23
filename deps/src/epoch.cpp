@@ -13,25 +13,28 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <measures/Measures/MeasuresProxy.h>
+#include <measures/Measures.h>
+#include <measures/Measures/MeasFrame.h>
+#include <measures/Measures/MEpoch.h>
+#include <measures/Measures/MCEpoch.h>
 
 using namespace casa;
 
 extern "C" {
-    MeasuresProxy* newMeasures() {return new MeasuresProxy;}
-    void deleteMeasures(MeasuresProxy* me) {delete me;}
-
-    void doframe(MeasuresProxy* me, Record* record) {me->doframe(Record(*record));}
-    Record* measure(MeasuresProxy* me, Record* record, char* str) {
-        return new Record(me->measure(Record(*record),str,Record()));
+    MEpoch* newEpoch(Quantity* time, int ref) {
+        return new MEpoch(*time,MEpoch::Ref(ref));
     }
 
-    Record* source(MeasuresProxy* me, char* name) {
-        return new Record(me->source(name));
+    void deleteEpoch(MEpoch* epoch) {
+        delete epoch;
     }
 
-    Record* observatory(MeasuresProxy* me, char* name) {
-        return new Record(me->observatory(name));
+    double getEpoch(MEpoch* epoch, Unit* unit) {
+        return epoch->get(*unit).getValue();
+    }
+
+    MEpoch* convertEpoch(MEpoch* epoch, int newref, MeasFrame* frame) {
+        return new MEpoch(MEpoch::Convert(*epoch,MEpoch::Ref(newref,*frame))());
     }
 }
 

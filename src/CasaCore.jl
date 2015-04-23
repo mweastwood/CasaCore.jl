@@ -40,26 +40,27 @@ module Tables
     include("tables.jl")
 end
 
+module Quanta
+    export Quantity
+    export Unit, Second, Day, Radian, Degree, Meter
+    export @ra_str, @dec_str
+
+    importall ..Private
+    import Base: pointer, get
+    include("quanta.jl")
+end
+
 module Measures
-    export  ra_str,  @ra_str
-    export dec_str, @dec_str
-
-    export ReferenceFrame
-    export Measure, Epoch, Direction, Position
-    export set!, measure
-
-    export source
+    export ReferenceFrame, set!
+    export Epoch, Direction, Position
+    export days, seconds, length, longitude, latitude
+    export measure
     export observatory
 
     importall ..Private
-    import Base: show, convert
-    using SIUnits
-    include("quanta.jl")
+    importall ..Quanta
+    import Base: pointer, length, show
     include("measures.jl")
-
-    function __init__()
-        Base.rehash!(si2str)
-    end
 end
 
 end
