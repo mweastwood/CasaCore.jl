@@ -60,32 +60,14 @@ spw = table[kw"SPECTRAL_WINDOW"]
 table[kw"SPECTRAL_WINDOW"] = newspw
 ```
 
-Note that reading a column (or a cell) is necessarily type-unstable. That is, the element type and shape of the column cannot be inferred from the types of the arguments. If you have prior knowledge of what is stored in the column, you can mitigate this issue by adding a type annotation. For example:
-```julia
-data = table["DATA"]::Array{Complex64,3}
-```
-Alternatively, you can separate the computational kernel into a separate function. For example:
-```julia
-function slow_func()
-    data = table["DATA"]
-    for i = 1:length(data)
-        data[i] = 2data[i]
-    end
-end
-
-function fast_func()
-    data = table["DATA"]
-    kernel!(data)
-end
-
-function kernel!(data)
-    for i = 1:length(data)
-        data[i] = 2data[i]
-    end
-end
-```
-For more information on why this works, see the [Performance Tips](http://julia.readthedocs.org/en/latest/manual/performance-tips/#separate-kernel-functions) section of the manual.
+Note that reading a column (or a cell) is necessarily type-unstable. That is, the element type and shape of the
+column cannot be inferred from the types of the arguments. You can mitigate this issue by adding a type annotation
+or by separating the computational kernel
+(see the [Performance Tips](http://julia.readthedocs.org/en/latest/manual/performance-tips/#separate-kernel-functions) section of the manual).
 
 ## Development
 
-At the moment, the functionality of this package is largely focused on my own requirements. If you need additional features, open an issue or a pull request. In the short term, you can use the excellent [PyCall](https://github.com/stevengj/PyCall.jl) package to access the Python wrapper of CasaCore ([pyrap](https://code.google.com/p/pyrap/)).
+At the moment, the functionality of this package is largely focused on my own requirements. If you need additional
+features, open an issue or a pull request. In the short term, you can use the excellent
+[PyCall](https://github.com/stevengj/PyCall.jl) package to access the Python wrapper of CasaCore ([pyrap](https://code.google.com/p/pyrap/)).
+
