@@ -16,21 +16,21 @@ The build process does not attempt to install [CasaCore](http://casacore.github.
 ## Measures
 
 ```julia
+using CasaCore.Quanta
 using CasaCore.Measures
-using SIUnits
 ```
 To use the the measures module of CasaCore, you first need to define a reference frame:
 ```julia
 frame = ReferenceFrame()
-position = observatory(frame,"OVRO_MMA")
-time = Epoch("UTC",4.905577293531662e9*Second)
+position = observatory("OVRO_MMA")
+time = Epoch(Measures.UTC,Quantity(50237.29,Day))
 set!(frame,position)
 set!(frame,time)
 ```
 After the reference frame is defined, you can convert between various coordinate systems:
 ```julia
-dir   = Direction("AZEL",0.0*Radian,1.0*Radian)
-j2000 = measure(frame,dir,"J2000")
+j2000 = Direction(Measures.J2000,ra"19h59m28.35663s",dec"+40d44m02.0970s")
+azel  = measure(frame,j2000,Measures.AZEL)
 ```
 
 ## Tables
@@ -60,32 +60,14 @@ spw = table[kw"SPECTRAL_WINDOW"]
 table[kw"SPECTRAL_WINDOW"] = newspw
 ```
 
-Note that reading a column (or a cell) is necessarily type-unstable. That is, the element type and shape of the column cannot be inferred from the types of the arguments. If you have prior knowledge of what is stored in the column, you can mitigate this issue by adding a type annotation. For example:
-```julia
-data = table["DATA"]::Array{Complex64,3}
-```
-Alternatively, you can separate the computational kernel into a separate function. For example:
-```julia
-function slow_func()
-    data = table["DATA"]
-    for i = 1:length(data)
-        data[i] = 2data[i]
-    end
-end
-
-function fast_func()
-    data = table["DATA"]
-    kernel!(data)
-end
-
-function kernel!(data)
-    for i = 1:length(data)
-        data[i] = 2data[i]
-    end
-end
-```
-For more information on why this works, see the [Performance Tips](http://julia.readthedocs.org/en/latest/manual/performance-tips/#separate-kernel-functions) section of the manual.
+Note that reading a column (or a cell) is necessarily type-unstable. That is, the element type and shape of the
+column cannot be inferred from the types of the arguments. You can mitigate this issue by adding a type annotation
+or by separating the computational kernel
+(see the [Performance Tips](http://julia.readthedocs.org/en/latest/manual/performance-tips/#separate-kernel-functions) section of the manual).
 
 ## Development
 
-At the moment, the functionality of this package is largely focused on my own requirements. If you need additional features, open an issue or a pull request. In the short term, you can use the excellent [PyCall](https://github.com/stevengj/PyCall.jl) package to access the Python wrapper of CasaCore ([pyrap](https://code.google.com/p/pyrap/)).
+At the moment, the functionality of this package is largely focused on my own requirements. If you need additional
+features, open an issue or a pull request. In the short term, you can use the excellent
+[PyCall](https://github.com/stevengj/PyCall.jl) package to access the Python wrapper of CasaCore ([pyrap](https://code.google.com/p/pyrap/)).
+

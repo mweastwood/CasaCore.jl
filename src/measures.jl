@@ -13,104 +13,51 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-@doc """
-This type holds a pointer to the MeasuresProxy class.
-I've always felt ReferenceFrame is a more appropriate name
-for what this class actually does.
-""" ->
+abstract Measure
+
 type ReferenceFrame
     ptr::Ptr{Void}
 end
 
 function ReferenceFrame()
-    rf = ReferenceFrame(ccall(("newMeasures",libcasacorewrapper),Ptr{Void},()))
-    finalizer(rf,referenceframefinalizer)
-    rf
+    frame = ccall(("newFrame",libcasacorewrapper), Ptr{Void}, ()) |> ReferenceFrame
+    finalizer(frame,delete)
+    frame
 end
 
-function referenceframefinalizer(rf::ReferenceFrame)
-    ccall(("deleteMeasures",libcasacorewrapper),Void,(Ptr{Void},),rf.ptr)
+function delete(frame::ReferenceFrame)
+    ccall(("deleteFrame",libcasacorewrapper), Void, (Ptr{Void},), pointer(frame))
 end
 
-abstract Measure
+pointer(frame::ReferenceFrame) = frame.ptr
 
-const measure2string = Dict(:Epoch     => "epoch",
-                            :Direction => "direction",
-                            :Position  => "position")
+include("epoch.jl")
+include("direction.jl")
+include("position.jl")
 
-const measure2fields = Dict(:Epoch     => (quantity(Float64,Second),),
-                            :Direction => (quantity(Float64,Radian),quantity(Float64,Radian)),
-                            :Position  => (quantity(Float64,Radian),quantity(Float64,Radian),quantity(Float64,Meter)))
-
-for sym in keys(measure2string)
-    str = measure2string[sym]
-    fields = measure2fields[sym]
-    N = length(fields)
-
-    @eval type $sym <: Measure
-        system::ASCIIString
-        m::$fields
-    end
-
-    @eval $sym(system::ASCIIString,m::SIUnits.SIQuantity...) = $sym(system,m)
-
-    @eval function $sym(record::Record)
-        system = record["refer"]
-        m = Array(SIUnits.SIQuantity,$N)
-        for i = 1:$N
-            m[i] = siquantity(record["m$(i-1)"])
-        end
-        $sym(system,tuple(m...))
-    end
-
-    @eval function Record(measure::$sym)
-        description = RecordDesc()
-        addField!(description,"type",ASCIIString)
-        addField!(description,"refer",ASCIIString)
-        for i = 1:$N
-            addField!(description,"m$(i-1)",Record)
-        end
-
-        record = Record(description)
-        record["type"]  = $str
-        record["refer"] = measure.system
-        for i = 1:$N
-            record["m$(i-1)"] = Record(measure.m[i])
-        end
-        record
-    end
+function set!(frame::ReferenceFrame,epoch::Epoch)
+    ccall(("setEpoch",libcasacorewrapper), Void,
+          (Ptr{Void},Ptr{Void}), pointer(frame), pointer(epoch))
 end
 
-# The `Direction` measure can accept solar system objects (eg. "SUN", "MOON", "JUPITER")
-# as its `system` field. In these cases we should provide a sane default value for `m`.
-Direction(system::ASCIIString) = Direction(system,as(0Degree,Radian),as(90Degree,Radian))
-
-function set!(rf::ReferenceFrame,measure::Measure)
-    record = Record(measure)
-    ccall(("doframe",libcasacorewrapper),
-          Void,(Ptr{Void},Ptr{Void}),
-          rf.ptr,record.ptr)
+function set!(frame::ReferenceFrame,position::Position)
+    ccall(("setPosition",libcasacorewrapper), Void,
+          (Ptr{Void},Ptr{Void}), pointer(frame), pointer(position))
 end
 
-function measure{T<:Measure}(rf::ReferenceFrame,measure::T,newsystem::ASCIIString)
-    record = Record(measure)
-    newrecord = Record(ccall(("measure",libcasacorewrapper),
-                             Ptr{Void},(Ptr{Void},Ptr{Void},Ptr{Cchar}),
-                             rf.ptr,record.ptr,pointer(newsystem)))
-    T(newrecord)
+function set!(frame::ReferenceFrame,direction::Direction)
+    ccall(("setDirection",libcasacorewrapper), Void,
+          (Ptr{Void},Ptr{Void}), pointer(frame), pointer(direction))
 end
 
-function source(rf::ReferenceFrame,name::ASCIIString)
-    record = Record(ccall(("source",libcasacorewrapper),
-                          Ptr{Void},(Ptr{Void},Ptr{Cchar}),
-                          rf.ptr,pointer(name)))
-    Direction(record)
-end
+################################################################################
+# Miscellaneous Functions
 
-function observatory(rf::ReferenceFrame,name::ASCIIString)
-    record = Record(ccall(("observatory",libcasacorewrapper),
-                          Ptr{Void},(Ptr{Void},Ptr{Cchar}),
-                          rf.ptr,pointer(name)))
-    Position(record)
+function observatory(name::ASCIIString)
+    position = Position()
+    status = ccall(("observatory",libcasacorewrapper), Bool,
+                   (Ptr{Void},Ptr{Cchar}), pointer(position), pointer(name))
+    !status && error("Unknown observatory.")
+    position
 end
 

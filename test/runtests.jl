@@ -1,65 +1,56 @@
 using CasaCore.Tables
+using CasaCore.Quanta
 using CasaCore.Measures
 using Base.Test
-using SIUnits
-
-function test_approx_eq(q1::SIUnits.SIQuantity,q2::SIUnits.SIQuantity,tol = 3eps(Float64))
-    # This function is necesary because SIUnits does not (yet) support @test_approx_eq.
-    # Note that this function does not test for the equality of the units.
-    @test_approx_eq_eps q1.val q2.val tol
-end
-
-function test_approx_eq{T<:Measure}(m1::T,m2::T)
-    @test m1.system == m2.system
-    for (q1,q2) in zip(m1.m,m2.m)
-        test_approx_eq(q1,q2)
-    end
-end
 
 let
-    test_approx_eq(ra"12h34m56.78s",π/12.*(12.+34/60.+56.78/3600)*Radian)
-    test_approx_eq(ra"12h34m56s",   π/12.*(12.+34/60.+56./3600)*Radian)
-    test_approx_eq(ra"12h34.56m",   π/12.*(12.+34.56/60.)*Radian)
-    test_approx_eq(ra"12h34m",      π/12.*(12.+34./60.)*Radian)
-    test_approx_eq(ra"12.34h",      π/12.*(12.34)*Radian)
-    test_approx_eq(ra"12h",         π/12.*(12.)*Radian)
+    @test_approx_eq get(ra"12h34m56.78s",Radian) π/12.*(12.+34/60.+56.78/3600)
+    @test_approx_eq get(ra"12h34m56s",Radian)    π/12.*(12.+34/60.+56./3600)
+    @test_approx_eq get(ra"12h34.56m",Radian)    π/12.*(12.+34.56/60.)
+    @test_approx_eq get(ra"12h34m",Radian)       π/12.*(12.+34./60.)
+    @test_approx_eq get(ra"12.34h",Radian)       π/12.*(12.34)
+    @test_approx_eq get(ra"12h",Radian)          π/12.*(12.)
 
-    test_approx_eq(dec"12d34m56.78s",  π/180.*(12.+34/60.+56.78/3600)*Radian)
-    test_approx_eq(dec"12d34m56s",     π/180.*(12.+34/60.+56./3600)*Radian)
-    test_approx_eq(dec"12d34.56m",     π/180.*(12.+34.56/60.)*Radian)
-    test_approx_eq(dec"12d34m",        π/180.*(12.+34./60.)*Radian)
-    test_approx_eq(dec"12.34d",        π/180.*(12.34)*Radian)
-    test_approx_eq(dec"12d",           π/180.*(12.)*Radian)
-    test_approx_eq(dec"+12d34m56.78s", π/180.*(12.+34/60.+56.78/3600)*Radian)
-    test_approx_eq(dec"+12d34m56s",    π/180.*(12.+34/60.+56./3600)*Radian)
-    test_approx_eq(dec"+12d34.56m",    π/180.*(12.+34.56/60.)*Radian)
-    test_approx_eq(dec"+12d34m",       π/180.*(12.+34./60.)*Radian)
-    test_approx_eq(dec"+12.34d",       π/180.*(12.34)*Radian)
-    test_approx_eq(dec"+12d",          π/180.*(12.)*Radian)
-    test_approx_eq(dec"-12d34m56.78s", -1*π/180.*(12.+34/60.+56.78/3600)*Radian)
-    test_approx_eq(dec"-12d34m56s",    -1*π/180.*(12.+34/60.+56./3600)*Radian)
-    test_approx_eq(dec"-12d34.56m",    -1*π/180.*(12.+34.56/60.)*Radian)
-    test_approx_eq(dec"-12d34m",       -1*π/180.*(12.+34./60.)*Radian)
-    test_approx_eq(dec"-12.34d",       -1*π/180.*(12.34)*Radian)
-    test_approx_eq(dec"-12d",          -1*π/180.*(12.)*Radian)
-
-    @test ra_str(ra"12h34m56.78s") == "12h34m56.78s"
-    @test dec_str(dec"+12d34m56.78s") == "+12d34m56.78s"
-    @test dec_str(dec"-12d34m56.78s") == "-12d34m56.78s"
+    @test_approx_eq get(dec"12d34m56.78s",Radian)   π/180.*(12.+34/60.+56.78/3600)
+    @test_approx_eq get(dec"12d34m56s",Radian)      π/180.*(12.+34/60.+56./3600)
+    @test_approx_eq get(dec"12d34.56m",Radian)      π/180.*(12.+34.56/60.)
+    @test_approx_eq get(dec"12d34m",Radian)         π/180.*(12.+34./60.)
+    @test_approx_eq get(dec"12.34d",Radian)         π/180.*(12.34)
+    @test_approx_eq get(dec"12d",Radian)            π/180.*(12.)
+    @test_approx_eq get(dec"+12d34m56.78s",Radian)  π/180.*(12.+34/60.+56.78/3600)
+    @test_approx_eq get(dec"+12d34m56s",Radian)     π/180.*(12.+34/60.+56./3600)
+    @test_approx_eq get(dec"+12d34.56m",Radian)     π/180.*(12.+34.56/60.)
+    @test_approx_eq get(dec"+12d34m",Radian)        π/180.*(12.+34./60.)
+    @test_approx_eq get(dec"+12.34d",Radian)        π/180.*(12.34)
+    @test_approx_eq get(dec"+12d",Radian)           π/180.*(12.)
+    @test_approx_eq get(dec"-12d34m56.78s",Radian)  -1*π/180.*(12.+34/60.+56.78/3600)
+    @test_approx_eq get(dec"-12d34m56s",Radian)     -1*π/180.*(12.+34/60.+56./3600)
+    @test_approx_eq get(dec"-12d34.56m",Radian)     -1*π/180.*(12.+34.56/60.)
+    @test_approx_eq get(dec"-12d34m",Radian)        -1*π/180.*(12.+34./60.)
+    @test_approx_eq get(dec"-12.34d",Radian)        -1*π/180.*(12.34)
+    @test_approx_eq get(dec"-12d",Radian)           -1*π/180.*(12.)
 end
 
 let
     frame = ReferenceFrame()
-    position = observatory(frame,"OVRO_MMA")
-    time = Epoch("UTC",4.905577293531662e9Second)
+    position = observatory("OVRO_MMA")
+    time = Epoch(Measures.UTC,Quantity(50237.29,Day))
     set!(frame,position)
     set!(frame,time)
 
-    dir1  = Direction("AZEL",0.0Radian,1.0Radian)
-    j2000 = measure(frame,dir1,"J2000")
-    dir2  = measure(frame,j2000,"AZEL")
+    dir1  = Direction(Measures.AZEL,Quantity(1.0,Radian),Quantity(1.0,Radian))
+    j2000 = measure(frame,dir1,Measures.J2000)
+    dir2  = measure(frame,j2000,Measures.AZEL)
 
-    test_approx_eq(dir1,dir2)
+    @test_approx_eq  latitude(dir1)  latitude(dir2)
+    @test_approx_eq longitude(dir1) longitude(dir2)
+
+    dir1 = Direction(Measures.J2000,ra"19h59m28.35663s",dec"+40d44m02.0970s")
+    azel = measure(frame,dir1,Measures.AZEL)
+    dir2 = measure(frame,azel,Measures.J2000)
+
+    @test_approx_eq  latitude(dir1)  latitude(dir2)
+    @test_approx_eq longitude(dir1) longitude(dir2)
 end
 
 let
