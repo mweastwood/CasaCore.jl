@@ -82,7 +82,7 @@ function format_ra(ra::Float64)
     min = floor(Integer,ra)
     ra  = (ra-min)*60
     sec = ra
-    @sprintf("%dh%02dm%05.2fs",hrs,min,sec)
+    @sprintf("%dh%02dm%07.4fs",hrs,min,sec)
 end
 
 function format_dec(dec::Float64)
@@ -94,7 +94,7 @@ function format_dec(dec::Float64)
     min = floor(Integer,dec)
     dec = (dec-min)*60
     sec = dec
-    @sprintf("%+dd%02dm%05.2fs",s*deg,min,sec)
+    @sprintf("%+dd%02dm%07.4fs",s*deg,min,sec)
 end
 
 macro ra_str(string)
