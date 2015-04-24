@@ -17,7 +17,14 @@ function ra(hours,minutes=0.0,seconds=0.0)
     Quantity(15.*(hours+minutes/60.+seconds/3600.),Degree)
 end
 
-function ra_str(string::AbstractString)
+function dec(sign,degrees,minutes=0.0,seconds=0.0)
+    Quantity(sign*(degrees+minutes/60.+seconds/3600.),Degree)
+end
+
+@doc """
+Parse a string of the form 12h34m56.7s.
+""" ->
+function parse_ra(string::AbstractString)
     # Match eg. 12h34m56.7s
     regex = r"([0-9]?[0-9])h([0-9]?[0-9])m([0-9]?[0-9]\.?[0-9]*)s"
     if match(regex,string) != nothing
@@ -39,16 +46,11 @@ function ra_str(string::AbstractString)
     error("Unknown right ascension format: $string")
 end
 
-macro ra_str(string)
-    ra_str(string)
-end
-
-function dec(sign,degrees,minutes=0.0,seconds=0.0)
-    Quantity(sign*(degrees+minutes/60.+seconds/3600.),Degree)
-end
-
-function dec_str(string::AbstractString)
-    # Match eg. 23d34m56.7s
+@doc """
+Parse a string of the form +12d34m56.7s.
+""" ->
+function parse_dec(string::AbstractString)
+    # Match eg. 12d34m56.7s
     regex = r"(\+|\-)?([0-9]?[0-9]?[0-9])d([0-9]?[0-9])m([0-9]?[0-9]\.?[0-9]*)s"
     if match(regex,string) != nothing
         substrs = match(regex,string).captures
@@ -72,7 +74,34 @@ function dec_str(string::AbstractString)
     error("Unknown declination format: $string")
 end
 
+function format_ra(ra::Float64)
+    ra /= 15
+    ra  = mod(ra,24)
+    hrs = floor(Integer,ra)
+    ra  = (ra-hrs)*60
+    min = floor(Integer,ra)
+    ra  = (ra-min)*60
+    sec = ra
+    @sprintf("%dh%02dm%07.4fs",hrs,min,sec)
+end
+
+function format_dec(dec::Float64)
+    s = sign(dec)
+    dec *= s
+    dec = mod(dec,90)
+    deg = floor(Integer,dec)
+    dec = (dec-deg)*60
+    min = floor(Integer,dec)
+    dec = (dec-min)*60
+    sec = dec
+    @sprintf("%+dd%02dm%07.4fs",s*deg,min,sec)
+end
+
+macro ra_str(string)
+    parse_ra(string)
+end
+
 macro dec_str(string)
-    dec_str(string)
+    parse_dec(string)
 end
 
