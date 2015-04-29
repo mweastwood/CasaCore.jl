@@ -46,6 +46,7 @@ extern "C" {
         *y = vec(1);
         *z = vec(2);
     }
+
     MDirection* convertDirection(MDirection* direction, int newref, MeasFrame* frame) {
         return new MDirection(MDirection::Convert(*direction,MDirection::Ref(newref,*frame))());
     }
