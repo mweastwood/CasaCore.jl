@@ -24,6 +24,10 @@ extern "C" {
         return new MDirection(*longitude, *latitude, MDirection::Ref(ref));
     }
 
+    MDirection* newDirectionXYZ(double x, double y, double z, int ref) {
+        return new MDirection(MVDirection(x,y,z), MDirection::Ref(ref));
+    }
+
     void deleteDirection(MDirection* direction) {
         delete direction;
     }
@@ -34,6 +38,13 @@ extern "C" {
 
     double getDirectionLatitude(MDirection* direction, Unit* unit) {
         return direction->getValue().getLat(*unit).getValue();
+    }
+
+    void getDirectionXYZ(MDirection* direction, double* x, double* y, double* z) {
+        Vector<Double> vec = direction->getValue().getVector();
+        *x = vec(0);
+        *y = vec(1);
+        *z = vec(2);
     }
 
     MDirection* convertDirection(MDirection* direction, int newref, MeasFrame* frame) {

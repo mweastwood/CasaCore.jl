@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-@enum DirectionRef J2000 JMEAN JTRUE APP B1950 B1950_VLA BMEAN BTRUE GALACTIC HADEC AZEL AZELSW AZELGEO AZELSWGEO JNAT ECLIPTIC MECLIPTIC TECLIPTIC SUPERGAL MERCURY=32 VENUS MARS JUPITER SATURN URANUS NEPTUNE PLUTO SUN MOON
+@enum DirectionRef J2000 JMEAN JTRUE APP B1950 B1950_VLA BMEAN BTRUE GALACTIC HADEC AZEL AZELSW AZELGEO AZELSWGEO JNAT ECLIPTIC MECLIPTIC TECLIPTIC SUPERGAL ITRFDIR MERCURY=32 VENUS MARS JUPITER SATURN URANUS NEPTUNE PLUTO SUN MOON
 
 type Direction{ref} <: Measure
     ptr::Ptr{Void}
@@ -31,6 +31,13 @@ Direction(longitude,latitude) = Direction(J2000,longitude,latitude)
 Direction() = Direction(Quantity(Radian),Quantity(Radian))
 Direction(ref::DirectionRef) = Direction(ref,Quantity(Radian),Quantity(Radian))
 
+function from_xyz_in_meters(ref::DirectionRef,x::Float64,y::Float64,z::Float64)
+    direction = ccall(("newDirectionXYZ",libcasacorewrapper), Ptr{Void},
+                     (Cdouble,Cdouble,Cdouble,Cint), x, y, z, ref) |> Direction{ref}
+    finalizer(direction,delete)
+    direction
+end
+
 function delete(direction::Direction)
     ccall(("deleteDirection",libcasacorewrapper), Void,
           (Ptr{Void},), pointer(direction))
@@ -47,6 +54,16 @@ end
 function latitude(direction::Direction, unit::Unit = Radian)
     ccall(("getDirectionLatitude",libcasacorewrapper), Cdouble,
           (Ptr{Void},Ptr{Void}), pointer(direction), pointer(unit))
+end
+
+function xyz_in_meters(direction::Direction)
+    x = Ref{Cdouble}(0)
+    y = Ref{Cdouble}(0)
+    z = Ref{Cdouble}(0)
+    ccall(("getDirectionXYZ",libcasacorewrapper), Void,
+          (Ptr{Void},Ref{Cdouble},Ref{Cdouble},Ref{Cdouble}),
+          pointer(direction), x, y, z)
+    x[],y[],z[]
 end
 
 function show(io::IO, direction::Direction)
