@@ -24,6 +24,10 @@ extern "C" {
         return new MPosition(*length, *longitude, *latitude, MPosition::Ref(ref));
     }
 
+    MPosition* newPositionXYZ(double x, double y, double z, int ref) {
+        return new MPosition(MVPosition(x,y,z), MPosition::Ref(ref));
+    }
+
     void deletePosition(MPosition* position) {
         delete position;
     }
@@ -38,6 +42,13 @@ extern "C" {
 
     double getPositionLatitude(MPosition* position, Unit* unit) {
         return position->getValue().getLat(*unit).getValue();
+    }
+
+    void getPositionXYZ(MPosition* position, double* x, double* y, double* z) {
+        Vector<Double> vec = position->getValue().getVector();
+        *x = vec(0);
+        *y = vec(1);
+        *z = vec(2);
     }
 
     MPosition* convertPosition(MPosition* Position, int newref, MeasFrame* frame) {

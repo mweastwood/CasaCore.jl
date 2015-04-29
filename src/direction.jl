@@ -31,6 +31,13 @@ Direction(longitude,latitude) = Direction(J2000,longitude,latitude)
 Direction() = Direction(Quantity(Radian),Quantity(Radian))
 Direction(ref::DirectionRef) = Direction(ref,Quantity(Radian),Quantity(Radian))
 
+function from_xyz_in_meters(ref::DirectionRef,x::Float64,y::Float64,z::Float64)
+    direction = ccall(("newDirectionXYZ",libcasacorewrapper), Ptr{Void},
+                     (Cdouble,Cdouble,Cdouble,Cint), x, y, z, ref) |> Direction{ref}
+    finalizer(direction,delete)
+    direction
+end
+
 function delete(direction::Direction)
     ccall(("deleteDirection",libcasacorewrapper), Void,
           (Ptr{Void},), pointer(direction))
@@ -47,6 +54,16 @@ end
 function latitude(direction::Direction, unit::Unit = Radian)
     ccall(("getDirectionLatitude",libcasacorewrapper), Cdouble,
           (Ptr{Void},Ptr{Void}), pointer(direction), pointer(unit))
+end
+
+function xyz_in_meters(direction::Direction)
+    x = Ref{Cdouble}(0)
+    y = Ref{Cdouble}(0)
+    z = Ref{Cdouble}(0)
+    ccall(("getDirectionXYZ",libcasacorewrapper), Void,
+          (Ptr{Void},Ref{Cdouble},Ref{Cdouble},Ref{Cdouble}),
+          pointer(direction), x, y, z)
+    x[],y[],z[]
 end
 
 function show(io::IO, direction::Direction)
