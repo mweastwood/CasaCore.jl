@@ -44,6 +44,13 @@ extern "C" {
         Record record = t->getKeywordSet(String());
         return record.nfields();
     }
+
+    bool lock(TableProxy* t, bool write, int attempts) {
+        return t->table().lock(write,attempts);
+    }
+    void unlock(TableProxy* t) {
+        t->table().unlock();
+    }
 }
 
 /******************************************************************************/

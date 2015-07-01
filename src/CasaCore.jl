@@ -29,9 +29,10 @@ module Tables
     export Table
     export numrows, numcolumns, numkeywords
     export @kw_str
+    export lock, unlock
 
     importall ..Private
-    import Base: close
+    import Base: close, lock, unlock
     include("tables.jl")
 end
 

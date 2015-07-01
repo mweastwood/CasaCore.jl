@@ -160,5 +160,10 @@ let
     @test table["DATA",kw"Hello,"] == "World!"
     table["DATA",kw"Test"] = ["Hello,","World!"]
     @test table["DATA",kw"Test"] == ["Hello,","World!"]
+
+    # Try locking and unlocking the table
+    unlock(table)
+    lock(table)
+    unlock(table)
 end
 
