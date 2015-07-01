@@ -68,6 +68,20 @@ for f in (:numrows,:numcolumns,:numkeywords)
     end
 end
 
+function lock(table::Table;writelock::Bool=true,attempts::Int=5)
+    success = ccall(("lock",libcasacorewrapper),Bool,
+                    (Ptr{Void},Bool,Cint),
+                    table.ptr,writelock,attempts)
+    if !success
+        error("Could not get a lock on the table.")
+    end
+    nothing
+end
+
+function unlock(table::Table)
+    ccall(("unlock",libcasacorewrapper),Void,(Ptr{Void},),table.ptr)
+end
+
 ################################################################################
 # Keyword Operations
 
