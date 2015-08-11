@@ -46,8 +46,8 @@ function get(epoch::Epoch, unit::Unit)
           (Ptr{Void},Ptr{Void}), pointer(epoch), pointer(unit))
 end
 
-days(epoch::Epoch) = get(epoch,Day)
-seconds(epoch::Epoch) = get(epoch,Second)
+days(epoch::Epoch) = get(epoch,Quanta.Day)
+seconds(epoch::Epoch) = get(epoch,Quanta.Second)
 
 show(io::IO, epoch::Epoch) = print(io,days(epoch)," days")
 

@@ -28,8 +28,8 @@ function Direction(ref::DirectionRef,longitude::Quantity,latitude::Quantity)
 end
 
 Direction(longitude,latitude) = Direction(J2000,longitude,latitude)
-Direction() = Direction(Quantity(Radian),Quantity(Radian))
-Direction(ref::DirectionRef) = Direction(ref,Quantity(Radian),Quantity(Radian))
+Direction() = Direction(Quantity(Quanta.Radian),Quantity(Quanta.Radian))
+Direction(ref::DirectionRef) = Direction(ref,Quantity(Quanta.Radian),Quantity(Quanta.Radian))
 
 function from_xyz_in_meters(ref::DirectionRef,x::Float64,y::Float64,z::Float64)
     direction = ccall(("newDirectionXYZ",libcasacorewrapper), Ptr{Void},
@@ -46,12 +46,12 @@ end
 pointer(direction::Direction) = direction.ptr
 reference{ref}(::Direction{ref}) = ref
 
-function longitude(direction::Direction, unit::Unit = Radian)
+function longitude(direction::Direction, unit::Unit = Quanta.Radian)
     ccall(("getDirectionLongitude",libcasacorewrapper), Cdouble,
           (Ptr{Void},Ptr{Void}), pointer(direction), pointer(unit))
 end
 
-function latitude(direction::Direction, unit::Unit = Radian)
+function latitude(direction::Direction, unit::Unit = Quanta.Radian)
     ccall(("getDirectionLatitude",libcasacorewrapper), Cdouble,
           (Ptr{Void},Ptr{Void}), pointer(direction), pointer(unit))
 end
@@ -67,8 +67,8 @@ function xyz_in_meters(direction::Direction)
 end
 
 function show(io::IO, direction::Direction)
-    long = longitude(direction,Degree)
-    lat  = latitude(direction,Degree)
+    long = longitude(direction,Quanta.Degree)
+    lat  = latitude(direction,Quanta.Degree)
     print(io,"(",long," deg, ",lat," deg)")
 end
 

@@ -31,7 +31,7 @@ function Position(ref::PositionRef,length::Quantity,longitude::Quantity,latitude
 end
 
 Position(length,longitude,latitude) = Position(ITRF,length,longitude,latitude)
-Position() = Position(Quantity(Meter),Quantity(Radian),Quantity(Radian))
+Position() = Position(Quantity(Quanta.Meter),Quantity(Quanta.Radian),Quantity(Quanta.Radian))
 
 @doc """
 CasaCore also allows you to construct MPosition objects from a Cartesian 3-vector,
@@ -54,17 +54,17 @@ end
 pointer(position::Position) = position.ptr
 reference{ref}(::Position{ref}) = ref
 
-function length(position::Position, unit::Unit = Meter)
+function length(position::Position, unit::Unit = Quanta.Meter)
     ccall(("getLength",libcasacorewrapper), Cdouble,
           (Ptr{Void},Ptr{Void}), pointer(position), pointer(unit))
 end
 
-function longitude(position::Position, unit::Unit = Radian)
+function longitude(position::Position, unit::Unit = Quanta.Radian)
     ccall(("getPositionLongitude",libcasacorewrapper), Cdouble,
           (Ptr{Void},Ptr{Void}), pointer(position), pointer(unit))
 end
 
-function latitude(position::Position, unit::Unit = Radian)
+function latitude(position::Position, unit::Unit = Quanta.Radian)
     ccall(("getPositionLatitude",libcasacorewrapper), Cdouble,
           (Ptr{Void},Ptr{Void}), pointer(position), pointer(unit))
 end
@@ -80,9 +80,9 @@ function xyz_in_meters(position::Position)
 end
 
 function show(io::IO, position::Position)
-    L    = length(position,Meter)
-    long = longitude(position,Degree)
-    lat  = latitude(position,Degree)
+    L    = length(position,Quanta.Meter)
+    long = longitude(position,Quanta.Degree)
+    lat  = latitude(position,Quanta.Degree)
     print(io,"(",L," m, ",long," deg, ",lat," deg)")
 end
 
