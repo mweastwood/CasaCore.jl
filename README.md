@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/mweastwood/CasaCore.jl.svg?branch=master)](https://travis-ci.org/mweastwood/CasaCore.jl)
 [![Coverage Status](https://coveralls.io/repos/mweastwood/CasaCore.jl/badge.svg?branch=master)](https://coveralls.io/r/mweastwood/CasaCore.jl?branch=master)
+[![License](https://img.shields.io/badge/license-GPLv3%2B-blue.svg)](LICENSE.md)
 
 ## Getting Started
 
