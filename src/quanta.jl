@@ -34,11 +34,13 @@ end
 
 pointer(unit::Unit) = unit.ptr
 
-const Second = Unit("s")
-const Day    = Unit("d")
-const Radian = Unit("rad")
-const Degree = Unit("deg")
-const Meter  = Unit("m")
+function __init__()
+    global const Second = Unit("s")
+    global const Day    = Unit("d")
+    global const Radian = Unit("rad")
+    global const Degree = Unit("deg")
+    global const Meter  = Unit("m")
+end
 
 ################################################################################
 # Quantities

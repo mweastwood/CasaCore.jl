@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+__precompile__()
+
 module CasaCore
 
 module Private
@@ -32,7 +34,7 @@ module Tables
     export lock, unlock
 
     importall ..Private
-    import Base: close, lock, unlock
+    import Base: close, lock, unlock, getindex, setindex!
     include("tables.jl")
 end
 
