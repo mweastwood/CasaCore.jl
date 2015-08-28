@@ -32,6 +32,20 @@ let
 end
 
 let
+    # position of an OVRO LWA antenna
+    x = -2.4091659216088112e6
+    y = -4.477883063543822e6
+    z = 3.8393872424225896e6
+    pos = Measures.from_xyz_in_meters(Measures.ITRF,x,y,z)
+    ξ,η,ζ = Measures.xyz_in_meters(pos)
+    @test Measures.reference(pos) === Measures.ITRF
+    @test x == ξ
+    @test y == η
+    @test z == ζ
+    @test length(pos) ≈ sqrt(x^2+y^2+z^2)
+end
+
+let
     frame = ReferenceFrame()
     position = observatory("OVRO_MMA")
     time = Epoch(Measures.UTC,Quantity(50237.29,Day))
@@ -51,6 +65,13 @@ let
 
     @test  latitude(dir1) ≈  latitude(dir2)
     @test longitude(dir1) ≈ longitude(dir2)
+
+    inradians = longitude(dir1,Radian)
+    indegrees = longitude(dir1,Degree)
+    @test rad2deg(inradians) ≈ indegrees
+    inradians = latitude(dir1,Radian)
+    indegrees = latitude(dir1,Degree)
+    @test rad2deg(inradians) ≈ indegrees
 end
 
 let
