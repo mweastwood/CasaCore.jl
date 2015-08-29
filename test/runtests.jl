@@ -4,31 +4,52 @@ using CasaCore.Measures
 using Base.Test
 
 let
-    @test_approx_eq get(ra"12h34m56.78s",Radian) π/12.*(12.+34/60.+56.78/3600)
-    @test_approx_eq get(ra"12h34m56s",Radian)    π/12.*(12.+34/60.+56./3600)
-    @test_approx_eq get(ra"12h34.56m",Radian)    π/12.*(12.+34.56/60.)
-    @test_approx_eq get(ra"12h34m",Radian)       π/12.*(12.+34./60.)
-    @test_approx_eq get(ra"12.34h",Radian)       π/12.*(12.34)
-    @test_approx_eq get(ra"12h",Radian)          π/12.*(12.)
+    @test get(ra"12h34m56.78s",Radian) ≈ π/12.*(12.+34/60.+56.78/3600)
+    @test get(ra"12h34m56s",Radian)    ≈ π/12.*(12.+34/60.+56./3600)
+    @test get(ra"12h34.56m",Radian)    ≈ π/12.*(12.+34.56/60.)
+    @test get(ra"12h34m",Radian)       ≈ π/12.*(12.+34./60.)
+    @test get(ra"12.34h",Radian)       ≈ π/12.*(12.34)
+    @test get(ra"12h",Radian)          ≈ π/12.*(12.)
 
-    @test_approx_eq get(dec"12d34m56.78s",Radian)   π/180.*(12.+34/60.+56.78/3600)
-    @test_approx_eq get(dec"12d34m56s",Radian)      π/180.*(12.+34/60.+56./3600)
-    @test_approx_eq get(dec"12d34.56m",Radian)      π/180.*(12.+34.56/60.)
-    @test_approx_eq get(dec"12d34m",Radian)         π/180.*(12.+34./60.)
-    @test_approx_eq get(dec"12.34d",Radian)         π/180.*(12.34)
-    @test_approx_eq get(dec"12d",Radian)            π/180.*(12.)
-    @test_approx_eq get(dec"+12d34m56.78s",Radian)  π/180.*(12.+34/60.+56.78/3600)
-    @test_approx_eq get(dec"+12d34m56s",Radian)     π/180.*(12.+34/60.+56./3600)
-    @test_approx_eq get(dec"+12d34.56m",Radian)     π/180.*(12.+34.56/60.)
-    @test_approx_eq get(dec"+12d34m",Radian)        π/180.*(12.+34./60.)
-    @test_approx_eq get(dec"+12.34d",Radian)        π/180.*(12.34)
-    @test_approx_eq get(dec"+12d",Radian)           π/180.*(12.)
-    @test_approx_eq get(dec"-12d34m56.78s",Radian)  -1*π/180.*(12.+34/60.+56.78/3600)
-    @test_approx_eq get(dec"-12d34m56s",Radian)     -1*π/180.*(12.+34/60.+56./3600)
-    @test_approx_eq get(dec"-12d34.56m",Radian)     -1*π/180.*(12.+34.56/60.)
-    @test_approx_eq get(dec"-12d34m",Radian)        -1*π/180.*(12.+34./60.)
-    @test_approx_eq get(dec"-12.34d",Radian)        -1*π/180.*(12.34)
-    @test_approx_eq get(dec"-12d",Radian)           -1*π/180.*(12.)
+    @test get(dec"12d34m56.78s",Radian)   ≈ π/180.*(12.+34/60.+56.78/3600)
+    @test get(dec"12d34m56s",Radian)      ≈ π/180.*(12.+34/60.+56./3600)
+    @test get(dec"12d34.56m",Radian)      ≈ π/180.*(12.+34.56/60.)
+    @test get(dec"12d34m",Radian)         ≈ π/180.*(12.+34./60.)
+    @test get(dec"12.34d",Radian)         ≈ π/180.*(12.34)
+    @test get(dec"12d",Radian)            ≈ π/180.*(12.)
+    @test get(dec"+12d34m56.78s",Radian)  ≈ π/180.*(12.+34/60.+56.78/3600)
+    @test get(dec"+12d34m56s",Radian)     ≈ π/180.*(12.+34/60.+56./3600)
+    @test get(dec"+12d34.56m",Radian)     ≈ π/180.*(12.+34.56/60.)
+    @test get(dec"+12d34m",Radian)        ≈ π/180.*(12.+34./60.)
+    @test get(dec"+12.34d",Radian)        ≈ π/180.*(12.34)
+    @test get(dec"+12d",Radian)           ≈ π/180.*(12.)
+    @test get(dec"-12d34m56.78s",Radian)  ≈ -1*π/180.*(12.+34/60.+56.78/3600)
+    @test get(dec"-12d34m56s",Radian)     ≈ -1*π/180.*(12.+34/60.+56./3600)
+    @test get(dec"-12d34.56m",Radian)     ≈ -1*π/180.*(12.+34.56/60.)
+    @test get(dec"-12d34m",Radian)        ≈ -1*π/180.*(12.+34./60.)
+    @test get(dec"-12.34d",Radian)        ≈ -1*π/180.*(12.34)
+    @test get(dec"-12d",Radian)           ≈ -1*π/180.*(12.)
+
+    str = "12h34m56.7890s"
+    val = Quanta.get(Quanta.parse_ra(str),Quanta.Degree)
+    @test Quanta.format_ra(val) == str
+    str = "+12d34m56.7890s"
+    val = Quanta.get(Quanta.parse_dec(str),Quanta.Degree)
+    @test Quanta.format_dec(val) == str
+end
+
+let
+    # position of an OVRO LWA antenna
+    x = -2.4091659216088112e6
+    y = -4.477883063543822e6
+    z = 3.8393872424225896e6
+    pos = Measures.from_xyz_in_meters(Measures.ITRF,x,y,z)
+    ξ,η,ζ = Measures.xyz_in_meters(pos)
+    @test Measures.reference(pos) === Measures.ITRF
+    @test x == ξ
+    @test y == η
+    @test z == ζ
+    @test length(pos) ≈ sqrt(x^2+y^2+z^2)
 end
 
 let
@@ -42,22 +63,34 @@ let
     j2000 = measure(frame,dir1,Measures.J2000)
     dir2  = measure(frame,j2000,Measures.AZEL)
 
-    @test_approx_eq  latitude(dir1)  latitude(dir2)
-    @test_approx_eq longitude(dir1) longitude(dir2)
+    @test Measures.reference(dir1)  === Measures.AZEL
+    @test Measures.reference(j2000) === Measures.J2000
+    @test Measures.reference(dir2)  === Measures.AZEL
+    @test  latitude(dir1) ≈  latitude(dir2)
+    @test longitude(dir1) ≈ longitude(dir2)
 
     dir1 = Direction(Measures.J2000,ra"19h59m28.35663s",dec"+40d44m02.0970s")
     azel = measure(frame,dir1,Measures.AZEL)
     dir2 = measure(frame,azel,Measures.J2000)
 
-    @test_approx_eq  latitude(dir1)  latitude(dir2)
-    @test_approx_eq longitude(dir1) longitude(dir2)
+    @test Measures.reference(dir1) === Measures.J2000
+    @test Measures.reference(azel) === Measures.AZEL
+    @test Measures.reference(dir2) === Measures.J2000
+    @test  latitude(dir1) ≈  latitude(dir2)
+    @test longitude(dir1) ≈ longitude(dir2)
+
+    inradians = longitude(dir1,Radian)
+    indegrees = longitude(dir1,Degree)
+    @test rad2deg(inradians) ≈ indegrees
+    inradians = latitude(dir1,Radian)
+    indegrees = latitude(dir1,Degree)
+    @test rad2deg(inradians) ≈ indegrees
 end
 
 let
     srand(123)
 
     name  = tempname()*".ms"
-    @show name
     table = Table(name)
 
     Tables.addRows!(table,10)
