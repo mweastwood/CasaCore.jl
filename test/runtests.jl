@@ -29,6 +29,13 @@ let
     @test get(dec"-12d34m",Radian)        ≈ -1*π/180.*(12.+34./60.)
     @test get(dec"-12.34d",Radian)        ≈ -1*π/180.*(12.34)
     @test get(dec"-12d",Radian)           ≈ -1*π/180.*(12.)
+
+    str = "12h34m56.7890s"
+    val = Quanta.get(Quanta.parse_ra(str),Quanta.Degree)
+    @test Quanta.format_ra(val) == str
+    str = "+12d34m56.7890s"
+    val = Quanta.get(Quanta.parse_dec(str),Quanta.Degree)
+    @test Quanta.format_dec(val) == str
 end
 
 let
@@ -56,6 +63,9 @@ let
     j2000 = measure(frame,dir1,Measures.J2000)
     dir2  = measure(frame,j2000,Measures.AZEL)
 
+    @test Measures.reference(dir1)  === Measures.AZEL
+    @test Measures.reference(j2000) === Measures.J2000
+    @test Measures.reference(dir2)  === Measures.AZEL
     @test  latitude(dir1) ≈  latitude(dir2)
     @test longitude(dir1) ≈ longitude(dir2)
 
@@ -63,6 +73,9 @@ let
     azel = measure(frame,dir1,Measures.AZEL)
     dir2 = measure(frame,azel,Measures.J2000)
 
+    @test Measures.reference(dir1) === Measures.J2000
+    @test Measures.reference(azel) === Measures.AZEL
+    @test Measures.reference(dir2) === Measures.J2000
     @test  latitude(dir1) ≈  latitude(dir2)
     @test longitude(dir1) ≈ longitude(dir2)
 
@@ -78,7 +91,6 @@ let
     srand(123)
 
     name  = tempname()*".ms"
-    @show name
     table = Table(name)
 
     Tables.addRows!(table,10)
