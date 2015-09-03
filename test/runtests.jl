@@ -66,8 +66,8 @@ let
     @test Measures.reference(dir1)  === Measures.AZEL
     @test Measures.reference(j2000) === Measures.J2000
     @test Measures.reference(dir2)  === Measures.AZEL
-    @test  latitude(dir1) ≈  latitude(dir2)
     @test longitude(dir1) ≈ longitude(dir2)
+    @test  latitude(dir1) ≈  latitude(dir2)
 
     dir1 = Direction(Measures.J2000,ra"19h59m28.35663s",dec"+40d44m02.0970s")
     azel = measure(frame,dir1,Measures.AZEL)
@@ -76,8 +76,8 @@ let
     @test Measures.reference(dir1) === Measures.J2000
     @test Measures.reference(azel) === Measures.AZEL
     @test Measures.reference(dir2) === Measures.J2000
-    @test  latitude(dir1) ≈  latitude(dir2)
     @test longitude(dir1) ≈ longitude(dir2)
+    @test  latitude(dir1) ≈  latitude(dir2)
 
     inradians = longitude(dir1,Radian)
     indegrees = longitude(dir1,Degree)
@@ -85,6 +85,43 @@ let
     inradians = latitude(dir1,Radian)
     indegrees = latitude(dir1,Degree)
     @test rad2deg(inradians) ≈ indegrees
+
+    # test the default values
+    dir = Direction(Quantity(0.5,Radian),Quantity(1.0,Radian))
+    @test Measures.reference(dir) === Measures.J2000
+    @test longitude(dir,Radian) ≈ 0.5
+    @test  latitude(dir,Radian) ≈ 1.0
+
+    dir = Direction()
+    @test Measures.reference(dir) == Measures.J2000
+    @test longitude(dir,Radian) === 0.0
+    @test  latitude(dir,Radian) == 0.0
+
+    dir = Direction(Measures.SUN)
+    @test Measures.reference(dir) == Measures.SUN
+    @test longitude(dir,Radian) == 0.0
+    @test  latitude(dir,Radian) == 0.0
+end
+
+let
+    frame = ReferenceFrame()
+
+    date = 50237.29
+    time = Epoch(Quantity(date,Day))
+    @test Measures.reference(time) === Measures.UTC
+    @test days(time) == date
+    @test seconds(time) == date*24*60*60
+
+    tai = Epoch(Measures.TAI,Quantity(date,Day))
+    @test Measures.reference(tai) === Measures.TAI
+    @test days(time) == date
+    @test seconds(time) == date*24*60*60
+
+    utc = measure(frame,tai,Measures.UTC)
+    @test Measures.reference(utc) === Measures.UTC
+    tai_again = measure(frame,utc,Measures.TAI)
+    @test Measures.reference(tai_again) === Measures.TAI
+    @test days(tai_again) == date
 end
 
 let
