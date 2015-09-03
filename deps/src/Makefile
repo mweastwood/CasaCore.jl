@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -c -Wall -Werror -fpic
 
-CASACORE = ../downloads/casacore-1.7.0
+CASACORE = ../casacore
 
 all: libcasacorewrapper.so
 

@@ -36,9 +36,14 @@ let
     str = "+12d34m56.7890s"
     val = Quanta.get(Quanta.parse_dec(str),Quanta.Degree)
     @test Quanta.format_dec(val) == str
+
+    @test_throws ErrorException Quanta.parse_ra("12d24m56s")
+    @test_throws ErrorException Quanta.parse_dec("12h24m56s")
 end
 
 let
+    frame = ReferenceFrame()
+
     # position of an OVRO LWA antenna
     x = -2.4091659216088112e6
     y = -4.477883063543822e6
@@ -50,6 +55,14 @@ let
     @test y == η
     @test z == ζ
     @test length(pos) ≈ sqrt(x^2+y^2+z^2)
+
+    pos1 = Position(Measures.WGS84,Quantity(1.0,Meter),Quantity(0.5,Radian),Quantity(0.1,Radian))
+    pos2 = measure(frame,pos1,Measures.ITRF)
+    pos3 = measure(frame,pos2,Measures.WGS84)
+    @test Measures.reference(pos3) === Measures.reference(pos1)
+    @test    length(pos3) ≈    length(pos1)
+    @test longitude(pos3) ≈ longitude(pos1)
+    @test  latitude(pos3) ≈  latitude(pos1)
 end
 
 let
@@ -66,8 +79,8 @@ let
     @test Measures.reference(dir1)  === Measures.AZEL
     @test Measures.reference(j2000) === Measures.J2000
     @test Measures.reference(dir2)  === Measures.AZEL
-    @test  latitude(dir1) ≈  latitude(dir2)
     @test longitude(dir1) ≈ longitude(dir2)
+    @test  latitude(dir1) ≈  latitude(dir2)
 
     dir1 = Direction(Measures.J2000,ra"19h59m28.35663s",dec"+40d44m02.0970s")
     azel = measure(frame,dir1,Measures.AZEL)
@@ -76,8 +89,8 @@ let
     @test Measures.reference(dir1) === Measures.J2000
     @test Measures.reference(azel) === Measures.AZEL
     @test Measures.reference(dir2) === Measures.J2000
-    @test  latitude(dir1) ≈  latitude(dir2)
     @test longitude(dir1) ≈ longitude(dir2)
+    @test  latitude(dir1) ≈  latitude(dir2)
 
     inradians = longitude(dir1,Radian)
     indegrees = longitude(dir1,Degree)
@@ -85,6 +98,50 @@ let
     inradians = latitude(dir1,Radian)
     indegrees = latitude(dir1,Degree)
     @test rad2deg(inradians) ≈ indegrees
+
+    dir1 = Direction(Measures.J2000,ra"19h59m28.35663s",dec"+40d44m02.0970s")
+    x,y,z = Measures.xyz_in_meters(dir1)
+    dir2 = Measures.from_xyz_in_meters(Measures.J2000,x,y,z)
+    @test Measures.reference(dir1) === Measures.reference(dir2)
+    @test longitude(dir1) ≈ longitude(dir2)
+    @test  latitude(dir1) ≈  latitude(dir2)
+
+    # test the default values
+    dir = Direction(Quantity(0.5,Radian),Quantity(1.0,Radian))
+    @test Measures.reference(dir) === Measures.J2000
+    @test longitude(dir,Radian) ≈ 0.5
+    @test  latitude(dir,Radian) ≈ 1.0
+
+    dir = Direction()
+    @test Measures.reference(dir) == Measures.J2000
+    @test longitude(dir,Radian) ≈ 0.0
+    @test  latitude(dir,Radian) ≈ 0.0
+
+    dir = Direction(Measures.SUN)
+    @test Measures.reference(dir) == Measures.SUN
+    @test longitude(dir,Radian) ≈ 0.0
+    @test  latitude(dir,Radian) ≈ 0.0
+end
+
+let
+    frame = ReferenceFrame()
+
+    date = 50237.29
+    time = Epoch(Quantity(date,Day))
+    @test Measures.reference(time) === Measures.UTC
+    @test days(time) == date
+    @test seconds(time) == date*24*60*60
+
+    tai = Epoch(Measures.TAI,Quantity(date,Day))
+    @test Measures.reference(tai) === Measures.TAI
+    @test days(time) == date
+    @test seconds(time) == date*24*60*60
+
+    utc = measure(frame,tai,Measures.UTC)
+    @test Measures.reference(utc) === Measures.UTC
+    tai_again = measure(frame,utc,Measures.TAI)
+    @test Measures.reference(tai_again) === Measures.TAI
+    @test days(tai_again) == date
 end
 
 let
