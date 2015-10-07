@@ -15,7 +15,6 @@
 
 #include <measures/Measures.h>
 #include <measures/Measures/MeasFrame.h>
-#include <measures/Measures/MeasTable.h>
 #include <measures/Measures/MEpoch.h>
 #include <measures/Measures/MDirection.h>
 #include <measures/Measures/MPosition.h>
@@ -29,12 +28,5 @@ extern "C" {
     void setEpoch    (MeasFrame* frame, MEpoch*     epoch)     {frame->set(*epoch);}
     void setDirection(MeasFrame* frame, MDirection* direction) {frame->set(*direction);}
     void setPosition (MeasFrame* frame, MPosition*  position)  {frame->set(*position);}
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // Miscellaneous Functions
-
-    bool observatory(MPosition* position, char* name) {
-        return MeasTable::Observatory(*position,name);
-    }
 }
 

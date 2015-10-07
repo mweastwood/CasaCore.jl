@@ -13,43 +13,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-const TpBool          =  0
-const TpChar          =  1
-const TpUChar         =  2
-const TpShort         =  3
-const TpUShort        =  4
-const TpInt           =  5
-const TpUInt          =  6
-const TpFloat         =  7
-const TpDouble        =  8
-const TpComplex       =  9
-const TpDComplex      = 10
-const TpString        = 11
-const TpTable         = 12
-const TpArrayBool     = 13
-const TpArrayChar     = 14
-const TpArrayUChar    = 15
-const TpArrayShort    = 16
-const TpArrayUShort   = 17
-const TpArrayInt      = 18
-const TpArrayUInt     = 19
-const TpArrayFloat    = 20
-const TpArrayDouble   = 21
-const TpArrayComplex  = 22
-const TpArrayDComplex = 23
-const TpArrayString   = 24
-const TpRecord        = 25
-const TpOther         = 26
-const TpQuantity      = 27
-const TpArrayQuantity = 28
-const TpInt64         = 29
-const TpArrayInt64    = 30
-const TpNumberOfTypes = 31
+const libcasacorewrapper = joinpath(dirname(@__FILE__),"../deps/libcasacorewrapper.so")
+isfile(libcasacorewrapper) || error("Run Pkg.build(\"CasaCore\")")
+
+@enum(TypeEnum,
+      TpBool, TpChar, TpUChar, TpShort, TpUShort, TpInt, TpUInt,
+      TpFloat, TpDouble, TpComplex, TpDComplex, TpString, TpTable,
+      TpArrayBool, TpArrayChar, TpArrayUChar, TpArrayShort, TpArrayUShort,
+      TpArrayInt, TpArrayUInt, TpArrayFloat, TpArrayDouble, TpArrayComplex,
+      TpArrayDComplex, TpArrayString, TpRecord, TpOther, TpQuantity,
+      TpArrayQuantity, TpInt64, TpArrayInt64, TpNumberOfTypes)
 
 const type2str = ObjectIdDict()
 const str2type = Dict{ASCIIString,Type}()
 const type2enum = ObjectIdDict()
-const enum2type = Dict{Int,Type}()
+const enum2type = ObjectIdDict()
 
 for (T,str,enum) in ((Bool,"boolean",TpBool),
                      (Int32,"int",TpInt),
@@ -57,7 +35,7 @@ for (T,str,enum) in ((Bool,"boolean",TpBool),
                      (Float64,"double",TpDouble),
                      (Complex64,"complex",TpComplex),
                      (ASCIIString,"string",TpString),
-                     (Array{ASCIIString},"arraystring",TpArrayString))
+                     (Vector{ASCIIString},"arraystring",TpArrayString))
     type2str[T] = str
     str2type[str] = T
     type2enum[T] = enum

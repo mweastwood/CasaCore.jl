@@ -9,7 +9,6 @@
 To get started using CasaCore, run:
 ```julia
 Pkg.add("CasaCore")
-Pkg.build("CasaCore")
 Pkg.test("CasaCore")
 ```
 The build process does not attempt to install [CasaCore](http://casacore.github.io/casacore/). This must be done prior to using this package.
@@ -17,21 +16,20 @@ The build process does not attempt to install [CasaCore](http://casacore.github.
 ## Measures
 
 ```julia
-using CasaCore.Quanta
 using CasaCore.Measures
 ```
 To use the the measures module of CasaCore, you first need to define a reference frame:
 ```julia
 frame = ReferenceFrame()
 position = observatory("OVRO_MMA")
-time = Epoch(Measures.UTC,Quantity(50237.29,Day))
+time = Epoch(epoch"UTC",Quantity(50237.29,"d"))
 set!(frame,position)
 set!(frame,time)
 ```
 After the reference frame is defined, you can convert between various coordinate systems:
 ```julia
-j2000 = Direction(Measures.J2000,ra"19h59m28.35663s",dec"+40d44m02.0970s")
-azel  = measure(frame,j2000,Measures.AZEL)
+j2000 = Direction(dir"J2000",q"19h59m28.35663s",q"+40d44m02.0970s")
+azel  = measure(frame,j2000,dir"AZEL")
 ```
 
 ## Tables

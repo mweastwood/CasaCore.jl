@@ -16,6 +16,7 @@
 #include <measures/Measures.h>
 #include <measures/Measures/MPosition.h>
 #include <measures/Measures/MCPosition.h>
+#include <measures/Measures/MeasTable.h>
 
 using namespace casa;
 
@@ -32,7 +33,7 @@ extern "C" {
         delete position;
     }
 
-    double getLength(MPosition* position, Unit* unit) {
+    double getPositionLength(MPosition* position, Unit* unit) {
         return position->getValue().getLength(*unit).getValue();
     }
 
@@ -51,8 +52,12 @@ extern "C" {
         *z = vec(2);
     }
 
-    MPosition* convertPosition(MPosition* Position, int newref, MeasFrame* frame) {
-        return new MPosition(MPosition::Convert(*Position,MPosition::Ref(newref,*frame))());
+    MPosition* convertPosition(MPosition* position, int newref, MeasFrame* frame) {
+        return new MPosition(MPosition::Convert(*position,MPosition::Ref(newref,*frame))());
+    }
+
+    bool observatory(MPosition* position, char* name) {
+        return MeasTable::Observatory(*position,name);
     }
 }
 

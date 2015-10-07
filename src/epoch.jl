@@ -13,25 +13,40 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-@enum EpochRef LAST LMST GMST1 GAST UT1 UT2 UTC TAI TDT TCG TDB TCB
-const IAT = TAI
-const GMST = GMST1
-const TT = TDT
-const UT = UT1
-const ET = TT
-
-type Epoch{ref} <: Measure
-    ptr::Ptr{Void}
+module Types_of_Epochs
+    @enum(System, LAST, LMST, GMST1, GAST, UT1, UT2, UTC, TAI, TDT, TCG, TDB, TCB)
+    const IAT = TAI
+    const GMST = GMST1
+    const TT = TDT
+    const UT = UT1
+    const ET = TT
 end
 
-function Epoch(ref::EpochRef, time::Quantity)
+macro epoch_str(sys)
+    :(Types_of_Epochs.$(symbol(sys))) |> eval
+end
+
+"""
+    type Epoch{sys} <: Measure
+
+This type represents an instance in time (ie. an epoch). The type
+parameter `sys` defines the coordinate system.
+"""
+type Epoch{sys} <: Measure
+    ptr::Ptr{Void} # pointer to a casa::MEpoch instance
+end
+
+"""
+    Epoch(sys, time::Quantity)
+
+Instantiate an epoch from the given coordinate system and time.
+"""
+function Epoch(sys::Types_of_Epochs.System, time::Quantity)
     epoch = ccall(("newEpoch",libcasacorewrapper), Ptr{Void},
-                  (Ptr{Void},Cint), pointer(time), ref) |> Epoch{ref}
+                  (Ptr{Void},Cint), pointer(time), sys) |> Epoch{sys}
     finalizer(epoch,delete)
     epoch
 end
-
-Epoch(time) = Epoch(UTC,time)
 
 function delete(epoch::Epoch)
     ccall(("deleteEpoch",libcasacorewrapper), Void,
@@ -39,22 +54,37 @@ function delete(epoch::Epoch)
 end
 
 pointer(epoch::Epoch) = epoch.ptr
-reference{ref}(::Epoch{ref}) = ref
+coordinate_system{sys}(::Epoch{sys}) = sys
 
 function get(epoch::Epoch, unit::Unit)
     ccall(("getEpoch",libcasacorewrapper), Cdouble,
           (Ptr{Void},Ptr{Void}), pointer(epoch), pointer(unit))
 end
 
-days(epoch::Epoch) = get(epoch,Quanta.Day)
-seconds(epoch::Epoch) = get(epoch,Quanta.Second)
+days(epoch::Epoch) = get(epoch,Unit("d"))
+seconds(epoch::Epoch) = get(epoch,Unit("s"))
 
 show(io::IO, epoch::Epoch) = print(io,days(epoch)," days")
 
-function measure(frame::ReferenceFrame,epoch::Epoch,newref::EpochRef)
+function set!(frame::ReferenceFrame,epoch::Epoch)
+    ccall(("setEpoch",libcasacorewrapper), Void,
+          (Ptr{Void},Ptr{Void}), pointer(frame), pointer(epoch))
+end
+
+"""
+    measure(frame::ReferenceFrame, epoch::Epoch, newsys)
+
+Convert the given epoch to the new coordinate system specified
+by `newsys`. The reference frame must have enough information
+to attached to it with `set!` for the conversion to be made
+from the old coordinate system to the new.
+"""
+function measure(frame::ReferenceFrame,
+                 epoch::Epoch,
+                 newsys::Types_of_Epochs.System)
     newepoch = ccall(("convertEpoch",libcasacorewrapper), Ptr{Void},
                      (Ptr{Void},Cint,Ptr{Void}),
-                     pointer(epoch), newref, pointer(frame)) |> Epoch{newref}
+                     pointer(epoch), newsys, pointer(frame)) |> Epoch{newsys}
     finalizer(newepoch,delete)
     newepoch
 end
