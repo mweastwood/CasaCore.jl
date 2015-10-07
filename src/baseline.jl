@@ -26,10 +26,23 @@ macro baseline_str(sys)
     :(Types_of_Baselines.$(symbol(sys))) |> eval
 end
 
+"""
+    type Baseline{sys} <: Measure
+
+This type represents a baseline (ie. the vector displacement
+from one antenna to another antenna). The type parameter `sys`
+defines the coordinate system.
+"""
 type Baseline{sys} <: Measure
     ptr::Ptr{Void} # pointer fo a casa::MBaseline instance
 end
 
+"""
+    Baseline(sys, length::Quantity, longitude::Quantity, latitude::Quantity)
+
+Instantiate a baseline from the given coordinate system, length, longitude,
+and latitude.
+"""
 function Baseline(sys::Types_of_Baselines.System,
                   length::Quantity, longitude::Quantity, latitude::Quantity)
     baseline = ccall(("newBaseline",libcasacorewrapper), Ptr{Void},
@@ -90,6 +103,14 @@ function set!(frame::ReferenceFrame,baseline::Baseline)
           (Ptr{Void},Ptr{Void}), pointer(frame), pointer(baseline))
 end
 
+"""
+    measure(frame::ReferenceFrame, baseline::Baseline, newsys)
+
+Convert the given baseline to the new coordinate system specified
+by `newsys`. The reference frame must have enough information
+to attached to it with `set!` for the conversion to be made
+from the old coordinate system to the new.
+"""
 function measure(frame::ReferenceFrame,
                  baseline::Baseline,
                  newsys::Types_of_Baselines.System)

@@ -36,10 +36,10 @@ module Measures
     export @q_str
 
     export ReferenceFrame, set!
-    export Epoch, Direction, Position
+    export Epoch, Direction, Position, Baseline
     export days, seconds, length, longitude, latitude
     export coordinate_system
-    export @epoch_str, @dir_str, @pos_str
+    export @epoch_str, @dir_str, @pos_str, @baseline_str
     export measure
     export observatory
 
@@ -51,6 +51,7 @@ module Measures
     include("epoch.jl")
     include("direction.jl")
     include("position.jl")
+    include("baseline.jl")
 end
 
 end
