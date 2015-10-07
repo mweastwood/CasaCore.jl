@@ -105,8 +105,8 @@ function xyz_in_meters(direction::Direction)
 end
 
 function show(io::IO, direction::Direction)
-    long = longitude(direction,Unit("deg"))
-    lat  =  latitude(direction,Unit("deg"))
+    long = longitude(direction,"deg")
+    lat  =  latitude(direction,"deg")
     print(io,"(",long," deg, ",lat," deg)")
 end
 

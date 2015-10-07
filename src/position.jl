@@ -91,9 +91,9 @@ function xyz_in_meters(position::Position)
 end
 
 function show(io::IO, position::Position)
-    L    = length(position,Quanta.Meter)
-    long = longitude(position,Unit("deg"))
-    lat  =  latitude(position,Unit("deg"))
+    L    = length(position,"m")
+    long = longitude(position,"deg")
+    lat  =  latitude(position,"deg")
     print(io,"(",L," m, ",long," deg, ",lat," deg)")
 end
 
