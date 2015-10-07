@@ -28,7 +28,7 @@ set!(frame,time)
 ```
 After the reference frame is defined, you can convert between various coordinate systems:
 ```julia
-j2000 = Direction(dir"J2000",ra"19h59m28.35663s",dec"+40d44m02.0970s")
+j2000 = Direction(dir"J2000",q"19h59m28.35663s",q"+40d44m02.0970s")
 azel  = measure(frame,j2000,dir"AZEL")
 ```
 

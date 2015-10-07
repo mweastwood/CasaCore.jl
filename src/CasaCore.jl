@@ -33,7 +33,7 @@ end
 
 module Measures
     export Quantity, Unit
-    export @ra_str, @dec_str
+    export @q_str
 
     export ReferenceFrame, set!
     export Epoch, Direction, Position

@@ -3,41 +3,31 @@ using CasaCore.Measures
 using Base.Test
 
 let
-    @test get(ra"12h34m56.78s",Unit("rad")) ≈ π/12.*(12.+34/60.+56.78/3600)
-    @test get(ra"12h34m56s",Unit("rad"))    ≈ π/12.*(12.+34/60.+56./3600)
-    @test get(ra"12h34.56m",Unit("rad"))    ≈ π/12.*(12.+34.56/60.)
-    @test get(ra"12h34m",Unit("rad"))       ≈ π/12.*(12.+34./60.)
-    @test get(ra"12.34h",Unit("rad"))       ≈ π/12.*(12.34)
-    @test get(ra"12h",Unit("rad"))          ≈ π/12.*(12.)
+    @test get(q"12h34m56.78s",Unit("rad")) ≈ π/12.*(12.+34/60.+56.78/3600)
+    @test get(q"12h34m56s",Unit("rad"))    ≈ π/12.*(12.+34/60.+56./3600)
+    @test get(q"12h34.56m",Unit("rad"))    ≈ π/12.*(12.+34.56/60.)
+    @test get(q"12h34m",Unit("rad"))       ≈ π/12.*(12.+34./60.)
+    @test get(q"12.34h",Unit("rad"))       ≈ π/12.*(12.34)
+    @test get(q"12h",Unit("rad"))          ≈ π/12.*(12.)
 
-    @test get(dec"12d34m56.78s",Unit("rad"))   ≈ π/180.*(12.+34/60.+56.78/3600)
-    @test get(dec"12d34m56s",Unit("rad"))      ≈ π/180.*(12.+34/60.+56./3600)
-    @test get(dec"12d34.56m",Unit("rad"))      ≈ π/180.*(12.+34.56/60.)
-    @test get(dec"12d34m",Unit("rad"))         ≈ π/180.*(12.+34./60.)
-    @test get(dec"12.34d",Unit("rad"))         ≈ π/180.*(12.34)
-    @test get(dec"12d",Unit("rad"))            ≈ π/180.*(12.)
-    @test get(dec"+12d34m56.78s",Unit("rad"))  ≈ π/180.*(12.+34/60.+56.78/3600)
-    @test get(dec"+12d34m56s",Unit("rad"))     ≈ π/180.*(12.+34/60.+56./3600)
-    @test get(dec"+12d34.56m",Unit("rad"))     ≈ π/180.*(12.+34.56/60.)
-    @test get(dec"+12d34m",Unit("rad"))        ≈ π/180.*(12.+34./60.)
-    @test get(dec"+12.34d",Unit("rad"))        ≈ π/180.*(12.34)
-    @test get(dec"+12d",Unit("rad"))           ≈ π/180.*(12.)
-    @test get(dec"-12d34m56.78s",Unit("rad"))  ≈ -1*π/180.*(12.+34/60.+56.78/3600)
-    @test get(dec"-12d34m56s",Unit("rad"))     ≈ -1*π/180.*(12.+34/60.+56./3600)
-    @test get(dec"-12d34.56m",Unit("rad"))     ≈ -1*π/180.*(12.+34.56/60.)
-    @test get(dec"-12d34m",Unit("rad"))        ≈ -1*π/180.*(12.+34./60.)
-    @test get(dec"-12.34d",Unit("rad"))        ≈ -1*π/180.*(12.34)
-    @test get(dec"-12d",Unit("rad"))           ≈ -1*π/180.*(12.)
-
-    str = "12h34m56.7890s"
-    val = Measures.get(Measures.parse_ra(str),Unit("deg"))
-    @test Measures.format_ra(val) == str
-    str = "+12d34m56.7890s"
-    val = Measures.get(Measures.parse_dec(str),Unit("deg"))
-    @test Measures.format_dec(val) == str
-
-    @test_throws ErrorException Measures.parse_ra("12d24m56s")
-    @test_throws ErrorException Measures.parse_dec("12h24m56s")
+    @test get(q"12d34m56.78s",Unit("rad"))   ≈ π/180.*(12.+34/60.+56.78/3600)
+    @test get(q"12d34m56s",Unit("rad"))      ≈ π/180.*(12.+34/60.+56./3600)
+    @test get(q"12d34.56m",Unit("rad"))      ≈ π/180.*(12.+34.56/60.)
+    @test get(q"12d34m",Unit("rad"))         ≈ π/180.*(12.+34./60.)
+    @test get(q"12.34d",Unit("rad"))         ≈ π/180.*(12.34)
+    @test get(q"12d",Unit("rad"))            ≈ π/180.*(12.)
+    @test get(q"+12d34m56.78s",Unit("rad"))  ≈ π/180.*(12.+34/60.+56.78/3600)
+    @test get(q"+12d34m56s",Unit("rad"))     ≈ π/180.*(12.+34/60.+56./3600)
+    @test get(q"+12d34.56m",Unit("rad"))     ≈ π/180.*(12.+34.56/60.)
+    @test get(q"+12d34m",Unit("rad"))        ≈ π/180.*(12.+34./60.)
+    @test get(q"+12.34d",Unit("rad"))        ≈ π/180.*(12.34)
+    @test get(q"+12d",Unit("rad"))           ≈ π/180.*(12.)
+    @test get(q"-12d34m56.78s",Unit("rad"))  ≈ -1*π/180.*(12.+34/60.+56.78/3600)
+    @test get(q"-12d34m56s",Unit("rad"))     ≈ -1*π/180.*(12.+34/60.+56./3600)
+    @test get(q"-12d34.56m",Unit("rad"))     ≈ -1*π/180.*(12.+34.56/60.)
+    @test get(q"-12d34m",Unit("rad"))        ≈ -1*π/180.*(12.+34./60.)
+    @test get(q"-12.34d",Unit("rad"))        ≈ -1*π/180.*(12.34)
+    @test get(q"-12d",Unit("rad"))           ≈ -1*π/180.*(12.)
 end
 
 let
@@ -84,7 +74,7 @@ let
     @test longitude(dir1) ≈ longitude(dir2)
     @test  latitude(dir1) ≈  latitude(dir2)
 
-    dir1 = Direction(dir"J2000",ra"19h59m28.35663s",dec"+40d44m02.0970s")
+    dir1 = Direction(dir"J2000",q"19h59m28.35663s",q"+40d44m02.0970s")
     azel = measure(frame,dir1,dir"AZEL")
     dir2 = measure(frame,azel,dir"J2000")
 
@@ -101,7 +91,7 @@ let
     indegrees = latitude(dir1,Unit("deg"))
     @test rad2deg(inradians) ≈ indegrees
 
-    dir1 = Direction(dir"J2000",ra"19h59m28.35663s",dec"+40d44m02.0970s")
+    dir1 = Direction(dir"J2000",q"19h59m28.35663s",q"+40d44m02.0970s")
     x,y,z = Measures.xyz_in_meters(dir1)
     dir2 = Measures.from_xyz_in_meters(dir"J2000",x,y,z)
     @test coordinate_system(dir1) === coordinate_system(dir2)
