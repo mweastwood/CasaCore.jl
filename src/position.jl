@@ -66,7 +66,7 @@ pointer(position::Position) = position.ptr
 coordinate_system{sys}(::Position{sys}) = sys
 
 function length(position::Position, unit::Unit = Unit("m"))
-    ccall(("getLength",libcasacorewrapper), Cdouble,
+    ccall(("getPositionLength",libcasacorewrapper), Cdouble,
           (Ptr{Void},Ptr{Void}), pointer(position), pointer(unit))
 end
 

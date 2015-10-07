@@ -26,8 +26,11 @@ direction.o: direction.cpp
 position.o: position.cpp
 	$(CXX) $(CXXFLAGS) position.cpp -I$(CASACORE)
 
-libcasacorewrapper.so: containers.o tables.o quanta.o frame.o epoch.o direction.o position.o
-	$(CXX) -shared -o libcasacorewrapper.so containers.o tables.o quanta.o frame.o epoch.o direction.o position.o -lcasa_tables -lcasa_measures
+baseline.o: baseline.cpp
+	$(CXX) $(CXXFLAGS) baseline.cpp -I$(CASACORE)
+
+libcasacorewrapper.so: containers.o tables.o quanta.o frame.o epoch.o direction.o position.o baseline.o
+	$(CXX) -shared -o libcasacorewrapper.so containers.o tables.o quanta.o frame.o epoch.o direction.o position.o baseline.o -lcasa_tables -lcasa_measures
 
 clean:
 	-rm *.o
