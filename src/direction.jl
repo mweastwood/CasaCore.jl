@@ -23,7 +23,7 @@ module Types_of_Directions
 end
 
 macro dir_str(sys)
-    :(Types_of_Directions.$(symbol(sys))) |> eval
+    eval(current_module(),:(Measures.Types_of_Directions.$(symbol(sys))))
 end
 
 """

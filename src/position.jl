@@ -18,7 +18,7 @@ module Types_of_Positions
 end
 
 macro pos_str(sys)
-    :(Types_of_Positions.$(symbol(sys))) |> eval
+    eval(current_module(),:(Measures.Types_of_Positions.$(symbol(sys))))
 end
 
 """

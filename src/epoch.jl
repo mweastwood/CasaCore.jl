@@ -23,7 +23,7 @@ module Types_of_Epochs
 end
 
 macro epoch_str(sys)
-    :(Types_of_Epochs.$(symbol(sys))) |> eval
+    eval(current_module(),:(Measures.Types_of_Epochs.$(symbol(sys))))
 end
 
 """
