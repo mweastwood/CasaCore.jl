@@ -54,5 +54,9 @@ extern "C" {
     MPosition* convertPosition(MPosition* Position, int newref, MeasFrame* frame) {
         return new MPosition(MPosition::Convert(*Position,MPosition::Ref(newref,*frame))());
     }
+
+    bool observatory(MPosition* position, char* name) {
+        return MeasTable::Observatory(*position,name);
+    }
 }
 

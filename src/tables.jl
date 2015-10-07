@@ -21,14 +21,22 @@ const Table_TableOption_Scratch      = 4
 const Table_TableOption_Update       = 5
 const Table_TableOption_Delete       = 6
 
-@doc """
-The Table type simply contains a pointer to an instance of the
-casa::TableProxy class.
-""" ->
+"""
+    type Table
+
+This type is used to interact with CasaCore tables (including
+Measurement Sets).
+"""
 type Table
-    ptr::Ptr{Void}
+    ptr::Ptr{Void} # pointer to a casa::TableProxy instance
 end
 
+"""
+    Table(name::ASCIIString)
+
+Open and lock the CasaCore table. If no table with the given name
+exists, a new table is created.
+"""
 function Table(name::ASCIIString)
     # Remove the "Table: " prefix, if it exists
     strippedname = replace(name,"Table: ","",1)
@@ -41,14 +49,11 @@ function Table(name::ASCIIString)
                             Ptr{Void},(Ptr{Cchar},Ptr{Cchar},Ptr{Cchar},Cint),
                             pointer(strippedname),pointer("local"),pointer("plain"),0))
     end
-    finalizer(table,close)
+    finalizer(table,delete)
     table
 end
 
-@doc """
-Call the table destructor.
-""" ->
-function close(table::Table)
+function delete(table::Table)
     ccall(("deleteTable",libcasacorewrapper),Void,(Ptr{Void},),table.ptr)
 end
 
@@ -68,6 +73,32 @@ for f in (:numrows,:numcolumns,:numkeywords)
     end
 end
 
+@doc """
+    numrows(table::Table)
+
+Returns the number of rows in the given table.
+""" numrows
+
+@doc """
+    numcolumns(table::Table)
+
+Returns the number of columns in the given table.
+""" numcolumns
+
+@doc """
+    numkeywords(table::Table)
+
+Returns the number of keywords associated with the given table.
+""" numkeywords
+
+size(table::Table) = (numrows(table),numcolumns(table))
+
+"""
+    lock(table::Table; writelock = true, attempts = 5)
+
+Attempt to get a lock on the given table. Errors if a lock is not
+obtained after the given number of attempts.
+"""
 function lock(table::Table;writelock::Bool=true,attempts::Int=5)
     success = ccall(("lock",libcasacorewrapper),Bool,
                     (Ptr{Void},Bool,Cint),
@@ -78,6 +109,11 @@ function lock(table::Table;writelock::Bool=true,attempts::Int=5)
     nothing
 end
 
+"""
+    unlock(table::Table)
+
+Clear any locks obtained on the given table.
+"""
 function unlock(table::Table)
     ccall(("unlock",libcasacorewrapper),Void,(Ptr{Void},),table.ptr)
 end
@@ -104,7 +140,7 @@ function getKeywordType(table::Table,kw::ASCIIString)
     output = ccall(("getKeywordType",libcasacorewrapper),
                    Cint,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
                    table.ptr,pointer(""),pointer(kw))
-    enum2type[output]
+    enum2type[TypeEnum(output)]
 end
 
 function getKeyword(table::Table,kw::ASCIIString)
@@ -147,7 +183,7 @@ function getColumnKeywordType(table::Table,column::ASCIIString,kw::ASCIIString)
     output = ccall(("getKeywordType",libcasacorewrapper),
                    Cint,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
                    table.ptr,pointer(column),pointer(kw))
-    enum2type[output]
+    enum2type[TypeEnum(output)]
 end
 
 function getColumnKeyword(table::Table,column::ASCIIString,kw::ASCIIString)
@@ -155,7 +191,7 @@ function getColumnKeyword(table::Table,column::ASCIIString,kw::ASCIIString)
     getColumnKeyword(table,column,kw,T)
 end
 
-# Deal with special cases (strings and records)
+# Deal with special cases (strings)
 
 function getColumnKeyword(table::Table,column::ASCIIString,kw::ASCIIString,::Type{ASCIIString})
     output = ccall(("getKeyword_string",libcasacorewrapper),
@@ -164,7 +200,7 @@ function getColumnKeyword(table::Table,column::ASCIIString,kw::ASCIIString,::Typ
     bytestring(output)::ASCIIString
 end
 
-function getColumnKeyword(table::Table,column::ASCIIString,kw::ASCIIString,::Type{Array{ASCIIString}})
+function getColumnKeyword(table::Table,column::ASCIIString,kw::ASCIIString,::Type{Vector{ASCIIString}})
     N = ccall(("getKeywordLength_string",libcasacorewrapper),
               Cint,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
               table.ptr,pointer(column),pointer(kw))
@@ -185,7 +221,7 @@ function putColumnKeyword!(table::Table,column::ASCIIString,kw::ASCIIString,valu
           table.ptr,pointer(column),pointer(kw),pointer(value))
 end
 
-function putColumnKeyword!(table::Table,column::ASCIIString,kw::ASCIIString,value::Array{ASCIIString})
+function putColumnKeyword!(table::Table,column::ASCIIString,kw::ASCIIString,value::Vector{ASCIIString})
     pointers = [pointer(v) for v in value]
     ccall(("putKeywordArray_string",libcasacorewrapper),
           Void,(Ptr{Void},Ptr{Cchar},Ptr{Cchar},Ptr{Ptr{Cchar}},Csize_t),
@@ -195,7 +231,12 @@ end
 ################################################################################
 # Row Operations
 
-function addRows!{T<:Integer}(table::Table,nrows::T)
+"""
+    addRows!(table::Table, nrows::Integer)
+
+Add the given number of rows to the table.
+"""
+function addRows!(table::Table,nrows::Integer)
     ccall(("addRow",libcasacorewrapper),Void,(Ptr{Void},Cint),table.ptr,nrows)
 end
 
@@ -242,10 +283,12 @@ function removeColumn!(table::Table,column::ASCIIString)
           table.ptr,pointer(column))
 end
 
-@doc """
+"""
+    checkColumnExists(table::Table, column::ASCIIString)
+
 Returns true if the column exists in the table. Otherwise
 returns false.
-""" ->
+"""
 function checkColumnExists(table::Table,column::ASCIIString)
     ccall(("columnExists",libcasacorewrapper),
           Bool,(Ptr{Void},Ptr{Cchar}),
@@ -256,15 +299,16 @@ function getColumnType(table::Table,column::ASCIIString)
     output = ccall(("getColumnType",libcasacorewrapper),
                    Cint,(Ptr{Void},Ptr{Cchar}),
                    table.ptr,pointer(column))
-    enum2type[output]
+    enum2type[TypeEnum(output)]
 end
 
-@doc """
+"""
+    getColumnShape(table::Table, column::ASCIIString, buffersize = 4)
+
 This function returns the shape of the column assuming that the
 shape of the first cell in the column is representative of the
-shape of every cell in the column. This is not a safe assumption
-in general, but works for LWA datasets.
-""" ->
+shape of every cell in the column.
+"""
 function getColumnShape(table::Table,column::ASCIIString,buffersize::Int=4)
     output = Array(Cint,buffersize)
     ccall(("getColumnShape",libcasacorewrapper),

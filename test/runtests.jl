@@ -1,44 +1,43 @@
 using CasaCore.Tables
-using CasaCore.Quanta
 using CasaCore.Measures
 using Base.Test
 
 let
-    @test get(ra"12h34m56.78s",Radian) ≈ π/12.*(12.+34/60.+56.78/3600)
-    @test get(ra"12h34m56s",Radian)    ≈ π/12.*(12.+34/60.+56./3600)
-    @test get(ra"12h34.56m",Radian)    ≈ π/12.*(12.+34.56/60.)
-    @test get(ra"12h34m",Radian)       ≈ π/12.*(12.+34./60.)
-    @test get(ra"12.34h",Radian)       ≈ π/12.*(12.34)
-    @test get(ra"12h",Radian)          ≈ π/12.*(12.)
+    @test get(ra"12h34m56.78s",Unit("rad")) ≈ π/12.*(12.+34/60.+56.78/3600)
+    @test get(ra"12h34m56s",Unit("rad"))    ≈ π/12.*(12.+34/60.+56./3600)
+    @test get(ra"12h34.56m",Unit("rad"))    ≈ π/12.*(12.+34.56/60.)
+    @test get(ra"12h34m",Unit("rad"))       ≈ π/12.*(12.+34./60.)
+    @test get(ra"12.34h",Unit("rad"))       ≈ π/12.*(12.34)
+    @test get(ra"12h",Unit("rad"))          ≈ π/12.*(12.)
 
-    @test get(dec"12d34m56.78s",Radian)   ≈ π/180.*(12.+34/60.+56.78/3600)
-    @test get(dec"12d34m56s",Radian)      ≈ π/180.*(12.+34/60.+56./3600)
-    @test get(dec"12d34.56m",Radian)      ≈ π/180.*(12.+34.56/60.)
-    @test get(dec"12d34m",Radian)         ≈ π/180.*(12.+34./60.)
-    @test get(dec"12.34d",Radian)         ≈ π/180.*(12.34)
-    @test get(dec"12d",Radian)            ≈ π/180.*(12.)
-    @test get(dec"+12d34m56.78s",Radian)  ≈ π/180.*(12.+34/60.+56.78/3600)
-    @test get(dec"+12d34m56s",Radian)     ≈ π/180.*(12.+34/60.+56./3600)
-    @test get(dec"+12d34.56m",Radian)     ≈ π/180.*(12.+34.56/60.)
-    @test get(dec"+12d34m",Radian)        ≈ π/180.*(12.+34./60.)
-    @test get(dec"+12.34d",Radian)        ≈ π/180.*(12.34)
-    @test get(dec"+12d",Radian)           ≈ π/180.*(12.)
-    @test get(dec"-12d34m56.78s",Radian)  ≈ -1*π/180.*(12.+34/60.+56.78/3600)
-    @test get(dec"-12d34m56s",Radian)     ≈ -1*π/180.*(12.+34/60.+56./3600)
-    @test get(dec"-12d34.56m",Radian)     ≈ -1*π/180.*(12.+34.56/60.)
-    @test get(dec"-12d34m",Radian)        ≈ -1*π/180.*(12.+34./60.)
-    @test get(dec"-12.34d",Radian)        ≈ -1*π/180.*(12.34)
-    @test get(dec"-12d",Radian)           ≈ -1*π/180.*(12.)
+    @test get(dec"12d34m56.78s",Unit("rad"))   ≈ π/180.*(12.+34/60.+56.78/3600)
+    @test get(dec"12d34m56s",Unit("rad"))      ≈ π/180.*(12.+34/60.+56./3600)
+    @test get(dec"12d34.56m",Unit("rad"))      ≈ π/180.*(12.+34.56/60.)
+    @test get(dec"12d34m",Unit("rad"))         ≈ π/180.*(12.+34./60.)
+    @test get(dec"12.34d",Unit("rad"))         ≈ π/180.*(12.34)
+    @test get(dec"12d",Unit("rad"))            ≈ π/180.*(12.)
+    @test get(dec"+12d34m56.78s",Unit("rad"))  ≈ π/180.*(12.+34/60.+56.78/3600)
+    @test get(dec"+12d34m56s",Unit("rad"))     ≈ π/180.*(12.+34/60.+56./3600)
+    @test get(dec"+12d34.56m",Unit("rad"))     ≈ π/180.*(12.+34.56/60.)
+    @test get(dec"+12d34m",Unit("rad"))        ≈ π/180.*(12.+34./60.)
+    @test get(dec"+12.34d",Unit("rad"))        ≈ π/180.*(12.34)
+    @test get(dec"+12d",Unit("rad"))           ≈ π/180.*(12.)
+    @test get(dec"-12d34m56.78s",Unit("rad"))  ≈ -1*π/180.*(12.+34/60.+56.78/3600)
+    @test get(dec"-12d34m56s",Unit("rad"))     ≈ -1*π/180.*(12.+34/60.+56./3600)
+    @test get(dec"-12d34.56m",Unit("rad"))     ≈ -1*π/180.*(12.+34.56/60.)
+    @test get(dec"-12d34m",Unit("rad"))        ≈ -1*π/180.*(12.+34./60.)
+    @test get(dec"-12.34d",Unit("rad"))        ≈ -1*π/180.*(12.34)
+    @test get(dec"-12d",Unit("rad"))           ≈ -1*π/180.*(12.)
 
     str = "12h34m56.7890s"
-    val = Quanta.get(Quanta.parse_ra(str),Quanta.Degree)
-    @test Quanta.format_ra(val) == str
+    val = Measures.get(Measures.parse_ra(str),Unit("deg"))
+    @test Measures.format_ra(val) == str
     str = "+12d34m56.7890s"
-    val = Quanta.get(Quanta.parse_dec(str),Quanta.Degree)
-    @test Quanta.format_dec(val) == str
+    val = Measures.get(Measures.parse_dec(str),Unit("deg"))
+    @test Measures.format_dec(val) == str
 
-    @test_throws ErrorException Quanta.parse_ra("12d24m56s")
-    @test_throws ErrorException Quanta.parse_dec("12h24m56s")
+    @test_throws ErrorException Measures.parse_ra("12d24m56s")
+    @test_throws ErrorException Measures.parse_dec("12h24m56s")
 end
 
 let
@@ -48,18 +47,21 @@ let
     x = -2.4091659216088112e6
     y = -4.477883063543822e6
     z = 3.8393872424225896e6
-    pos = Measures.from_xyz_in_meters(Measures.ITRF,x,y,z)
+    pos = Measures.from_xyz_in_meters(pos"ITRF",x,y,z)
     ξ,η,ζ = Measures.xyz_in_meters(pos)
-    @test Measures.reference(pos) === Measures.ITRF
+    @test coordinate_system(pos) === pos"ITRF"
     @test x == ξ
     @test y == η
     @test z == ζ
     @test length(pos) ≈ sqrt(x^2+y^2+z^2)
 
-    pos1 = Position(Measures.WGS84,Quantity(1.0,Meter),Quantity(0.5,Radian),Quantity(0.1,Radian))
-    pos2 = measure(frame,pos1,Measures.ITRF)
-    pos3 = measure(frame,pos2,Measures.WGS84)
-    @test Measures.reference(pos3) === Measures.reference(pos1)
+    pos1 = Position(pos"WGS84",
+                    Quantity(1.0,Unit("m")),
+                    Quantity(0.5,Unit("rad")),
+                    Quantity(0.1,Unit("rad")))
+    pos2 = measure(frame,pos1,pos"ITRF")
+    pos3 = measure(frame,pos2,pos"WGS84")
+    @test coordinate_system(pos3) === coordinate_system(pos1)
     @test    length(pos3) ≈    length(pos1)
     @test longitude(pos3) ≈ longitude(pos1)
     @test  latitude(pos3) ≈  latitude(pos1)
@@ -68,79 +70,68 @@ end
 let
     frame = ReferenceFrame()
     position = observatory("OVRO_MMA")
-    time = Epoch(Measures.UTC,Quantity(50237.29,Day))
+    time = Epoch(epoch"UTC",Quantity(50237.29,Unit("d")))
     set!(frame,position)
     set!(frame,time)
 
-    dir1  = Direction(Measures.AZEL,Quantity(1.0,Radian),Quantity(1.0,Radian))
-    j2000 = measure(frame,dir1,Measures.J2000)
-    dir2  = measure(frame,j2000,Measures.AZEL)
+    dir1  = Direction(dir"AZEL",Quantity(1.0,Unit("rad")),Quantity(1.0,Unit("rad")))
+    j2000 = measure(frame,dir1,dir"J2000")
+    dir2  = measure(frame,j2000,dir"AZEL")
 
-    @test Measures.reference(dir1)  === Measures.AZEL
-    @test Measures.reference(j2000) === Measures.J2000
-    @test Measures.reference(dir2)  === Measures.AZEL
+    @test coordinate_system(dir1)  === dir"AZEL"
+    @test coordinate_system(j2000) === dir"J2000"
+    @test coordinate_system(dir2)  === dir"AZEL"
     @test longitude(dir1) ≈ longitude(dir2)
     @test  latitude(dir1) ≈  latitude(dir2)
 
-    dir1 = Direction(Measures.J2000,ra"19h59m28.35663s",dec"+40d44m02.0970s")
-    azel = measure(frame,dir1,Measures.AZEL)
-    dir2 = measure(frame,azel,Measures.J2000)
+    dir1 = Direction(dir"J2000",ra"19h59m28.35663s",dec"+40d44m02.0970s")
+    azel = measure(frame,dir1,dir"AZEL")
+    dir2 = measure(frame,azel,dir"J2000")
 
-    @test Measures.reference(dir1) === Measures.J2000
-    @test Measures.reference(azel) === Measures.AZEL
-    @test Measures.reference(dir2) === Measures.J2000
+    @test coordinate_system(dir1) === dir"J2000"
+    @test coordinate_system(azel) === dir"AZEL"
+    @test coordinate_system(dir2) === dir"J2000"
     @test longitude(dir1) ≈ longitude(dir2)
     @test  latitude(dir1) ≈  latitude(dir2)
 
-    inradians = longitude(dir1,Radian)
-    indegrees = longitude(dir1,Degree)
+    inradians = longitude(dir1,Unit("rad"))
+    indegrees = longitude(dir1,Unit("deg"))
     @test rad2deg(inradians) ≈ indegrees
-    inradians = latitude(dir1,Radian)
-    indegrees = latitude(dir1,Degree)
+    inradians = latitude(dir1,Unit("rad"))
+    indegrees = latitude(dir1,Unit("deg"))
     @test rad2deg(inradians) ≈ indegrees
 
-    dir1 = Direction(Measures.J2000,ra"19h59m28.35663s",dec"+40d44m02.0970s")
+    dir1 = Direction(dir"J2000",ra"19h59m28.35663s",dec"+40d44m02.0970s")
     x,y,z = Measures.xyz_in_meters(dir1)
-    dir2 = Measures.from_xyz_in_meters(Measures.J2000,x,y,z)
-    @test Measures.reference(dir1) === Measures.reference(dir2)
+    dir2 = Measures.from_xyz_in_meters(dir"J2000",x,y,z)
+    @test coordinate_system(dir1) === coordinate_system(dir2)
     @test longitude(dir1) ≈ longitude(dir2)
     @test  latitude(dir1) ≈  latitude(dir2)
 
-    # test the default values
-    dir = Direction(Quantity(0.5,Radian),Quantity(1.0,Radian))
-    @test Measures.reference(dir) === Measures.J2000
-    @test longitude(dir,Radian) ≈ 0.5
-    @test  latitude(dir,Radian) ≈ 1.0
-
-    dir = Direction()
-    @test Measures.reference(dir) == Measures.J2000
-    @test longitude(dir,Radian) ≈ 0.0
-    @test  latitude(dir,Radian) ≈ 0.0
-
-    dir = Direction(Measures.SUN)
-    @test Measures.reference(dir) == Measures.SUN
-    @test longitude(dir,Radian) ≈ 0.0
-    @test  latitude(dir,Radian) ≈ 0.0
+    dir = Direction(dir"SUN")
+    @test coordinate_system(dir) === dir"SUN"
+    @test longitude(dir,Unit("rad")) ≈ 0.0
+    @test  latitude(dir,Unit("rad")) ≈ 0.0
 end
 
 let
     frame = ReferenceFrame()
 
     date = 50237.29
-    time = Epoch(Quantity(date,Day))
-    @test Measures.reference(time) === Measures.UTC
+    time = Epoch(epoch"UTC",Quantity(date,Unit("d")))
+    @test coordinate_system(time) === epoch"UTC"
     @test days(time) == date
     @test seconds(time) == date*24*60*60
 
-    tai = Epoch(Measures.TAI,Quantity(date,Day))
-    @test Measures.reference(tai) === Measures.TAI
+    tai = Epoch(epoch"TAI",Quantity(date,Unit("d")))
+    @test coordinate_system(tai) === epoch"TAI"
     @test days(time) == date
     @test seconds(time) == date*24*60*60
 
-    utc = measure(frame,tai,Measures.UTC)
-    @test Measures.reference(utc) === Measures.UTC
-    tai_again = measure(frame,utc,Measures.TAI)
-    @test Measures.reference(tai_again) === Measures.TAI
+    utc = measure(frame,tai,epoch"UTC")
+    @test coordinate_system(utc) === epoch"UTC"
+    tai_again = measure(frame,utc,epoch"TAI")
+    @test coordinate_system(tai_again) === epoch"TAI"
     @test days(tai_again) == date
 end
 

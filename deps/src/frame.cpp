@@ -29,12 +29,5 @@ extern "C" {
     void setEpoch    (MeasFrame* frame, MEpoch*     epoch)     {frame->set(*epoch);}
     void setDirection(MeasFrame* frame, MDirection* direction) {frame->set(*direction);}
     void setPosition (MeasFrame* frame, MPosition*  position)  {frame->set(*position);}
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // Miscellaneous Functions
-
-    bool observatory(MPosition* position, char* name) {
-        return MeasTable::Observatory(*position,name);
-    }
 }
 

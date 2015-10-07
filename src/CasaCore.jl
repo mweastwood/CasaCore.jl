@@ -17,48 +17,42 @@ __precompile__()
 
 module CasaCore
 
-module Private
-    # Do not depend on this submodule!
-    export libcasacorewrapper
-    const libcasacorewrapper = joinpath(dirname(@__FILE__),"../deps/libcasacorewrapper.so")
-    isfile(libcasacorewrapper) || error("Run Pkg.build(\"CasaCore\")")
-
-    export type2str, str2type, type2enum, enum2type
-    include("conversions.jl")
-end
-
 module Tables
     export Table
     export numrows, numcolumns, numkeywords
-    export @kw_str
     export lock, unlock
 
-    importall ..Private
-    import Base: close, lock, unlock, getindex, setindex!
+    export Keyword
+    export @kw_str
+
+    import Base: size, lock, unlock, getindex, setindex!
+
+    include("common.jl")
     include("tables.jl")
 end
 
-module Quanta
-    export Quantity
-    export Unit, Second, Day, Radian, Degree, Meter
+module Measures
+    export Quantity, Unit
     export @ra_str, @dec_str
 
-    importall ..Private
-    import Base: pointer, get
-    include("quanta.jl")
-end
-
-module Measures
     export ReferenceFrame, set!
     export Epoch, Direction, Position
     export days, seconds, length, longitude, latitude
+    export coordinate_system
+    export @epoch_str, @dir_str, @pos_str
     export measure
     export observatory
 
-    importall ..Private
-    importall ..Quanta
-    import Base: pointer, length, show
-    include("measures.jl")
+    import Base: pointer, length, show, get
+
+    include("common.jl")
+    include("quanta.jl")
+
+    abstract Measure
+    include("frame.jl")
+    include("epoch.jl")
+    include("direction.jl")
+    include("position.jl")
 end
 
 end

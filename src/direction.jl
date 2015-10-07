@@ -13,27 +13,65 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-@enum DirectionRef J2000 JMEAN JTRUE APP B1950 B1950_VLA BMEAN BTRUE GALACTIC HADEC AZEL AZELSW AZELGEO AZELSWGEO JNAT ECLIPTIC MECLIPTIC TECLIPTIC SUPERGAL ITRFDIR MERCURY=32 VENUS MARS JUPITER SATURN URANUS NEPTUNE PLUTO SUN MOON
+module Types_of_Directions
+    @enum(System,
+          J2000, JMEAN, JTRUE, APP, B1950, B1950_VLA, BMEAN, BTRUE,
+          GALACTIC, HADEC, AZEL, AZELSW, AZELGEO, AZELSWGEO, JNAT,
+          ECLIPTIC, MECLIPTIC, TECLIPTIC, SUPERGAL, ITRF,
+          MERCURY=32, VENUS, MARS, JUPITER, SATURN, URANUS, NEPTUNE,
+          PLUTO, SUN, MOON)
+end
 
-type Direction{ref} <: Measure
+macro dir_str(sys)
+    :(Types_of_Directions.$(symbol(sys))) |> eval
+end
+
+"""
+    type Direction{sys} <: Measure
+
+This type represents a location on the sky (ie. a direction). The type
+parameter `sys` defines the coordinate system.
+"""
+type Direction{sys} <: Measure
     ptr::Ptr{Void}
 end
 
-function Direction(ref::DirectionRef,longitude::Quantity,latitude::Quantity)
+"""
+    Direction(sys, longitude::Quantity, latitude::Quantity)
+
+Instantiate a direction from the given coordinate system, longitude,
+and latitude.
+"""
+function Direction(sys::Types_of_Directions.System,
+                   longitude::Quantity, latitude::Quantity)
     direction = ccall(("newDirection",libcasacorewrapper), Ptr{Void},
                       (Ptr{Void},Ptr{Void},Cint),
-                      pointer(longitude), pointer(latitude), ref) |> Direction{ref}
+                      pointer(longitude), pointer(latitude), sys) |> Direction{sys}
     finalizer(direction,delete)
     direction
 end
 
-Direction(longitude,latitude) = Direction(J2000,longitude,latitude)
-Direction() = Direction(Quantity(Quanta.Radian),Quantity(Quanta.Radian))
-Direction(ref::DirectionRef) = Direction(ref,Quantity(Quanta.Radian),Quantity(Quanta.Radian))
+"""
+    Direction(sys)
 
-function from_xyz_in_meters(ref::DirectionRef,x::Float64,y::Float64,z::Float64)
+Instantiate a direction with the given coordinate system. The longitude
+and latitude are set to zero.
+
+This constructor should be used for solar system objects.
+
+** Examples:**
+
+    Direction(dir"SUN")     # the direction towards the Sun
+    Direction(dir"JUPITER") # the direction towards Jupiter
+"""
+function Direction(sys::Types_of_Directions.System)
+    Direction(sys,Quantity(Unit("rad")),Quantity(Unit("rad")))
+end
+
+function from_xyz_in_meters(sys::Types_of_Directions.System,
+                            x::Float64,y::Float64,z::Float64)
     direction = ccall(("newDirectionXYZ",libcasacorewrapper), Ptr{Void},
-                     (Cdouble,Cdouble,Cdouble,Cint), x, y, z, ref) |> Direction{ref}
+                     (Cdouble,Cdouble,Cdouble,Cint), x, y, z, sys) |> Direction{sys}
     finalizer(direction,delete)
     direction
 end
@@ -44,14 +82,14 @@ function delete(direction::Direction)
 end
 
 pointer(direction::Direction) = direction.ptr
-reference{ref}(::Direction{ref}) = ref
+coordinate_system{sys}(::Direction{sys}) = sys
 
-function longitude(direction::Direction, unit::Unit = Quanta.Radian)
+function longitude(direction::Direction, unit::Unit = Unit("rad"))
     ccall(("getDirectionLongitude",libcasacorewrapper), Cdouble,
           (Ptr{Void},Ptr{Void}), pointer(direction), pointer(unit))
 end
 
-function latitude(direction::Direction, unit::Unit = Quanta.Radian)
+function latitude(direction::Direction, unit::Unit = Unit("rad"))
     ccall(("getDirectionLatitude",libcasacorewrapper), Cdouble,
           (Ptr{Void},Ptr{Void}), pointer(direction), pointer(unit))
 end
@@ -67,15 +105,30 @@ function xyz_in_meters(direction::Direction)
 end
 
 function show(io::IO, direction::Direction)
-    long = longitude(direction,Quanta.Degree)
-    lat  = latitude(direction,Quanta.Degree)
+    long = longitude(direction,Unit("deg"))
+    lat  =  latitude(direction,Unit("deg"))
     print(io,"(",long," deg, ",lat," deg)")
 end
 
-function measure(frame::ReferenceFrame,direction::Direction,newref::DirectionRef)
+function set!(frame::ReferenceFrame,direction::Direction)
+    ccall(("setDirection",libcasacorewrapper), Void,
+          (Ptr{Void},Ptr{Void}), pointer(frame), pointer(direction))
+end
+
+"""
+    measure(frame::ReferenceFrame, direction::Direction, newsys)
+
+Convert the given direction to the new coordinate system specified
+by `newsys`. The reference frame must have enough information
+to attached to it with `set!` for the conversion to be made
+from the old coordinate system to the new.
+"""
+function measure(frame::ReferenceFrame,
+                 direction::Direction,
+                 newsys::Types_of_Directions.System)
     newdirection = ccall(("convertDirection",libcasacorewrapper), Ptr{Void},
                          (Ptr{Void},Cint,Ptr{Void}),
-                         pointer(direction), newref, pointer(frame)) |> Direction{newref}
+                         pointer(direction), newsys, pointer(frame)) |> Direction{newsys}
     finalizer(newdirection,delete)
     newdirection
 end
