@@ -94,15 +94,15 @@ extern "C" {
         return value.dataType();
     }
 
-    bool   getKeyword_bool(  TableProxy* t, char* column, char* keyword) {return getKeyword<Bool>(t,column,keyword);}
-    int    getKeyword_int(   TableProxy* t, char* column, char* keyword) {return getKeyword<Int>(t,column,keyword);}
-    float  getKeyword_float( TableProxy* t, char* column, char* keyword) {return getKeyword<Float>(t,column,keyword);}
-    double getKeyword_double(TableProxy* t, char* column, char* keyword) {return getKeyword<Double>(t,column,keyword);}
+    bool   getKeyword_boolean(TableProxy* t, char* column, char* keyword) {return getKeyword<Bool>(t,column,keyword);}
+    int    getKeyword_int(    TableProxy* t, char* column, char* keyword) {return getKeyword<Int>(t,column,keyword);}
+    float  getKeyword_float(  TableProxy* t, char* column, char* keyword) {return getKeyword<Float>(t,column,keyword);}
+    double getKeyword_double( TableProxy* t, char* column, char* keyword) {return getKeyword<Double>(t,column,keyword);}
 
-    void putKeyword_bool(  TableProxy* t, char* column, char* keyword,   bool value) {return putKeyword<Bool>(t,column,keyword,value);}
-    void putKeyword_int(   TableProxy* t, char* column, char* keyword,    int value) {return putKeyword<Int>(t,column,keyword,value);}
-    void putKeyword_float( TableProxy* t, char* column, char* keyword,  float value) {return putKeyword<Float>(t,column,keyword,value);}
-    void putKeyword_double(TableProxy* t, char* column, char* keyword, double value) {return putKeyword<Double>(t,column,keyword,value);}
+    void putKeyword_boolean(TableProxy* t, char* column, char* keyword,   bool value) {return putKeyword<Bool>(t,column,keyword,value);}
+    void putKeyword_int(    TableProxy* t, char* column, char* keyword,    int value) {return putKeyword<Int>(t,column,keyword,value);}
+    void putKeyword_float(  TableProxy* t, char* column, char* keyword,  float value) {return putKeyword<Float>(t,column,keyword,value);}
+    void putKeyword_double( TableProxy* t, char* column, char* keyword, double value) {return putKeyword<Double>(t,column,keyword,value);}
 
     char const* getKeyword_string(TableProxy* t, char* column, char* keyword) {
         return getKeyword<String>(t,column,keyword).c_str();
