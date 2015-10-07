@@ -61,7 +61,7 @@ function flush(table::Table)
     ccall(("flush",libcasacorewrapper),Void,(Ptr{Void},Bool),table.ptr,true)
 end
 
-for f in (:isWritable,:isReadable)
+for f in (:iswritable,:isreadable)
     @eval function $f(table::Table)
         ccall(($(string(f)),libcasacorewrapper),Bool,(Ptr{Void},),table.ptr)
     end

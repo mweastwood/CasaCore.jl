@@ -25,7 +25,7 @@ module Tables
     export Keyword
     export @kw_str
 
-    import Base: size, lock, unlock, getindex, setindex!
+    import Base: size, iswritable, isreadable, lock, unlock, getindex, setindex!
 
     include("common.jl")
     include("tables.jl")

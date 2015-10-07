@@ -141,6 +141,9 @@ let
     name  = tempname()*".ms"
     table = Table(name)
 
+    @test Tables.iswritable(table) == true
+    @test Tables.isreadable(table) == true
+
     Tables.addRows!(table,10)
     @test numrows(table) == 10
     Tables.removeRows!(table,[6:10;])

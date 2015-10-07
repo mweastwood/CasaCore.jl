@@ -35,8 +35,8 @@ extern "C" {
 
     void flush(TableProxy* t, bool recursive) {t->flush(recursive);}
 
-    bool isReadable(TableProxy const* t) {return t->isReadable();}
-    bool isWritable(TableProxy const* t) {return t->isWritable();}
+    bool isreadable(TableProxy const* t) {return t->isReadable();}
+    bool iswritable(TableProxy const* t) {return t->isWritable();}
 
     int numrows(    TableProxy* t) {return t->nrows();}
     int numcolumns( TableProxy* t) {return t->ncolumns();}
