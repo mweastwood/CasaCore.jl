@@ -16,6 +16,7 @@
 #include <measures/Measures.h>
 #include <measures/Measures/MPosition.h>
 #include <measures/Measures/MCPosition.h>
+#include <measures/Measures/MeasTable.h>
 
 using namespace casa;
 

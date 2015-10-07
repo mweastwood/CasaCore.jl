@@ -15,7 +15,6 @@
 
 #include <measures/Measures.h>
 #include <measures/Measures/MeasFrame.h>
-#include <measures/Measures/MeasTable.h>
 #include <measures/Measures/MEpoch.h>
 #include <measures/Measures/MDirection.h>
 #include <measures/Measures/MPosition.h>
