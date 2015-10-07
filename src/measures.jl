@@ -80,6 +80,8 @@ function Quantity(val::Float64,unit::Unit)
     quantity
 end
 
+Quantity(val::Float64,str::ASCIIString) = Quantity(val,Unit(str))
+
 """
     Quantity(unit::Unit)
 
@@ -95,7 +97,7 @@ macro q_str(str)
         regex = r"(\d*\.?\d+)\s*(.+)"
         m = match(regex,str)
         value = float(m.captures[1])
-        unit  = m.captures[2]
+        unit  = ascii(m.captures[2])
         return Quantity(value,unit)
     end
 end
@@ -111,6 +113,8 @@ function get(quantity::Quantity, unit::Unit)
     ccall(("getQuantity",libcasacorewrapper), Cdouble,
           (Ptr{Void},Ptr{Void}), pointer(quantity), pointer(unit))
 end
+
+get(quantity::Quantity,str::ASCIIString) = get(quantity,Unit(str))
 
 """
     sexagesimal(str) -> degrees
@@ -149,4 +153,9 @@ function sexagesimal(str)
     degrees = isdegrees? degrees_or_hours : 15degrees_or_hours
     sign*degrees
 end
+
+abstract Measure
+length{M<:Measure}(measure::M,str::ASCIIString) = length(measure,Unit(str))
+longitude{M<:Measure}(measure::M,str::ASCIIString) = longitude(measure,Unit(str))
+latitude{M<:Measure}(measure::M,str::ASCIIString) = latitude(measure,Unit(str))
 

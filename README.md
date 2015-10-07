@@ -22,7 +22,7 @@ To use the the measures module of CasaCore, you first need to define a reference
 ```julia
 frame = ReferenceFrame()
 position = observatory("OVRO_MMA")
-time = Epoch(epoch"UTC",Quantity(50237.29,Unit("d")))
+time = Epoch(epoch"UTC",Quantity(50237.29,"d"))
 set!(frame,position)
 set!(frame,time)
 ```

@@ -46,9 +46,7 @@ module Measures
     import Base: pointer, length, show, get
 
     include("common.jl")
-    include("quanta.jl")
-
-    abstract Measure
+    include("measures.jl")
     include("frame.jl")
     include("epoch.jl")
     include("direction.jl")
