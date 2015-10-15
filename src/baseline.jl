@@ -23,7 +23,7 @@ module Types_of_Baselines
 end
 
 macro baseline_str(sys)
-    :(Types_of_Baselines.$(symbol(sys))) |> eval
+    eval(current_module(),:(Measures.Types_of_Baselines.$(symbol(sys))))
 end
 
 """

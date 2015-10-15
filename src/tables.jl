@@ -385,7 +385,7 @@ function getCell(table::Table,column::ASCIIString,row::Int)
     cell
 end
 
-for T in (Int32,Float32,Float64,Complex64)
+for T in (Bool,Int32,Float32,Float64,Complex64)
     typestr = type2str[T]
     cfunc = "getCell_$typestr"
     @eval function getCell!(output::Array{$T},table::Table,
