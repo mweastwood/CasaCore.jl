@@ -20,16 +20,20 @@
 using namespace casa;
 
 extern "C" {
-    MDirection* newDirection(Quantity* longitude, Quantity* latitude, int ref) {
+    MDirection* newDirection(int ref, Quantity* longitude, Quantity* latitude) {
         return new MDirection(*longitude, *latitude, MDirection::Ref(ref));
     }
 
-    MDirection* newDirectionXYZ(double x, double y, double z, int ref) {
+    MDirection* newDirectionXYZ(int ref, double x, double y, double z) {
         return new MDirection(MVDirection(x,y,z), MDirection::Ref(ref));
     }
 
     void deleteDirection(MDirection* direction) {
         delete direction;
+    }
+
+    double getDirectionLength(MDirection* direction, Unit* unit) {
+        return 1.0;
     }
 
     double getDirectionLongitude(MDirection* direction, Unit* unit) {

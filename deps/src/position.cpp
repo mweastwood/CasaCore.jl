@@ -21,11 +21,11 @@
 using namespace casa;
 
 extern "C" {
-    MPosition* newPosition(Quantity* length, Quantity* longitude, Quantity* latitude, int ref) {
+    MPosition* newPosition(int ref, Quantity* length, Quantity* longitude, Quantity* latitude) {
         return new MPosition(*length, *longitude, *latitude, MPosition::Ref(ref));
     }
 
-    MPosition* newPositionXYZ(double x, double y, double z, int ref) {
+    MPosition* newPositionXYZ(int ref, double x, double y, double z) {
         return new MPosition(MVPosition(x,y,z), MPosition::Ref(ref));
     }
 

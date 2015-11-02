@@ -21,7 +21,7 @@
 using namespace casa;
 
 extern "C" {
-    MEpoch* newEpoch(Quantity* time, int ref) {
+    MEpoch* newEpoch(int ref, Quantity* time) {
         return new MEpoch(*time,MEpoch::Ref(ref));
     }
 

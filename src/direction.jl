@@ -26,32 +26,24 @@ macro dir_str(sys)
     eval(current_module(),:(Measures.Types_of_Directions.$(symbol(sys))))
 end
 
-"""
+@measure :Direction 2
+
+@doc doc"""
     type Direction{sys} <: Measure
 
 This type represents a location on the sky (ie. a direction). The type
 parameter `sys` defines the coordinate system.
-"""
-type Direction{sys} <: Measure
-    ptr::Ptr{Void}
-end
 
-"""
     Direction(sys, longitude::Quantity, latitude::Quantity)
 
 Instantiate a direction from the given coordinate system, longitude,
 and latitude.
-"""
-function Direction(sys::Types_of_Directions.System,
-                   longitude::Quantity, latitude::Quantity)
-    direction = ccall(("newDirection",libcasacorewrapper), Ptr{Void},
-                      (Ptr{Void},Ptr{Void},Cint),
-                      pointer(longitude), pointer(latitude), sys) |> Direction{sys}
-    finalizer(direction,delete)
-    direction
-end
 
-"""
+    Direction(sys, x::Float64, y::Float64, z::Float64)
+
+Construct a direction from the Cartesian vector $(x,y,z)$ where each
+coordinate has units of meters.
+
     Direction(sys)
 
 Instantiate a direction with the given coordinate system. The longitude
@@ -63,46 +55,13 @@ This constructor should be used for solar system objects.
 
     Direction(dir"SUN")     # the direction towards the Sun
     Direction(dir"JUPITER") # the direction towards Jupiter
-"""
+""" Direction
+
 function Direction(sys::Types_of_Directions.System)
     Direction(sys,Quantity(Unit("rad")),Quantity(Unit("rad")))
 end
 
-function from_xyz_in_meters(sys::Types_of_Directions.System,
-                            x::Float64,y::Float64,z::Float64)
-    direction = ccall(("newDirectionXYZ",libcasacorewrapper), Ptr{Void},
-                     (Cdouble,Cdouble,Cdouble,Cint), x, y, z, sys) |> Direction{sys}
-    finalizer(direction,delete)
-    direction
-end
-
-function delete(direction::Direction)
-    ccall(("deleteDirection",libcasacorewrapper), Void,
-          (Ptr{Void},), pointer(direction))
-end
-
-pointer(direction::Direction) = direction.ptr
-coordinate_system{sys}(::Direction{sys}) = sys
-
-function longitude(direction::Direction, unit::Unit = Unit("rad"))
-    ccall(("getDirectionLongitude",libcasacorewrapper), Cdouble,
-          (Ptr{Void},Ptr{Void}), pointer(direction), pointer(unit))
-end
-
-function latitude(direction::Direction, unit::Unit = Unit("rad"))
-    ccall(("getDirectionLatitude",libcasacorewrapper), Cdouble,
-          (Ptr{Void},Ptr{Void}), pointer(direction), pointer(unit))
-end
-
-function xyz_in_meters(direction::Direction)
-    x = Ref{Cdouble}(0)
-    y = Ref{Cdouble}(0)
-    z = Ref{Cdouble}(0)
-    ccall(("getDirectionXYZ",libcasacorewrapper), Void,
-          (Ptr{Void},Ref{Cdouble},Ref{Cdouble},Ref{Cdouble}),
-          pointer(direction), x, y, z)
-    x[],y[],z[]
-end
+@add_vector_like_methods :Direction
 
 function show(io::IO, direction::Direction)
     long = longitude(direction,"deg")

@@ -38,8 +38,8 @@ let
     @test rad2deg(inradians) ≈ indegrees
 
     dir1 = Direction(dir"J2000",q"19h59m28.35663s",q"+40d44m02.0970s")
-    x,y,z = Measures.xyz_in_meters(dir1)
-    dir2 = Measures.from_xyz_in_meters(dir"J2000",x,y,z)
+    x,y,z = vector(dir1)
+    dir2 = Direction(dir"J2000",x,y,z)
     @test coordinate_system(dir1) === coordinate_system(dir2)
     @test longitude(dir1) ≈ longitude(dir2)
     @test  latitude(dir1) ≈  latitude(dir2)

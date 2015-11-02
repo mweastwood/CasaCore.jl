@@ -10,8 +10,8 @@ let
     x = -2.4091659216088112e6
     y = -4.477883063543822e6
     z = 3.8393872424225896e6
-    pos = Measures.from_xyz_in_meters(pos"ITRF",x,y,z)
-    ξ,η,ζ = Measures.xyz_in_meters(pos)
+    pos = Position(pos"ITRF",x,y,z)
+    ξ,η,ζ = vector(pos)
     @test coordinate_system(pos) === pos"ITRF"
     @test x == ξ
     @test y == η

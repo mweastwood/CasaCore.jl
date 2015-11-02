@@ -26,35 +26,18 @@ macro epoch_str(sys)
     eval(current_module(),:(Measures.Types_of_Epochs.$(symbol(sys))))
 end
 
-"""
+@measure :Epoch 1
+
+@doc """
     type Epoch{sys} <: Measure
 
 This type represents an instance in time (ie. an epoch). The type
 parameter `sys` defines the coordinate system.
-"""
-type Epoch{sys} <: Measure
-    ptr::Ptr{Void} # pointer to a casa::MEpoch instance
-end
 
-"""
     Epoch(sys, time::Quantity)
 
 Instantiate an epoch from the given coordinate system and time.
-"""
-function Epoch(sys::Types_of_Epochs.System, time::Quantity)
-    epoch = ccall(("newEpoch",libcasacorewrapper), Ptr{Void},
-                  (Ptr{Void},Cint), pointer(time), sys) |> Epoch{sys}
-    finalizer(epoch,delete)
-    epoch
-end
-
-function delete(epoch::Epoch)
-    ccall(("deleteEpoch",libcasacorewrapper), Void,
-          (Ptr{Void},), pointer(epoch))
-end
-
-pointer(epoch::Epoch) = epoch.ptr
-coordinate_system{sys}(::Epoch{sys}) = sys
+""" Epoch
 
 function get(epoch::Epoch, unit::Unit)
     ccall(("getEpoch",libcasacorewrapper), Cdouble,

@@ -21,74 +21,29 @@ macro pos_str(sys)
     eval(current_module(),:(Measures.Types_of_Positions.$(symbol(sys))))
 end
 
-"""
+@measure :Position 3
+
+@doc doc"""
     type Position{sys} <: Measure
 
 This type represents a location on the surface of the Earth
 (ie. a position). Tye type parameter `sys` defines the
 coordinate system.
-"""
-type Position{sys} <: Measure
-    ptr::Ptr{Void} # pointer to a casa::MPosition instance
-end
 
-"""
     Position(sys, length::Quantity, longitude::Quantity, latitude::Quantity)
 
 Instantiate an epoch from the given coordinate system, length, longitude,
 and latitude. Depending on the coordinate system, the length can either
 represent the elevation relative to sea level or the distance from the
 center of the Earth.
-"""
-function Position(sys::Types_of_Positions.System,
-                  length::Quantity, longitude::Quantity, latitude::Quantity)
-    position = ccall(("newPosition",libcasacorewrapper), Ptr{Void},
-                     (Ptr{Void},Ptr{Void},Ptr{Void},Cint),
-                     pointer(length), pointer(longitude), pointer(latitude), sys) |> Position{sys}
-    finalizer(position,delete)
-    position
-end
 
-function from_xyz_in_meters(sys::Types_of_Positions.System,
-                            x::Float64,y::Float64,z::Float64)
-    position = ccall(("newPositionXYZ",libcasacorewrapper), Ptr{Void},
-                     (Cdouble,Cdouble,Cdouble,Cint), x, y, z, sys) |> Position{sys}
-    finalizer(position,delete)
-    position
-end
+    Position(sys, x::Float64, y::Float64, z::Float64)
 
-function delete(position::Position)
-    ccall(("deletePosition",libcasacorewrapper), Void,
-          (Ptr{Void},), pointer(position))
-end
+Construct a position from the Cartesian vector $(x,y,z)$ where each
+coordinate has units of meters.
+""" Position
 
-pointer(position::Position) = position.ptr
-coordinate_system{sys}(::Position{sys}) = sys
-
-function length(position::Position, unit::Unit = Unit("m"))
-    ccall(("getPositionLength",libcasacorewrapper), Cdouble,
-          (Ptr{Void},Ptr{Void}), pointer(position), pointer(unit))
-end
-
-function longitude(position::Position, unit::Unit = Unit("rad"))
-    ccall(("getPositionLongitude",libcasacorewrapper), Cdouble,
-          (Ptr{Void},Ptr{Void}), pointer(position), pointer(unit))
-end
-
-function latitude(position::Position, unit::Unit = Unit("rad"))
-    ccall(("getPositionLatitude",libcasacorewrapper), Cdouble,
-          (Ptr{Void},Ptr{Void}), pointer(position), pointer(unit))
-end
-
-function xyz_in_meters(position::Position)
-    x = Ref{Cdouble}(0)
-    y = Ref{Cdouble}(0)
-    z = Ref{Cdouble}(0)
-    ccall(("getPositionXYZ",libcasacorewrapper), Void,
-          (Ptr{Void},Ref{Cdouble},Ref{Cdouble},Ref{Cdouble}),
-          pointer(position), x, y, z)
-    x[],y[],z[]
-end
+@add_vector_like_methods :Position
 
 function show(io::IO, position::Position)
     L    = length(position,"m")

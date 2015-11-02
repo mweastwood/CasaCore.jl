@@ -15,8 +15,8 @@ let
     u = 1.234
     v = 5.678
     w = 0.100
-    baseline = Measures.from_xyz_in_meters(baseline"ITRF",u,v,w)
-    x,y,z = Measures.xyz_in_meters(baseline)
+    baseline = Baseline(baseline"ITRF",u,v,w)
+    x,y,z = vector(baseline)
     @test coordinate_system(baseline) === baseline"ITRF"
     @test u == x
     @test v == y
