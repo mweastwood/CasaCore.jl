@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-module Types_of_Epochs
+module Epochs
     @enum(System, LAST, LMST, GMST1, GAST, UT1, UT2, UTC, TAI, TDT, TCG, TDB, TCB)
     const IAT = TAI
     const GMST = GMST1
@@ -23,7 +23,7 @@ module Types_of_Epochs
 end
 
 macro epoch_str(sys)
-    eval(current_module(),:(Measures.Types_of_Epochs.$(symbol(sys))))
+    eval(current_module(),:(Measures.Epochs.$(symbol(sys))))
 end
 
 @measure :Epoch 1
@@ -48,27 +48,4 @@ days(epoch::Epoch) = get(epoch,Unit("d"))
 seconds(epoch::Epoch) = get(epoch,Unit("s"))
 
 show(io::IO, epoch::Epoch) = print(io,days(epoch)," days")
-
-function set!(frame::ReferenceFrame,epoch::Epoch)
-    ccall(("setEpoch",libcasacorewrapper), Void,
-          (Ptr{Void},Ptr{Void}), pointer(frame), pointer(epoch))
-end
-
-"""
-    measure(frame::ReferenceFrame, epoch::Epoch, newsys)
-
-Convert the given epoch to the new coordinate system specified
-by `newsys`. The reference frame must have enough information
-to attached to it with `set!` for the conversion to be made
-from the old coordinate system to the new.
-"""
-function measure(frame::ReferenceFrame,
-                 epoch::Epoch,
-                 newsys::Types_of_Epochs.System)
-    newepoch = ccall(("convertEpoch",libcasacorewrapper), Ptr{Void},
-                     (Ptr{Void},Cint,Ptr{Void}),
-                     pointer(epoch), newsys, pointer(frame)) |> Epoch{newsys}
-    finalizer(newepoch,delete)
-    newepoch
-end
 

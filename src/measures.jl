@@ -169,9 +169,9 @@ macro measure(T,N)
         T = T.args[1]
     end
 
-    types_of = symbol("Types_of_",string(T),"s")
-    new      = string("new",T)
-    delete   = string("delete",T)
+    Ts     = symbol(T,"s")
+    new    = string("new",T)
+    delete = string("delete",T)
 
     type_definition = quote
         type $T{sys} <: Measure{sys}
@@ -182,7 +182,7 @@ macro measure(T,N)
     # the constructor needs to accept a variable number of arguments and
     # pass them all to a ccall, so we need to build it by hand
     constructor_definition = quote
-        function $T(sys::$types_of.System)
+        function $T(sys::$Ts.System)
             measure = ccall(($new,libcasacorewrapper), Ptr{Void}, (Cint,), sys) |> $T{sys}
             finalizer(measure, delete)
             measure
@@ -226,7 +226,7 @@ macro add_vector_like_methods(T)
         T = T.args[1]
     end
 
-    types_of     = symbol("Types_of_",string(T),"s")
+    Ts           = symbol(T,"s")
     newXYZ       = string("new",T,"XYZ")
     getLength    = string("get",T,"Length")
     getLongitude = string("get",T,"Longitude")
@@ -234,7 +234,7 @@ macro add_vector_like_methods(T)
     getXYZ       = string("get",T,"XYZ")
 
     constructor_definition = quote
-        function $T(sys::$types_of.System, x::Float64, y::Float64, z::Float64)
+        function $T(sys::$Ts.System, x::Float64, y::Float64, z::Float64)
             measure = ccall(($newXYZ,libcasacorewrapper), Ptr{Void},
                             (Cint,Cdouble,Cdouble,Cdouble), sys, x, y, z) |> $T{sys}
             finalizer(measure, delete)

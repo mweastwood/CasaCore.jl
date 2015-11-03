@@ -15,7 +15,6 @@
 
 #include <measures/Measures.h>
 #include <measures/Measures/MPosition.h>
-#include <measures/Measures/MCPosition.h>
 #include <measures/Measures/MeasTable.h>
 
 using namespace casa;
@@ -50,10 +49,6 @@ extern "C" {
         *x = vec(0);
         *y = vec(1);
         *z = vec(2);
-    }
-
-    MPosition* convertPosition(MPosition* position, int newref, MeasFrame* frame) {
-        return new MPosition(MPosition::Convert(*position,MPosition::Ref(newref,*frame))());
     }
 
     bool observatory(Quantity* length, Quantity* longitude, Quantity* latitude, int* ref, char* name) {

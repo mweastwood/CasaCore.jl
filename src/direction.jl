@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-module Types_of_Directions
+module Directions
     @enum(System,
           J2000, JMEAN, JTRUE, APP, B1950, B1950_VLA, BMEAN, BTRUE,
           GALACTIC, HADEC, AZEL, AZELSW, AZELGEO, AZELSWGEO, JNAT,
@@ -23,7 +23,7 @@ module Types_of_Directions
 end
 
 macro dir_str(sys)
-    eval(current_module(),:(Measures.Types_of_Directions.$(symbol(sys))))
+    eval(current_module(),:(Measures.Directions.$(symbol(sys))))
 end
 
 @measure :Direction 2
@@ -57,7 +57,7 @@ This constructor should be used for solar system objects.
     Direction(dir"JUPITER") # the direction towards Jupiter
 """ Direction
 
-function Direction(sys::Types_of_Directions.System)
+function Direction(sys::Directions.System)
     Direction(sys,Quantity(Unit("rad")),Quantity(Unit("rad")))
 end
 
@@ -67,28 +67,5 @@ function show(io::IO, direction::Direction)
     long = longitude(direction,"deg")
     lat  =  latitude(direction,"deg")
     print(io,"(",long," deg, ",lat," deg)")
-end
-
-function set!(frame::ReferenceFrame,direction::Direction)
-    ccall(("setDirection",libcasacorewrapper), Void,
-          (Ptr{Void},Ptr{Void}), pointer(frame), pointer(direction))
-end
-
-"""
-    measure(frame::ReferenceFrame, direction::Direction, newsys)
-
-Convert the given direction to the new coordinate system specified
-by `newsys`. The reference frame must have enough information
-to attached to it with `set!` for the conversion to be made
-from the old coordinate system to the new.
-"""
-function measure(frame::ReferenceFrame,
-                 direction::Direction,
-                 newsys::Types_of_Directions.System)
-    newdirection = ccall(("convertDirection",libcasacorewrapper), Ptr{Void},
-                         (Ptr{Void},Cint,Ptr{Void}),
-                         pointer(direction), newsys, pointer(frame)) |> Direction{newsys}
-    finalizer(newdirection,delete)
-    newdirection
 end
 

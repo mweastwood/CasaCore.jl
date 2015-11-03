@@ -1,6 +1,6 @@
 let
-    @test dir"J2000" === Measures.Types_of_Directions.J2000
-    @test dir"AZEL" === Measures.Types_of_Directions.AZEL
+    @test dir"J2000" === Measures.Directions.J2000
+    @test dir"AZEL" === Measures.Directions.AZEL
 end
 
 let

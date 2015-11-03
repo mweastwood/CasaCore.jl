@@ -16,7 +16,6 @@
 #include <measures/Measures.h>
 #include <measures/Measures/MeasFrame.h>
 #include <measures/Measures/MEpoch.h>
-#include <measures/Measures/MCEpoch.h>
 
 using namespace casa;
 
@@ -31,10 +30,6 @@ extern "C" {
 
     double getEpoch(MEpoch* epoch, Unit* unit) {
         return epoch->get(*unit).getValue();
-    }
-
-    MEpoch* convertEpoch(MEpoch* epoch, int newref, MeasFrame* frame) {
-        return new MEpoch(MEpoch::Convert(*epoch,MEpoch::Ref(newref,*frame))());
     }
 }
 

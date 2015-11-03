@@ -50,9 +50,5 @@ extern "C" {
         *y = vec(1);
         *z = vec(2);
     }
-
-    MBaseline* convertBaseline(MBaseline* baseline, int newref, MeasFrame* frame) {
-        return new MBaseline(MBaseline::Convert(*baseline,MBaseline::Ref(newref,*frame))());
-    }
 }
 

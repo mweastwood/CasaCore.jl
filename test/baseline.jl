@@ -1,6 +1,6 @@
 let
-    @test baseline"ITRF" === Measures.Types_of_Baselines.ITRF
-    @test baseline"J2000" === Measures.Types_of_Baselines.J2000
+    @test baseline"ITRF" === Measures.Baselines.ITRF
+    @test baseline"J2000" === Measures.Baselines.J2000
 end
 
 let

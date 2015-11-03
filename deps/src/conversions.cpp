@@ -16,8 +16,13 @@
 #include <measures/Measures.h>
 #include <measures/Measures/MeasFrame.h>
 #include <measures/Measures/MEpoch.h>
+#include <measures/Measures/MCEpoch.h>
 #include <measures/Measures/MDirection.h>
+#include <measures/Measures/MCDirection.h>
 #include <measures/Measures/MPosition.h>
+#include <measures/Measures/MCPosition.h>
+#include <measures/Measures/MBaseline.h>
+#include <measures/Measures/MCBaseline.h>
 
 using namespace casa;
 
@@ -28,5 +33,21 @@ extern "C" {
     void setEpoch    (MeasFrame* frame, MEpoch*     epoch)     {frame->set(*epoch);}
     void setDirection(MeasFrame* frame, MDirection* direction) {frame->set(*direction);}
     void setPosition (MeasFrame* frame, MPosition*  position)  {frame->set(*position);}
+
+    MEpoch* convertEpoch(MEpoch* epoch, int newref, MeasFrame* frame) {
+        return new MEpoch(MEpoch::Convert(*epoch,MEpoch::Ref(newref,*frame))());
+    }
+
+    MDirection* convertDirection(MDirection* direction, int newref, MeasFrame* frame) {
+        return new MDirection(MDirection::Convert(*direction,MDirection::Ref(newref,*frame))());
+    }
+
+    MPosition* convertPosition(MPosition* position, int newref, MeasFrame* frame) {
+        return new MPosition(MPosition::Convert(*position,MPosition::Ref(newref,*frame))());
+    }
+
+    MBaseline* convertBaseline(MBaseline* baseline, int newref, MeasFrame* frame) {
+        return new MBaseline(MBaseline::Convert(*baseline,MBaseline::Ref(newref,*frame))());
+    }
 }
 

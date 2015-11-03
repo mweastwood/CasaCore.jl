@@ -1,6 +1,6 @@
 let
-    @test pos"WGS84" === Measures.Types_of_Positions.WGS84
-    @test pos"ITRF" === Measures.Types_of_Positions.ITRF
+    @test pos"WGS84" === Measures.Positions.WGS84
+    @test pos"ITRF" === Measures.Positions.ITRF
 end
 
 let

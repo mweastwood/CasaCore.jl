@@ -13,12 +13,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-module Types_of_Positions
+module Positions
     @enum(System, ITRF, WGS84)
 end
 
 macro pos_str(sys)
-    eval(current_module(),:(Measures.Types_of_Positions.$(symbol(sys))))
+    eval(current_module(),:(Measures.Positions.$(symbol(sys))))
 end
 
 @measure :Position 3
@@ -52,29 +52,6 @@ function show(io::IO, position::Position)
     print(io,"(",L," m, ",long," deg, ",lat," deg)")
 end
 
-function set!(frame::ReferenceFrame,position::Position)
-    ccall(("setPosition",libcasacorewrapper), Void,
-          (Ptr{Void},Ptr{Void}), pointer(frame), pointer(position))
-end
-
-"""
-    measure(frame::ReferenceFrame, position::Position, newsys)
-
-Convert the given position to the new coordinate system specified
-by `newsys`. The reference frame must have enough information
-to attached to it with `set!` for the conversion to be made
-from the old coordinate system to the new.
-"""
-function measure(frame::ReferenceFrame,
-                 position::Position,
-                 newsys::Types_of_Positions.System)
-    newposition = ccall(("convertPosition",libcasacorewrapper), Ptr{Void},
-                        (Ptr{Void},Cint,Ptr{Void}),
-                        pointer(position), newsys, pointer(frame)) |> Position{newsys}
-    finalizer(newposition,delete)
-    newposition
-end
-
 """
     observatory(name::ASCIIString)
 
@@ -92,6 +69,6 @@ function observatory(name::ASCIIString)
                    (Ptr{Void},Ptr{Void},Ptr{Void},Ref{Cint},Ptr{Cchar}),
                    pointer(length), pointer(longitude), pointer(latitude), sys, pointer(name))
     !status && error("Unknown observatory.")
-    Position(Types_of_Positions.System(sys[]), length, longitude, latitude)
+    Position(Positions.System(sys[]), length, longitude, latitude)
 end
 

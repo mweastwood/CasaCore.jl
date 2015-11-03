@@ -47,11 +47,11 @@ module Measures
 
     include("common.jl")
     include("measures.jl")
-    include("frame.jl")
     include("epoch.jl")
     include("direction.jl")
     include("position.jl")
     include("baseline.jl")
+    include("conversions.jl")
 end
 
 end

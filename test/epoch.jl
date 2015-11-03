@@ -1,6 +1,6 @@
 let
-    @test epoch"UTC" === Measures.Types_of_Epochs.UTC
-    @test epoch"LAST" === Measures.Types_of_Epochs.LAST
+    @test epoch"UTC" === Measures.Epochs.UTC
+    @test epoch"LAST" === Measures.Epochs.LAST
 end
 
 let
