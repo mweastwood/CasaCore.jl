@@ -30,3 +30,11 @@ let
     @test repr(pos) == "(1.0 m, 0.0 deg, 0.0 deg)"
 end
 
+let
+    # make sure observatory(name) is checking the coordinate system
+    alma = observatory("ALMA")
+    vla  = observatory("VLA")
+    @test coordinate_system(alma) === pos"WGS84"
+    @test coordinate_system(vla) === pos"ITRF"
+end
+

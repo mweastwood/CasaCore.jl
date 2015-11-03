@@ -84,13 +84,14 @@ For example `observatory("OVRO_MMA")` gets the position of the
 old Millimeter Array at the Owens Valley Radio Observatory.
 """
 function observatory(name::ASCIIString)
-    position = Position(pos"ITRF",
-                        Quantity(0.0,Unit("m")),
-                        Quantity(0.0,Unit("rad")),
-                        Quantity(0.0,Unit("rad")))
+    length    = Quantity(Unit("m"))
+    longitude = Quantity(Unit("rad"))
+    latitude  = Quantity(Unit("rad"))
+    sys       = Ref{Cint}(0)
     status = ccall(("observatory",libcasacorewrapper), Bool,
-                   (Ptr{Void},Ptr{Cchar}), pointer(position), pointer(name))
+                   (Ptr{Void},Ptr{Void},Ptr{Void},Ref{Cint},Ptr{Cchar}),
+                   pointer(length), pointer(longitude), pointer(latitude), sys, pointer(name))
     !status && error("Unknown observatory.")
-    position
+    Position(Types_of_Positions.System(sys[]), length, longitude, latitude)
 end
 

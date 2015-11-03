@@ -56,8 +56,14 @@ extern "C" {
         return new MPosition(MPosition::Convert(*position,MPosition::Ref(newref,*frame))());
     }
 
-    bool observatory(MPosition* position, char* name) {
-        return MeasTable::Observatory(*position,name);
+    bool observatory(Quantity* length, Quantity* longitude, Quantity* latitude, int* ref, char* name) {
+        MPosition position(*length, *longitude, *latitude, MPosition::Ref(*ref));
+        bool found = MeasTable::Observatory(position, name);
+        *length = position.getValue().getLength(length->getUnit());
+        *longitude = position.getValue().getLong(length->getUnit());
+        *latitude  = position.getValue().getLat(length->getUnit());
+        *ref = position.getRef().getType();
+        return found;
     }
 }
 
