@@ -34,10 +34,6 @@ extern "C" {
     void setDirection(MeasFrame* frame, MDirection* direction) {frame->set(*direction);}
     void setPosition (MeasFrame* frame, MPosition*  position)  {frame->set(*position);}
 
-    MEpoch* convertEpoch(MEpoch* epoch, int newref, MeasFrame* frame) {
-        return new MEpoch(MEpoch::Convert(*epoch,MEpoch::Ref(newref,*frame))());
-    }
-
     MDirection* convertDirection(MDirection* direction, int newref, MeasFrame* frame) {
         return new MDirection(MDirection::Convert(*direction,MDirection::Ref(newref,*frame))());
     }
@@ -49,5 +45,46 @@ extern "C" {
     MBaseline* convertBaseline(MBaseline* baseline, int newref, MeasFrame* frame) {
         return new MBaseline(MBaseline::Convert(*baseline,MBaseline::Ref(newref,*frame))());
     }
+
+    MEpoch::Convert* newEpochConverter(int from, int to, MeasFrame* frame) {
+        return new MEpoch::Convert(MEpoch::Ref(from), MEpoch::Ref(to,*frame));
+    }
+    MEpoch* runEpochConverter(MEpoch::Convert* converter, MEpoch* epoch) {
+        return new MEpoch((*converter)(epoch));
+    }
+    void deleteEpochConverter(MEpoch::Convert* converter) {
+        delete converter;
+    }
+
+    MDirection::Convert* newDirectionConverter(int from, int to, MeasFrame* frame) {
+        return new MDirection::Convert(MDirection::Ref(from), MDirection::Ref(to,*frame));
+    }
+    MDirection* runDirectionConverter(MDirection::Convert* converter, MDirection* epoch) {
+        return new MDirection((*converter)(epoch));
+    }
+    void deleteDirectionConverter(MDirection::Convert* converter) {
+        delete converter;
+    }
+
+    MPosition::Convert* newPositionConverter(int from, int to, MeasFrame* frame) {
+        return new MPosition::Convert(MPosition::Ref(from), MPosition::Ref(to,*frame));
+    }
+    MPosition* runPositionConverter(MPosition::Convert* converter, MPosition* epoch) {
+        return new MPosition((*converter)(epoch));
+    }
+    void deletePositionConverter(MPosition::Convert* converter) {
+        delete converter;
+    }
+
+    MBaseline::Convert* newBaselineConverter(int from, int to, MeasFrame* frame) {
+        return new MBaseline::Convert(MBaseline::Ref(from), MBaseline::Ref(to,*frame));
+    }
+    MBaseline* runBaselineConverter(MBaseline::Convert* converter, MBaseline* epoch) {
+        return new MBaseline((*converter)(epoch));
+    }
+    void deleteBaselineConverter(MBaseline::Convert* converter) {
+        delete converter;
+    }
+
 }
 

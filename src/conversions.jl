@@ -50,11 +50,39 @@ requires knowing the position and time of the observer.
 for T in (:Epoch, :Direction, :Position, :Baseline)
     Ts = symbol(T,"s")
 
-    cfunc = string("convert",T)
-    @eval function measure(frame::ReferenceFrame, input::$T, newsys::$Ts.System)
-        output = ccall(($cfunc,libcasacorewrapper), Ptr{Void}, (Ptr{Void},Cint,Ptr{Void}),
-                       pointer(input), newsys, pointer(frame)) |> $T{newsys}
+    cfunc_new = string("new",T,"Converter")
+    @eval function new_converter(::Type{$T}, from, to, frame::ReferenceFrame)
+        ccall(($cfunc_new,libcasacorewrapper), Ptr{Void}, (Cint,Cint,Ptr{Void}),
+              from, to, pointer(frame))
+    end
+
+    cfunc_run = string("run",T,"Converter")
+    @eval function run_converter(converter, input::$T)
+        ccall(($cfunc_run,libcasacorewrapper), Ptr{Void}, (Ptr{Void},Ptr{Void}),
+              converter, pointer(input))
+    end
+
+    cfunc_del = string("delete",T,"Converter")
+    @eval function delete_converter(::Type{$T}, converter)
+        ccall(($cfunc_del,libcasacorewrapper), Void, (Ptr{Void},), converter)
+    end
+
+    @eval function measure{from}(frame::ReferenceFrame, input::$T{from}, to::$Ts.System)
+        converter = new_converter($T, from, to, frame)
+        output    = run_converter(converter, input) |> $T{to}
+        delete_converter($T, converter)
         finalizer(output, delete)
+        output
+    end
+
+    @eval function measure{from}(frame::ReferenceFrame, input::Vector{$T{from}}, to::$Ts.System)
+        converter = new_converter($T, from, to, frame)
+        output = Array{$T{to}}(length(input))
+        for i = 1:length(input)
+            output[i] = run_converter(converter, input[i]) |> $T{to}
+            finalizer(output[i], delete)
+        end
+        delete_converter($T, converter)
         output
     end
 end
