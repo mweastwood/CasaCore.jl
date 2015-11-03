@@ -60,8 +60,8 @@ extern "C" {
         MPosition position(*length, *longitude, *latitude, MPosition::Ref(*ref));
         bool found = MeasTable::Observatory(position, name);
         *length = position.getValue().getLength(length->getUnit());
-        *longitude = position.getValue().getLong(length->getUnit());
-        *latitude  = position.getValue().getLat(length->getUnit());
+        *longitude = position.getValue().getLong(longitude->getUnit());
+        *latitude  = position.getValue().getLat(latitude->getUnit());
         *ref = position.getRef().getType();
         return found;
     }
