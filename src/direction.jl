@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-module Types_of_Directions
+module Directions
     @enum(System,
           J2000, JMEAN, JTRUE, APP, B1950, B1950_VLA, BMEAN, BTRUE,
           GALACTIC, HADEC, AZEL, AZELSW, AZELGEO, AZELSWGEO, JNAT,
@@ -23,35 +23,27 @@ module Types_of_Directions
 end
 
 macro dir_str(sys)
-    eval(current_module(),:(Measures.Types_of_Directions.$(symbol(sys))))
+    eval(current_module(),:(Measures.Directions.$(symbol(sys))))
 end
 
-"""
+@measure :Direction 2
+
+@doc doc"""
     type Direction{sys} <: Measure
 
 This type represents a location on the sky (ie. a direction). The type
 parameter `sys` defines the coordinate system.
-"""
-type Direction{sys} <: Measure
-    ptr::Ptr{Void}
-end
 
-"""
     Direction(sys, longitude::Quantity, latitude::Quantity)
 
 Instantiate a direction from the given coordinate system, longitude,
 and latitude.
-"""
-function Direction(sys::Types_of_Directions.System,
-                   longitude::Quantity, latitude::Quantity)
-    direction = ccall(("newDirection",libcasacorewrapper), Ptr{Void},
-                      (Ptr{Void},Ptr{Void},Cint),
-                      pointer(longitude), pointer(latitude), sys) |> Direction{sys}
-    finalizer(direction,delete)
-    direction
-end
 
-"""
+    Direction(sys, x::Float64, y::Float64, z::Float64)
+
+Construct a direction from the Cartesian vector $(x,y,z)$ where each
+coordinate has units of meters.
+
     Direction(sys)
 
 Instantiate a direction with the given coordinate system. The longitude
@@ -63,73 +55,17 @@ This constructor should be used for solar system objects.
 
     Direction(dir"SUN")     # the direction towards the Sun
     Direction(dir"JUPITER") # the direction towards Jupiter
-"""
-function Direction(sys::Types_of_Directions.System)
+""" Direction
+
+function Direction(sys::Directions.System)
     Direction(sys,Quantity(Unit("rad")),Quantity(Unit("rad")))
 end
 
-function from_xyz_in_meters(sys::Types_of_Directions.System,
-                            x::Float64,y::Float64,z::Float64)
-    direction = ccall(("newDirectionXYZ",libcasacorewrapper), Ptr{Void},
-                     (Cdouble,Cdouble,Cdouble,Cint), x, y, z, sys) |> Direction{sys}
-    finalizer(direction,delete)
-    direction
-end
-
-function delete(direction::Direction)
-    ccall(("deleteDirection",libcasacorewrapper), Void,
-          (Ptr{Void},), pointer(direction))
-end
-
-pointer(direction::Direction) = direction.ptr
-coordinate_system{sys}(::Direction{sys}) = sys
-
-function longitude(direction::Direction, unit::Unit = Unit("rad"))
-    ccall(("getDirectionLongitude",libcasacorewrapper), Cdouble,
-          (Ptr{Void},Ptr{Void}), pointer(direction), pointer(unit))
-end
-
-function latitude(direction::Direction, unit::Unit = Unit("rad"))
-    ccall(("getDirectionLatitude",libcasacorewrapper), Cdouble,
-          (Ptr{Void},Ptr{Void}), pointer(direction), pointer(unit))
-end
-
-function xyz_in_meters(direction::Direction)
-    x = Ref{Cdouble}(0)
-    y = Ref{Cdouble}(0)
-    z = Ref{Cdouble}(0)
-    ccall(("getDirectionXYZ",libcasacorewrapper), Void,
-          (Ptr{Void},Ref{Cdouble},Ref{Cdouble},Ref{Cdouble}),
-          pointer(direction), x, y, z)
-    x[],y[],z[]
-end
+@add_vector_like_methods :Direction
 
 function show(io::IO, direction::Direction)
     long = longitude(direction,"deg")
     lat  =  latitude(direction,"deg")
     print(io,"(",long," deg, ",lat," deg)")
-end
-
-function set!(frame::ReferenceFrame,direction::Direction)
-    ccall(("setDirection",libcasacorewrapper), Void,
-          (Ptr{Void},Ptr{Void}), pointer(frame), pointer(direction))
-end
-
-"""
-    measure(frame::ReferenceFrame, direction::Direction, newsys)
-
-Convert the given direction to the new coordinate system specified
-by `newsys`. The reference frame must have enough information
-to attached to it with `set!` for the conversion to be made
-from the old coordinate system to the new.
-"""
-function measure(frame::ReferenceFrame,
-                 direction::Direction,
-                 newsys::Types_of_Directions.System)
-    newdirection = ccall(("convertDirection",libcasacorewrapper), Ptr{Void},
-                         (Ptr{Void},Cint,Ptr{Void}),
-                         pointer(direction), newsys, pointer(frame)) |> Direction{newsys}
-    finalizer(newdirection,delete)
-    newdirection
 end
 

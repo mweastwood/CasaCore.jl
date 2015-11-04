@@ -20,12 +20,11 @@
 using namespace casa;
 
 extern "C" {
-    MBaseline* newBaseline(Quantity* length, Quantity* longitude, Quantity* latitude, int ref)
-    {
+    MBaseline* newBaseline(int ref, Quantity* length, Quantity* longitude, Quantity* latitude) {
         return new MBaseline(MVBaseline(*length, *longitude, *latitude), MBaseline::Ref(ref));
     }
 
-    MBaseline* newBaselineXYZ(double x, double y, double z, int ref) {
+    MBaseline* newBaselineXYZ(int ref, double x, double y, double z) {
         return new MBaseline(MVBaseline(x,y,z), MBaseline::Ref(ref));
     }
 
@@ -50,10 +49,6 @@ extern "C" {
         *x = vec(0);
         *y = vec(1);
         *z = vec(2);
-    }
-
-    MBaseline* convertBaseline(MBaseline* baseline, int newref, MeasFrame* frame) {
-        return new MBaseline(MBaseline::Convert(*baseline,MBaseline::Ref(newref,*frame))());
     }
 }
 

@@ -15,21 +15,24 @@
 
 #include <measures/Measures.h>
 #include <measures/Measures/MDirection.h>
-#include <measures/Measures/MCDirection.h>
 
 using namespace casa;
 
 extern "C" {
-    MDirection* newDirection(Quantity* longitude, Quantity* latitude, int ref) {
+    MDirection* newDirection(int ref, Quantity* longitude, Quantity* latitude) {
         return new MDirection(*longitude, *latitude, MDirection::Ref(ref));
     }
 
-    MDirection* newDirectionXYZ(double x, double y, double z, int ref) {
+    MDirection* newDirectionXYZ(int ref, double x, double y, double z) {
         return new MDirection(MVDirection(x,y,z), MDirection::Ref(ref));
     }
 
     void deleteDirection(MDirection* direction) {
         delete direction;
+    }
+
+    double getDirectionLength(MDirection* direction, Unit* unit) {
+        return 1.0;
     }
 
     double getDirectionLongitude(MDirection* direction, Unit* unit) {
@@ -45,10 +48,6 @@ extern "C" {
         *x = vec(0);
         *y = vec(1);
         *z = vec(2);
-    }
-
-    MDirection* convertDirection(MDirection* direction, int newref, MeasFrame* frame) {
-        return new MDirection(MDirection::Convert(*direction,MDirection::Ref(newref,*frame))());
     }
 }
 

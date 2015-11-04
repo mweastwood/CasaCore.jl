@@ -14,9 +14,6 @@ tables.o: tables.cpp
 quanta.o: quanta.cpp
 	$(CXX) $(CXXFLAGS) quanta.cpp -I$(CASACORE)
 
-frame.o: frame.cpp
-	$(CXX) $(CXXFLAGS) frame.cpp -I$(CASACORE)
-
 epoch.o: epoch.cpp
 	$(CXX) $(CXXFLAGS) epoch.cpp -I$(CASACORE)
 
@@ -29,8 +26,11 @@ position.o: position.cpp
 baseline.o: baseline.cpp
 	$(CXX) $(CXXFLAGS) baseline.cpp -I$(CASACORE)
 
-libcasacorewrapper.so: containers.o tables.o quanta.o frame.o epoch.o direction.o position.o baseline.o
-	$(CXX) -shared -o libcasacorewrapper.so containers.o tables.o quanta.o frame.o epoch.o direction.o position.o baseline.o -lcasa_tables -lcasa_measures
+conversions.o: conversions.cpp
+	$(CXX) $(CXXFLAGS) conversions.cpp -I$(CASACORE)
+
+libcasacorewrapper.so: containers.o tables.o quanta.o conversions.o epoch.o direction.o position.o baseline.o
+	$(CXX) -shared -o libcasacorewrapper.so containers.o tables.o quanta.o conversions.o epoch.o direction.o position.o baseline.o -lcasa_tables -lcasa_measures
 
 clean:
 	-rm *.o

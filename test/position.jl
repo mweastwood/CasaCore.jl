@@ -1,6 +1,6 @@
 let
-    @test pos"WGS84" === Measures.Types_of_Positions.WGS84
-    @test pos"ITRF" === Measures.Types_of_Positions.ITRF
+    @test pos"WGS84" === Measures.Positions.WGS84
+    @test pos"ITRF" === Measures.Positions.ITRF
 end
 
 let
@@ -10,8 +10,8 @@ let
     x = -2.4091659216088112e6
     y = -4.477883063543822e6
     z = 3.8393872424225896e6
-    pos = Measures.from_xyz_in_meters(pos"ITRF",x,y,z)
-    ξ,η,ζ = Measures.xyz_in_meters(pos)
+    pos = Position(pos"ITRF",x,y,z)
+    ξ,η,ζ = vector(pos)
     @test coordinate_system(pos) === pos"ITRF"
     @test x == ξ
     @test y == η
@@ -28,5 +28,13 @@ let
 
     pos = Position(pos"ITRF",q"1.0m",q"0.0deg",q"0.0deg")
     @test repr(pos) == "(1.0 m, 0.0 deg, 0.0 deg)"
+end
+
+let
+    # make sure observatory(name) is checking the coordinate system
+    alma = observatory("ALMA")
+    vla  = observatory("VLA")
+    @test coordinate_system(alma) === pos"WGS84"
+    @test coordinate_system(vla) === pos"ITRF"
 end
 

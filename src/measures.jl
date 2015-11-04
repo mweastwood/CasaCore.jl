@@ -154,8 +154,125 @@ function sexagesimal(str)
     sign*degrees
 end
 
-abstract Measure
-length{M<:Measure}(measure::M,str::ASCIIString) = length(measure,Unit(str))
-longitude{M<:Measure}(measure::M,str::ASCIIString) = longitude(measure,Unit(str))
-latitude{M<:Measure}(measure::M,str::ASCIIString) = latitude(measure,Unit(str))
+abstract Measure{sys}
+pointer(measure::Measure) = measure.ptr
+coordinate_system{sys}(::Measure{sys}) = sys
+
+"""
+    @measure(T,N)
+
+This macro defines the type, constructor, and finalizer for `Epoch`, `Direction`,
+`Position`, and `Baseline`.
+"""
+macro measure(T,N)
+    if isa(T,Expr)
+        T = T.args[1]
+    end
+
+    Ts     = symbol(T,"s")
+    new    = string("new",T)
+    delete = string("delete",T)
+
+    type_definition = quote
+        type $T{sys} <: Measure{sys}
+            ptr::Ptr{Void}
+        end
+    end
+
+    # the constructor needs to accept a variable number of arguments and
+    # pass them all to a ccall, so we need to build it by hand
+    constructor_definition = quote
+        function $T(sys::$Ts.System)
+            measure = ccall(($new,libcasacorewrapper), Ptr{Void}, (Cint,), sys) |> $T{sys}
+            finalizer(measure, delete)
+            measure
+        end
+    end
+    header = constructor_definition.args[2].args[1]
+    body   = constructor_definition.args[2].args[2]
+    ccall_ = body.args[2].args[2].args[2]
+    ccall_.head == :ccall || error("Couldn't find the ccall.")
+    for n = 1:N
+        name = symbol("q",n)
+        push!(header.args, :($name::Quantity))
+        push!(ccall_.args, :(pointer($name)))
+        push!(ccall_.args[3].args, :(Ptr{Void}))
+    end
+
+    finalizer_definition = quote
+        function delete(measure::$T)
+            ccall(($delete,libcasacorewrapper), Void, (Ptr{Void},), pointer(measure))
+        end
+    end
+
+    esc(quote
+        $type_definition
+        $constructor_definition
+        $finalizer_definition
+    end)
+end
+
+doc"""
+    @add_vector_like_methods(T)
+
+This macro defines `length`, `longitude`, `latitude`, and `vector`
+for vector-like measures (that is `Direction`, `Position`, and `Baseline`).
+
+It also defines an additional constructor that takes the Cartesian vector
+$(x,y,z)$ (in units of meters) to construct the measure.
+"""
+macro add_vector_like_methods(T)
+    if isa(T,Expr)
+        T = T.args[1]
+    end
+
+    Ts           = symbol(T,"s")
+    newXYZ       = string("new",T,"XYZ")
+    getLength    = string("get",T,"Length")
+    getLongitude = string("get",T,"Longitude")
+    getLatitude  = string("get",T,"Latitude")
+    getXYZ       = string("get",T,"XYZ")
+
+    constructor_definition = quote
+        function $T(sys::$Ts.System, x::Float64, y::Float64, z::Float64)
+            measure = ccall(($newXYZ,libcasacorewrapper), Ptr{Void},
+                            (Cint,Cdouble,Cdouble,Cdouble), sys, x, y, z) |> $T{sys}
+            finalizer(measure, delete)
+            measure
+        end
+    end
+
+    accessors_definition = quote
+        function length(measure::$T, unit::Unit = Unit("m"))
+            ccall(($getLength,libcasacorewrapper), Cdouble,
+                  (Ptr{Void},Ptr{Void}), pointer(measure), pointer(unit))
+        end
+        function longitude(measure::$T, unit::Unit = Unit("rad"))
+            ccall(($getLongitude,libcasacorewrapper), Cdouble,
+                  (Ptr{Void},Ptr{Void}), pointer(measure), pointer(unit))
+        end
+        function latitude(measure::$T, unit::Unit = Unit("rad"))
+            ccall(($getLatitude,libcasacorewrapper), Cdouble,
+                  (Ptr{Void},Ptr{Void}), pointer(measure), pointer(unit))
+        end
+        function vector(measure::$T)
+            x = Ref{Cdouble}(0)
+            y = Ref{Cdouble}(0)
+            z = Ref{Cdouble}(0)
+            ccall(($getXYZ,libcasacorewrapper), Void,
+                  (Ptr{Void},Ref{Cdouble},Ref{Cdouble},Ref{Cdouble}),
+                  pointer(measure), x, y, z)
+            x[],y[],z[]
+        end
+    end
+
+    esc(quote
+        $constructor_definition
+        $accessors_definition
+    end)
+end
+
+length(measure::Measure,str::ASCIIString) = length(measure,Unit(str))
+longitude(measure::Measure,str::ASCIIString) = longitude(measure,Unit(str))
+latitude(measure::Measure,str::ASCIIString) = latitude(measure,Unit(str))
 

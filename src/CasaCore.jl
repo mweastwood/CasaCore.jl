@@ -37,7 +37,7 @@ module Measures
 
     export ReferenceFrame, set!
     export Epoch, Direction, Position, Baseline
-    export days, seconds, length, longitude, latitude
+    export days, seconds, length, longitude, latitude, vector
     export coordinate_system
     export @epoch_str, @dir_str, @pos_str, @baseline_str
     export measure
@@ -47,11 +47,11 @@ module Measures
 
     include("common.jl")
     include("measures.jl")
-    include("frame.jl")
     include("epoch.jl")
     include("direction.jl")
     include("position.jl")
     include("baseline.jl")
+    include("conversions.jl")
 end
 
 end

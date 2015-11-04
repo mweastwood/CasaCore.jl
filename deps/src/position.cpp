@@ -15,17 +15,16 @@
 
 #include <measures/Measures.h>
 #include <measures/Measures/MPosition.h>
-#include <measures/Measures/MCPosition.h>
 #include <measures/Measures/MeasTable.h>
 
 using namespace casa;
 
 extern "C" {
-    MPosition* newPosition(Quantity* length, Quantity* longitude, Quantity* latitude, int ref) {
+    MPosition* newPosition(int ref, Quantity* length, Quantity* longitude, Quantity* latitude) {
         return new MPosition(*length, *longitude, *latitude, MPosition::Ref(ref));
     }
 
-    MPosition* newPositionXYZ(double x, double y, double z, int ref) {
+    MPosition* newPositionXYZ(int ref, double x, double y, double z) {
         return new MPosition(MVPosition(x,y,z), MPosition::Ref(ref));
     }
 
@@ -52,12 +51,14 @@ extern "C" {
         *z = vec(2);
     }
 
-    MPosition* convertPosition(MPosition* position, int newref, MeasFrame* frame) {
-        return new MPosition(MPosition::Convert(*position,MPosition::Ref(newref,*frame))());
-    }
-
-    bool observatory(MPosition* position, char* name) {
-        return MeasTable::Observatory(*position,name);
+    bool observatory(Quantity* length, Quantity* longitude, Quantity* latitude, int* ref, char* name) {
+        MPosition position(*length, *longitude, *latitude, MPosition::Ref(*ref));
+        bool found = MeasTable::Observatory(position, name);
+        *length = position.getValue().getLength(length->getUnit());
+        *longitude = position.getValue().getLong(longitude->getUnit());
+        *latitude  = position.getValue().getLat(latitude->getUnit());
+        *ref = position.getRef().getType();
+        return found;
     }
 }
 
