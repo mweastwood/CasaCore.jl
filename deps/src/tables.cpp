@@ -104,9 +104,19 @@ extern "C" {
     void putKeyword_float(  TableProxy* t, char* column, char* keyword,  float value) {return putKeyword<Float>(t,column,keyword,value);}
     void putKeyword_double( TableProxy* t, char* column, char* keyword, double value) {return putKeyword<Double>(t,column,keyword,value);}
 
-    char const* getKeyword_string(TableProxy* t, char* column, char* keyword) {
-        return getKeyword<String>(t,column,keyword).c_str();
+    int getKeyword_string_length(TableProxy* t, char* column, char* keyword) {
+        return getKeyword<String>(t,column,keyword).length();
     }
+
+    void getKeyword_string(TableProxy* t, char* column, char* keyword, char* output) {
+        String str = getKeyword<String>(t,column,keyword);
+        int N = str.length();
+        for (int i = 0; i < N; ++i) {
+            output[i] = str[i];
+        }
+    }
+
+    void done_with_keyword_string(char* string) {delete[] string;}
 
     void putKeyword_string(TableProxy* t, char* column, char* keyword, char* keywordvalue) {
         putKeyword<String>(t,column,keyword,keywordvalue);
