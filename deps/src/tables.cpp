@@ -116,8 +116,6 @@ extern "C" {
         }
     }
 
-    void done_with_keyword_string(char* string) {delete[] string;}
-
     void putKeyword_string(TableProxy* t, char* column, char* keyword, char* keywordvalue) {
         putKeyword<String>(t,column,keyword,keywordvalue);
     }
