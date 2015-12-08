@@ -167,10 +167,15 @@ for T in (Bool,Int32,Float32,Float64)
 end
 
 function getKeyword(table::Table,kw::ASCIIString,::Type{ASCIIString})
-    output = ccall(("getKeyword_string",libcasacorewrapper),
-                   Ptr{Cchar},(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
-                   table.ptr,pointer(""),pointer(kw))
-    bytestring(output)::ASCIIString
+    N = ccall(("getKeyword_string_length",libcasacorewrapper),
+              Int,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
+              table.ptr,pointer(""),pointer(kw))
+    output = Array(Cchar,N)
+    ccall(("getKeyword_string",libcasacorewrapper),
+          Ptr{Cchar},(Ptr{Void},Ptr{Cchar},Ptr{Cchar},Ptr{Cchar}),
+          table.ptr,pointer(""),pointer(kw),pointer(output))
+    chars = [Char(x) for x in output]
+    ascii(chars)
 end
 
 function putKeyword!(table::Table,kw::ASCIIString,value::ASCIIString)
@@ -194,10 +199,15 @@ end
 # Deal with special cases (strings)
 
 function getColumnKeyword(table::Table,column::ASCIIString,kw::ASCIIString,::Type{ASCIIString})
-    output = ccall(("getKeyword_string",libcasacorewrapper),
-                   Ptr{Cchar},(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
-                   table.ptr,pointer(column),pointer(kw))
-    bytestring(output)::ASCIIString
+    N = ccall(("getKeyword_string_length",libcasacorewrapper),
+              Int,(Ptr{Void},Ptr{Cchar},Ptr{Cchar}),
+              table.ptr,pointer(column),pointer(kw))
+    output = Array(Cchar,N)
+    ccall(("getKeyword_string",libcasacorewrapper),
+          Ptr{Cchar},(Ptr{Void},Ptr{Cchar},Ptr{Cchar},Ptr{Cchar}),
+          table.ptr,pointer(column),pointer(kw),pointer(output))
+    chars = [Char(x) for x in output]
+    ascii(chars)
 end
 
 function getColumnKeyword(table::Table,column::ASCIIString,kw::ASCIIString,::Type{Vector{ASCIIString}})
