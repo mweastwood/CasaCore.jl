@@ -1,9 +1,7 @@
-let
+@testset "Baseline Tests" begin
     @test baseline"ITRF" === Measures.Baselines.ITRF
     @test baseline"J2000" === Measures.Baselines.J2000
-end
 
-let
     frame = ReferenceFrame()
     position = observatory("OVRO_MMA")
     time = Epoch(epoch"UTC",Quantity(50237.29,"d"))

@@ -1,9 +1,7 @@
-let
+@testset "Direction Tests" begin
     @test dir"J2000" === Measures.Directions.J2000
     @test dir"AZEL" === Measures.Directions.AZEL
-end
 
-let
     frame = ReferenceFrame()
     position = observatory("OVRO_MMA")
     time = Epoch(epoch"UTC",Quantity(50237.29,"d"))

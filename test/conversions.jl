@@ -1,8 +1,8 @@
-# test that the vectorized and non-vectorized forms of `measure`
-# give the same answer
-let N = 256
+@testset "Coordinate Conversion Tests" begin
+    # test that the vectorized and non-vectorized forms of `measure`
+    # give the same answer
+    N = 256
     frame = ReferenceFrame()
-
     utc = epoch"UTC"
     dates = Epoch{utc}[Epoch(utc,Quantity(50237.29+randn(),"d")) for n = 1:N]
     tai1 = [measure(frame,date,epoch"TAI") for date in dates]

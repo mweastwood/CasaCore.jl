@@ -1,9 +1,7 @@
-let
+@testset "Epoch Tests" begin
     @test epoch"UTC" === Measures.Epochs.UTC
     @test epoch"LAST" === Measures.Epochs.LAST
-end
 
-let
     frame = ReferenceFrame()
 
     date = 50237.29

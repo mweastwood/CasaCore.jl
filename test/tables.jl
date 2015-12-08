@@ -1,4 +1,4 @@
-let
+@testset "Table Tests" begin
     name  = tempname()*".ms"
     table = Table(name)
 

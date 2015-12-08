@@ -1,9 +1,7 @@
-let
+@testset "Position Tests" begin
     @test pos"WGS84" === Measures.Positions.WGS84
     @test pos"ITRF" === Measures.Positions.ITRF
-end
 
-let
     frame = ReferenceFrame()
 
     # position of an OVRO LWA antenna
@@ -28,9 +26,7 @@ let
 
     pos = Position(pos"ITRF",q"1.0m",q"0.0deg",q"0.0deg")
     @test repr(pos) == "(1.0 m, 0.0 deg, 0.0 deg)"
-end
 
-let
     # make sure observatory(name) is checking the coordinate system
     alma = observatory("ALMA")
     vla  = observatory("VLA")
