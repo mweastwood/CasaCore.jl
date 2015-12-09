@@ -25,34 +25,13 @@ module Tables
     export Keyword
     export @kw_str
 
-    import Base: size, iswritable, isreadable, lock, unlock, getindex, setindex!
+    importall Base.Operators
 
     include("common.jl")
     include("tables.jl")
 end
 
-module Measures
-    export Quantity, Unit
-    export @q_str
-
-    export ReferenceFrame, set!
-    export Epoch, Direction, Position, Baseline
-    export days, seconds, length, longitude, latitude, vector
-    export coordinate_system
-    export @epoch_str, @dir_str, @pos_str, @baseline_str
-    export measure
-    export observatory
-
-    import Base: pointer, length, show, get
-
-    include("common.jl")
-    include("measures.jl")
-    include("epoch.jl")
-    include("direction.jl")
-    include("position.jl")
-    include("baseline.jl")
-    include("conversions.jl")
-end
+include("measures.jl")
 
 end
 

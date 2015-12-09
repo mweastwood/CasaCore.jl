@@ -91,7 +91,7 @@ Returns the number of columns in the given table.
 Returns the number of keywords associated with the given table.
 """ numkeywords
 
-size(table::Table) = (numrows(table),numcolumns(table))
+Base.size(table::Table) = (numrows(table),numcolumns(table))
 
 """
     lock(table::Table; writelock = true, attempts = 5)
@@ -99,7 +99,7 @@ size(table::Table) = (numrows(table),numcolumns(table))
 Attempt to get a lock on the given table. Errors if a lock is not
 obtained after the given number of attempts.
 """
-function lock(table::Table;writelock::Bool=true,attempts::Int=5)
+function Base.lock(table::Table;writelock::Bool=true,attempts::Int=5)
     success = ccall(("lock",libcasacorewrapper),Bool,
                     (Ptr{Void},Bool,Cint),
                     table.ptr,writelock,attempts)
@@ -114,7 +114,7 @@ end
 
 Clear any locks obtained on the given table.
 """
-function unlock(table::Table)
+function Base.unlock(table::Table)
     ccall(("unlock",libcasacorewrapper),Void,(Ptr{Void},),table.ptr)
 end
 

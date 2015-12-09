@@ -13,111 +13,288 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-    type Unit
+module Measures
 
-This type represents a unit of measure (eg. a second, a meter,
-or a degree).
+export Epoch, Direction, Position, Baseline
+export @epoch_str, @dir_str, @pos_str, @baseline_str
 
-Note that this type should not be used for unit-checked computation
-within Julia. Rather it should be used exclusively for interacting
-with CasaCore.
+export ReferenceFrame
+export set!, measure
+
+export observatory, sexagesimal
+
+const libcasacorewrapper = joinpath(dirname(@__FILE__),"../deps/libcasacorewrapper.so")
+isfile(libcasacorewrapper) || error("Run Pkg.build(\"CasaCore\")")
+
+module Epochs
+    @enum(System, LAST, LMST, GMST1, GAST, UT1, UT2, UTC, TAI, TDT, TCG, TDB, TCB)
+    const IAT = TAI
+    const GMST = GMST1
+    const TT = TDT
+    const UT = UT1
+    const ET = TT
+end
+
+module Directions
+    @enum(System,
+          J2000, JMEAN, JTRUE, APP, B1950, B1950_VLA, BMEAN, BTRUE,
+          GALACTIC, HADEC, AZEL, AZELSW, AZELGEO, AZELSWGEO, JNAT,
+          ECLIPTIC, MECLIPTIC, TECLIPTIC, SUPERGAL, ITRF, TOPO, ICRS,
+          MERCURY=32, VENUS, MARS, JUPITER, SATURN, URANUS, NEPTUNE,
+          PLUTO, SUN, MOON)
+end
+
+module Positions
+    @enum(System, ITRF, WGS84)
+end
+
+module Baselines
+    @enum(System,
+          J2000, JMEAN, JTRUE, APP, B1950, B1950_VLA, BMEAN, BTRUE,
+          GALACTIC, HADEC, AZEL, AZELSW, AZELGEO, AZELSWGEO, JNAT,
+          ECLIPTIC, MECLIPTIC, TECLIPTIC, SUPERGAL, ITRF, TOPO, ICRS)
+    const AZELNE = AZEL
+    const AZELNEGEO = AZELGEO
+end
+
+macro wrap(expr)
+    jl_name  = expr.args[2].args[1]
+    jl_names = symbol(jl_name, "s")
+    cxx_name = symbol(jl_name, "_cxx")
+    cxx_delete  = string("delete", jl_name)  # delete the corresponding C++ object
+    cxx_new     = string("new", jl_name)     # create a new corresponding C++ object
+    cxx_get     = string("get", jl_name)     # bring the C++ object back to Julia
+    cxx_set     = string("set", jl_name)     # attach the measure to a frame of reference
+    cxx_convert = string("convert", jl_name) # convert the measure to a new coordinate system
+
+    quote
+        Base.@__doc__ $expr # the original expression
+        type $cxx_name
+            ptr :: Ptr{Void}
+        end
+        Base.unsafe_convert(::Type{Ptr{Void}}, x::$cxx_name) = x.ptr
+        Base.unsafe_convert(::Type{Ptr{Void}}, x::$jl_name) = Base.unsafe_convert(Ptr{Void}, x |> to_cxx)
+        delete(x::$cxx_name) = ccall(($cxx_delete,libcasacorewrapper), Void, (Ptr{Void},), x)
+        function to_cxx(x::$jl_name)
+            y = ccall(($cxx_new,libcasacorewrapper), Ptr{Void}, ($jl_name,), x) |> $cxx_name
+            finalizer(y, delete)
+            y
+        end
+        to_julia(x::$cxx_name) = ccall(($cxx_get,libcasacorewrapper), $jl_name, (Ptr{Void},), x)
+        function set!(frame::ReferenceFrame, x::$jl_name)
+            ccall(($cxx_set,libcasacorewrapper), Void, (Ptr{Void}, Ptr{Void}), frame, x)
+        end
+        function measure(frame::ReferenceFrame, x::$jl_name, newsys::$jl_names.System)
+            ccall(($cxx_convert,libcasacorewrapper), Ptr{Void},
+                  (Ptr{Void}, Ptr{Void}, Cint), frame, x, newsys) |> $cxx_name |> to_julia
+        end
+    end |> esc
+end
+
+macro wrap_pointer(name)
+    cxx_delete = string("delete", name)
+    cxx_new    = string("new", name)
+    quote
+        type $name
+            ptr :: Ptr{Void}
+        end
+        Base.unsafe_convert(::Type{Ptr{Void}}, x::$name) = x.ptr
+        delete(x::$name) = ccall(($cxx_delete,libcasacorewrapper), Void, (Ptr{Void},), x)
+        function $name()
+            y = ccall(($cxx_new,libcasacorewrapper), Ptr{Void}, ()) |> $name
+            finalizer(y, delete)
+            y
+        end
+    end |> esc
+end
+
+@wrap_pointer ReferenceFrame
+abstract Measure
+
 """
-type Unit
-    ptr::Ptr{Void}
+    immutable Epoch <: Measure
+
+This type represents an instance in time.
+"""
+@wrap immutable Epoch <: Measure
+    sys  :: Epochs.System
+    time :: Float64 # measured in seconds
 end
 
 """
-    Unit(str::ASCIIString)
+    immutable Direction <: Measure
 
-Construct a unit from its string representation.
+This type represents a location on the sky.
+"""
+@wrap immutable Direction <: Measure
+    sys :: Directions.System
+    x :: Float64 # measured in meters
+    y :: Float64 # measured in meters
+    z :: Float64 # measured in meters
+end
+
+"""
+    immutable Position <: Measure
+
+This type represents a location on the surface of the Earth.
+"""
+@wrap immutable Position <: Measure
+    sys :: Positions.System
+    x :: Float64 # measured in meters
+    y :: Float64 # measured in meters
+    z :: Float64 # measured in meters
+end
+
+"""
+    immutable Baseline <: Measure
+
+This type represents the location of one antenna relative to another antenna.
+"""
+@wrap immutable Baseline <: Measure
+    sys :: Baselines.System
+    x :: Float64 # measured in meters
+    y :: Float64 # measured in meters
+    z :: Float64 # measured in meters
+end
+
+"""
+    Epoch(sys, time, unit)
+
+Instantiate an epoch in the given coordinate system.
+
+Note that the time should be a modified Julian date.
 
 **Examples:**
 
-    Unit("s") # a second
-    Unit("d") # a day
-    Unit("m") # a meter
-    Unit("rad") # a radian
-    Unit("deg") # a degree
+    Epoch(epoch"UTC",     0.0, "d") # 1858-11-17T00:00:00
+    Epoch(epoch"UTC", 57365.5, "d") # 2015-12-09T12:00:00
 """
-function Unit(str::ASCIIString)
-    unit = ccall(("newUnit",libcasacorewrapper), Ptr{Void},
-                 (Ptr{Cchar},), pointer(str)) |> Unit
-    finalizer(unit,delete)
-    unit
-end
-
-function delete(unit::Unit)
-    ccall(("deleteUnit",libcasacorewrapper), Void,
-          (Ptr{Void},), pointer(unit))
-end
-
-pointer(unit::Unit) = unit.ptr
-
-"""
-    type Quantity
-
-This type represents a number with its associated unit
-(eg. 3 seconds, 5 degrees, or 12.6 meters).
-
-Note that this type should not be used for unit-checked computation
-within Julia. Rather it should be used exclusively for interacting
-with CasaCore.
-"""
-type Quantity
-    ptr::Ptr{Void}
+function Epoch(sys::Epochs.System, time::Float64, unit::ASCIIString)
+    ccall(("newEpoch_with_units",libcasacorewrapper), Ptr{Void},
+          (Cint, Float64, Cstring), sys, time, unit) |> Epoch_cxx |> to_julia
 end
 
 """
-    Quantity(val::Float64, unit::Unit)
+    Direction(sys, longitude, latitude)
 
-Construct a quantity from its value and associated unit.
+Instantiate a direction in the given coordinate system.
+
+Note that the longitude and latitude should be given as sexagesimal strings.
+
+**Examples:**
+
+    Direction(dir"AZEL", "0d", "90d") # topocentric zenith
+    Direction(dir"J2000", "12h00m", "43d21m")
 """
-function Quantity(val::Float64,unit::Unit)
-    quantity = ccall(("newQuantity",libcasacorewrapper), Ptr{Void},
-                     (Cdouble,Ptr{Void},),val,  pointer(unit)) |> Quantity
-    finalizer(quantity,delete)
-    quantity
+function Direction(sys::Directions.System, longitude::ASCIIString, latitude::ASCIIString)
+    long = sexagesimal(longitude)
+    lat  = sexagesimal(latitude)
+    ccall(("newDirection_longlat",libcasacorewrapper), Ptr{Void},
+          (Cint, Float64, Float64), sys, long, lat) |> Direction_cxx |> to_julia
 end
 
-Quantity(val::Float64,str::ASCIIString) = Quantity(val,Unit(str))
+"""
+    Direction(sys)
+
+Instantiate a direction with the given coordinate system. The longitude
+and latitude are set to zero.
+
+This constructor should be used for solar system objects.
+
+** Examples:**
+
+    Direction(dir"SUN")     # the direction towards the Sun
+    Direction(dir"JUPITER") # the direction towards Jupiter
+"""
+function Direction(sys::Directions.System)
+    Direction(sys, 1.0, 0.0, 0.0)
+end
 
 """
-    Quantity(unit::Unit)
+    Position(sys, elevation, longitude, latitude)
 
-Construct a quantity where the value is set to zero.
+Instantiate a position in the given coordinate system.
+
+Note that depending on the coordinate system the elevation
+may be measured relative to the center or the surface of the Earth.
+In both cases it should be specified in meters.
+
+The longitude and latitude should be given as sexagesimal strings.
+
+**Examples:**
+
 """
-Quantity(unit::Unit) = Quantity(Float64(0.0),unit)
+function Position(sys::Positions.System, elevation::Float64, longitude::ASCIIString, latitude::ASCIIString)
+    long = sexagesimal(longitude)
+    lat  = sexagesimal(latitude)
+    ccall(("newPosition_elevationlonglat",libcasacorewrapper), Ptr{Void},
+          (Cint, Float64, Float64, Float64), sys, elevation, long, lat) |> Position_cxx |> to_julia
+end
 
-macro q_str(str)
-    try
-        deg = sexagesimal(str)
-        return Quantity(deg,Unit("deg"))
-    catch
-        regex = r"(\d*\.?\d+)\s*(.+)"
-        m = match(regex,str)
-        value = float(m.captures[1])
-        unit  = ascii(m.captures[2])
-        return Quantity(value,unit)
+function Base.show(io::IO, epoch::Epoch)
+    julian_date = 2400000.5 + epoch.time/(24*60*60)
+    print(io, Dates.julian2datetime(julian_date))
+end
+
+function Base.show(io::IO, direction::Direction)
+    long_str = @sprintf("%.5f°, ", longitude(direction))
+    lat_str =  @sprintf("%.5f°",    latitude(direction))
+    print(io, long_str, lat_str)
+end
+
+function Base.show(io::IO, position::Position)
+    rad = radius(position)
+    if rad > 1e5
+        rad_str = @sprintf("%.3f kilometers, ", rad/1e3)
+    else
+        rad_str = @sprintf("%.3f meters, ", rad)
     end
+    long_str = @sprintf("%.5f°, ", longitude(position))
+    lat_str =  @sprintf("%.5f°",    latitude(position))
+    print(io, rad_str, long_str, lat_str)
 end
 
-function delete(quantity::Quantity)
-    ccall(("deleteQuantity",libcasacorewrapper), Void,
-          (Ptr{Void},), pointer(quantity))
+function Base.show(io::IO, baseline::Baseline)
+    str = @sprintf("%.3f meters, %.3f meters, %.3f meters", baseline.x, baseline.y, baseline.z)
+    print(io, str)
 end
 
-pointer(quantity::Quantity) = quantity.ptr
-
-function get(quantity::Quantity, unit::Unit)
-    ccall(("getQuantity",libcasacorewrapper), Cdouble,
-          (Ptr{Void},Ptr{Void}), pointer(quantity), pointer(unit))
+macro epoch_str(sys)
+    eval(current_module(),:(Measures.Epochs.$(symbol(sys))))
 end
 
-get(quantity::Quantity,str::ASCIIString) = get(quantity,Unit(str))
+macro dir_str(sys)
+    eval(current_module(),:(Measures.Directions.$(symbol(sys))))
+end
+
+macro pos_str(sys)
+    eval(current_module(),:(Measures.Positions.$(symbol(sys))))
+end
+
+macro baseline_str(sys)
+    eval(current_module(),:(Measures.Baselines.$(symbol(sys))))
+end
 
 """
-    sexagesimal(str) -> degrees
+    observatory(name::ASCIIString)
+
+Get the position of an observatory from its name.
+
+**Examples:**
+
+    observatory("VLA")  # the Very Large Array
+    observatory("ALMA") # the Atacama Large Millimeter/submillimeter Array
+"""
+function observatory(name::ASCIIString)
+    position = Position(pos"ITRF", 0.0, 0.0, 0.0) |> Ref{Position}
+    status = ccall(("observatory",libcasacorewrapper), Bool,
+                   (Ref{Position}, Cstring), position, name)
+    !status && error("Unknown observatory.")
+    position[]
+end
+
+"""
+    sexagesimal(str) -> radians
 
 Parse angles given in sexagesimal format.
 
@@ -129,7 +306,7 @@ hours and degrees.
     sexagesimal("12h34m56.7s")
     sexagesimal("+12d34m56.7s")
 """
-function sexagesimal(str)
+function sexagesimal(str::ASCIIString)
     # Explanation of the regular expression:
     # (\+|-)?       Capture a + or - sign if it is provided
     # (\d*\.?\d+)   Capture a decimal number (required)
@@ -151,128 +328,24 @@ function sexagesimal(str)
     minutes += seconds/60
     degrees_or_hours += minutes/60
     degrees = isdegrees? degrees_or_hours : 15degrees_or_hours
-    sign*degrees
+    sign*degrees |> deg2rad
 end
 
-abstract Measure{sys}
-pointer(measure::Measure) = measure.ptr
-coordinate_system{sys}(::Measure{sys}) = sys
+radius(measure) = hypot(hypot(measure.x, measure.y), measure.z)
+longitude(measure) = atan2(measure.y, measure.x) |> rad2deg
+latitude(measure)  = atan2(measure.z, hypot(measure.x, measure.y)) |> rad2deg
 
-"""
-    @measure(T,N)
-
-This macro defines the type, constructor, and finalizer for `Epoch`, `Direction`,
-`Position`, and `Baseline`.
-"""
-macro measure(T,N)
-    if isa(T,Expr)
-        T = T.args[1]
-    end
-
-    Ts     = symbol(T,"s")
-    new    = string("new",T)
-    delete = string("delete",T)
-
-    type_definition = quote
-        type $T{sys} <: Measure{sys}
-            ptr::Ptr{Void}
-        end
-    end
-
-    # the constructor needs to accept a variable number of arguments and
-    # pass them all to a ccall, so we need to build it by hand
-    constructor_definition = quote
-        function $T(sys::$Ts.System)
-            measure = ccall(($new,libcasacorewrapper), Ptr{Void}, (Cint,), sys) |> $T{sys}
-            finalizer(measure, delete)
-            measure
-        end
-    end
-    header = constructor_definition.args[2].args[1]
-    body   = constructor_definition.args[2].args[2]
-    ccall_ = body.args[2].args[2].args[2]
-    ccall_.head == :ccall || error("Couldn't find the ccall.")
-    for n = 1:N
-        name = symbol("q",n)
-        push!(header.args, :($name::Quantity))
-        push!(ccall_.args, :(pointer($name)))
-        push!(ccall_.args[3].args, :(Ptr{Void}))
-    end
-
-    finalizer_definition = quote
-        function delete(measure::$T)
-            ccall(($delete,libcasacorewrapper), Void, (Ptr{Void},), pointer(measure))
-        end
-    end
-
-    esc(quote
-        $type_definition
-        $constructor_definition
-        $finalizer_definition
-    end)
+function Base.≈(lhs::Epoch, rhs::Epoch)
+    lhs.sys === rhs.sys || error("Coordinate systems must match.")
+    lhs.time ≈ rhs.time
 end
 
-doc"""
-    @add_vector_like_methods(T)
-
-This macro defines `length`, `longitude`, `latitude`, and `vector`
-for vector-like measures (that is `Direction`, `Position`, and `Baseline`).
-
-It also defines an additional constructor that takes the Cartesian vector
-$(x,y,z)$ (in units of meters) to construct the measure.
-"""
-macro add_vector_like_methods(T)
-    if isa(T,Expr)
-        T = T.args[1]
-    end
-
-    Ts           = symbol(T,"s")
-    newXYZ       = string("new",T,"XYZ")
-    getLength    = string("get",T,"Length")
-    getLongitude = string("get",T,"Longitude")
-    getLatitude  = string("get",T,"Latitude")
-    getXYZ       = string("get",T,"XYZ")
-
-    constructor_definition = quote
-        function $T(sys::$Ts.System, x::Float64, y::Float64, z::Float64)
-            measure = ccall(($newXYZ,libcasacorewrapper), Ptr{Void},
-                            (Cint,Cdouble,Cdouble,Cdouble), sys, x, y, z) |> $T{sys}
-            finalizer(measure, delete)
-            measure
-        end
-    end
-
-    accessors_definition = quote
-        function length(measure::$T, unit::Unit = Unit("m"))
-            ccall(($getLength,libcasacorewrapper), Cdouble,
-                  (Ptr{Void},Ptr{Void}), pointer(measure), pointer(unit))
-        end
-        function longitude(measure::$T, unit::Unit = Unit("rad"))
-            ccall(($getLongitude,libcasacorewrapper), Cdouble,
-                  (Ptr{Void},Ptr{Void}), pointer(measure), pointer(unit))
-        end
-        function latitude(measure::$T, unit::Unit = Unit("rad"))
-            ccall(($getLatitude,libcasacorewrapper), Cdouble,
-                  (Ptr{Void},Ptr{Void}), pointer(measure), pointer(unit))
-        end
-        function vector(measure::$T)
-            x = Ref{Cdouble}(0)
-            y = Ref{Cdouble}(0)
-            z = Ref{Cdouble}(0)
-            ccall(($getXYZ,libcasacorewrapper), Void,
-                  (Ptr{Void},Ref{Cdouble},Ref{Cdouble},Ref{Cdouble}),
-                  pointer(measure), x, y, z)
-            x[],y[],z[]
-        end
-    end
-
-    esc(quote
-        $constructor_definition
-        $accessors_definition
-    end)
+function Base.≈{T<:Union{Direction,Position,Baseline}}(lhs::T, rhs::T)
+    lhs.sys === rhs.sys || error("Coordinate systems must match.")
+    v1 = [lhs.x, lhs.y, lhs.z]
+    v2 = [rhs.x, rhs.y, rhs.z]
+    v1 ≈ v2
 end
 
-length(measure::Measure,str::ASCIIString) = length(measure,Unit(str))
-longitude(measure::Measure,str::ASCIIString) = longitude(measure,Unit(str))
-latitude(measure::Measure,str::ASCIIString) = latitude(measure,Unit(str))
+end
 
