@@ -100,6 +100,7 @@
     vla  = observatory("VLA")
     @test alma ≈ Position(pos"WGS84", 1.761867423e3, -4.307634996e3, -1.97770831e3)
     @test vla  ≈ Position(pos"ITRF", -1.601185365e6, -5.041977547e6,  3.55487587e6)
+    @test_throws ErrorException observatory("SKA")
 
     frame = ReferenceFrame()
     set!(frame, observatory("OVRO_MMA"))

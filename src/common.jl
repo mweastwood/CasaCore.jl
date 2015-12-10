@@ -13,32 +13,29 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-const libcasacorewrapper = joinpath(dirname(@__FILE__),"../deps/libcasacorewrapper.so")
-isfile(libcasacorewrapper) || error("Run Pkg.build(\"CasaCore\")")
+"""
+Useful code that is shared between CasaCore submodules.
+"""
+module Common
 
-@enum(TypeEnum,
-      TpBool, TpChar, TpUChar, TpShort, TpUShort, TpInt, TpUInt,
-      TpFloat, TpDouble, TpComplex, TpDComplex, TpString, TpTable,
-      TpArrayBool, TpArrayChar, TpArrayUChar, TpArrayShort, TpArrayUShort,
-      TpArrayInt, TpArrayUInt, TpArrayFloat, TpArrayDouble, TpArrayComplex,
-      TpArrayDComplex, TpArrayString, TpRecord, TpOther, TpQuantity,
-      TpArrayQuantity, TpInt64, TpArrayInt64, TpNumberOfTypes)
+export @wrap_pointer
 
-const type2str = ObjectIdDict()
-const str2type = Dict{ASCIIString,Type}()
-const type2enum = ObjectIdDict()
-const enum2type = ObjectIdDict()
+macro wrap_pointer(name)
+    cxx_delete = string("delete", name)
+    cxx_new    = string("new", name)
+    quote
+        Base.@__doc__ type $name
+            ptr :: Ptr{Void}
+        end
+        Base.unsafe_convert(::Type{Ptr{Void}}, x::$name) = x.ptr
+        delete(x::$name) = ccall(($cxx_delete,libcasacorewrapper), Void, (Ptr{Void},), x)
+        function $name()
+            y = ccall(($cxx_new,libcasacorewrapper), Ptr{Void}, ()) |> $name
+            finalizer(y, delete)
+            y
+        end
+    end |> esc
+end
 
-for (T,str,enum) in ((Bool,"boolean",TpBool),
-                     (Int32,"int",TpInt),
-                     (Float32,"float",TpFloat),
-                     (Float64,"double",TpDouble),
-                     (Complex64,"complex",TpComplex),
-                     (ASCIIString,"string",TpString),
-                     (Vector{ASCIIString},"arraystring",TpArrayString))
-    type2str[T] = str
-    str2type[str] = T
-    type2enum[T] = enum
-    enum2type[enum] = T
 end
 

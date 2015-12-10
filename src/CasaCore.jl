@@ -17,20 +17,8 @@ __precompile__()
 
 module CasaCore
 
-module Tables
-    export Table
-    export numrows, numcolumns, numkeywords
-    export lock, unlock
-
-    export Keyword
-    export @kw_str
-
-    importall Base.Operators
-
-    include("common.jl")
-    include("tables.jl")
-end
-
+include("common.jl")
+include("tables.jl")
 include("measures.jl")
 
 end

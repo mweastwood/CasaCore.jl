@@ -23,6 +23,8 @@ export set!, measure
 
 export observatory, sexagesimal
 
+using ..Common
+
 const libcasacorewrapper = joinpath(dirname(@__FILE__),"../deps/libcasacorewrapper.so")
 isfile(libcasacorewrapper) || error("Run Pkg.build(\"CasaCore\")")
 
@@ -87,23 +89,6 @@ macro wrap(expr)
         function measure(frame::ReferenceFrame, x::$jl_name, newsys::$jl_names.System)
             ccall(($cxx_convert,libcasacorewrapper), Ptr{Void},
                   (Ptr{Void}, Ptr{Void}, Cint), frame, x, newsys) |> $cxx_name |> to_julia
-        end
-    end |> esc
-end
-
-macro wrap_pointer(name)
-    cxx_delete = string("delete", name)
-    cxx_new    = string("new", name)
-    quote
-        type $name
-            ptr :: Ptr{Void}
-        end
-        Base.unsafe_convert(::Type{Ptr{Void}}, x::$name) = x.ptr
-        delete(x::$name) = ccall(($cxx_delete,libcasacorewrapper), Void, (Ptr{Void},), x)
-        function $name()
-            y = ccall(($cxx_new,libcasacorewrapper), Ptr{Void}, ()) |> $name
-            finalizer(y, delete)
-            y
         end
     end |> esc
 end
