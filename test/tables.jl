@@ -85,6 +85,7 @@
     table["DATA",1]           = data[:,:,1]
     table["MODEL_DATA",1]     = model[:,:,1]
     table["CORRECTED_DATA",1] = corrected[:,:,1]
+    @test_throws ErrorException table["FABRICATED_DATA",1] = 1
 
     @test table["ANTENNA1",1] == ant1[1]
     @test table["ANTENNA2",1] == ant2[1]
@@ -112,6 +113,10 @@
     @test table[kw"MICHAEL_IS_COOL"] == true
     table[kw"PI"] = 3.14159
     @test table[kw"PI"] == 3.14159
+
+    @test_throws ErrorException table[kw"BOBBY_TABLES"]
+    @test_throws ErrorException table["DATA",kw"SYSTEMATIC_ERRORS"]
+    @test_throws ErrorException table["SKA_DATA",kw"SCHEDULE"]
 
     # Try locking and unlocking the table
     unlock(table)
