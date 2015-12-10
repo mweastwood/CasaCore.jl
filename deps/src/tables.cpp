@@ -27,7 +27,7 @@ using namespace casa;
 template <class T>
 ValueHolder createValueHolder(T* input, int* shape, int ndim) {
     IPosition dimensions(ndim);
-    for (uint i = 0; i < ndim; ++i) {
+    for (int i = 0; i < ndim; ++i) {
         dimensions[i] = shape[i];
     }
     Array<T> arr(dimensions);
@@ -141,7 +141,7 @@ void addScalarColumn(TableProxy* t, char* name) {
 template <class T>
 void addArrayColumn(TableProxy* t, char* name, int* dim, int ndim) {
     IPosition dimensions(ndim);
-    for (uint i = 0; i < ndim; ++i) {
+    for (int i = 0; i < ndim; ++i) {
         dimensions[i] = dim[i];
     }
     ArrayColumnDesc<T> column(name,"",dimensions);
