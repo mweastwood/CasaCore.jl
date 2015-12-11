@@ -62,9 +62,6 @@ extern "C" {
     MEpoch* newEpoch(Epoch epoch) {
         return new MEpoch(Quantity(epoch.time, "s"), MEpoch::Ref(epoch.sys));
     }
-    MEpoch* newEpoch_with_units(int sys, double time, char* unit) {
-        return new MEpoch(Quantity(time, unit), MEpoch::Ref(sys));
-    }
 
     MDirection* newDirection(Direction direction) {
         return new MDirection(MVDirection(direction.x, direction.y, direction.z),

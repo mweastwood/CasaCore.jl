@@ -9,10 +9,11 @@ using CasaCore.Measures
 An `Epoch` represents an instance in time.
 
 ```julia
-epoch = Epoch(epoch"UTC", modified_julian_date, "d")
+epoch = Epoch(epoch"UTC", time * days)
 ```
 
-* The first argument
+* The first argument specifies the coordinate system.
+* The second argument specifies the time as a modified Julian date.
 
 **Recognized Coordinate Systems:**
 `LAST`, `LMST`, `GMST1`, `GAST`, `UT1`, `UT2`, `UTC`,
@@ -83,7 +84,7 @@ Here are a few examples attaching information to a frame of reference:
 ```julia
 frame = ReferenceFrame()
 position = observatory("VLA")
-time = Epoch(epoch"UTC", 50237.29, "d"))
+time = Epoch(epoch"UTC", 50237.29days))
 set!(frame, position)
 set!(frame, time)
 ```

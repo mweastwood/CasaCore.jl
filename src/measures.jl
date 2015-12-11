@@ -21,7 +21,8 @@ export @epoch_str, @dir_str, @pos_str, @baseline_str
 export ReferenceFrame
 export set!, measure
 
-export observatory, sexagesimal
+export radius, longitude, latitude, observatory, sexagesimal
+export seconds, days, degrees, radians, meters
 
 using ..Common
 
@@ -58,6 +59,44 @@ module Baselines
     const AZELNE = AZEL
     const AZELNEGEO = AZELGEO
 end
+
+"""
+This module provides basic support for dispatching on units.
+This is intended *only* for interacting with CasaCore.Measures.
+
+Todo: Replace this with SIUnits once that package gets the
+love and affection it clearly needs.
+"""
+module Units
+    abstract Unit
+    abstract Time <: Unit
+    abstract Angle <: Unit
+    abstract Distance <: Unit
+
+    immutable Second <: Time val :: Float64 end
+    immutable Day    <: Time val :: Float64 end
+    Second(x::Second) = x
+    Second(x::Day) = Second(x.val * 24*60*60)
+    Day(x::Second) = Day(x.val / (24*60*60))
+
+    immutable Degree <: Angle val :: Float64 end
+    immutable Radian <: Angle val :: Float64 end
+    Radian(x::Radian) = x
+    Radian(x::Degree) = Radian(x.val * π/180)
+
+    immutable Meter <: Distance val :: Float64 end
+    Meter(x::Meter) = x
+
+    importall Base.Operators
+    *{T<:Unit}(num::Real, unit::T) = T(num*unit.val)
+    value(unit::Unit) = unit.val
+end
+
+const seconds = Units.Second(1.0)
+const days    = Units.Day(1.0)
+const degrees = Units.Degree(1.0)
+const radians = Units.Radian(1.0)
+const meters  = Units.Meter(1.0)
 
 macro wrap(expr)
     jl_name  = expr.args[2].args[1]
@@ -143,7 +182,7 @@ This type represents the location of one antenna relative to another antenna.
 end
 
 """
-    Epoch(sys, time, unit)
+    Epoch(sys, time)
 
 Instantiate an epoch in the given coordinate system.
 
@@ -151,12 +190,12 @@ Note that the time should be a modified Julian date.
 
 **Examples:**
 
-    Epoch(epoch"UTC",     0.0, "d") # 1858-11-17T00:00:00
-    Epoch(epoch"UTC", 57365.5, "d") # 2015-12-09T12:00:00
+    Epoch(epoch"UTC",     0.0days) # 1858-11-17T00:00:00
+    Epoch(epoch"UTC", 57365.5days) # 2015-12-09T12:00:00
 """
-function Epoch(sys::Epochs.System, time::Float64, unit::ASCIIString)
-    ccall(("newEpoch_with_units",libcasacorewrapper), Ptr{Void},
-          (Cint, Float64, Cstring), sys, time, unit) |> Epoch_cxx |> to_julia
+function Epoch(sys::Epochs.System, time)
+    seconds = Units.Second(time) |> Units.value
+    Epoch(sys, seconds)
 end
 
 """
@@ -168,14 +207,18 @@ Note that the longitude and latitude should be given as sexagesimal strings.
 
 **Examples:**
 
-    Direction(dir"AZEL", "0d", "90d") # topocentric zenith
+    Direction(dir"AZEL", 0degrees, 90degrees) # topocentric zenith
     Direction(dir"J2000", "12h00m", "43d21m")
 """
-function Direction(sys::Directions.System, longitude::ASCIIString, latitude::ASCIIString)
-    long = sexagesimal(longitude)
-    lat  = sexagesimal(latitude)
+function Direction(sys::Directions.System, longitude::Units.Angle, latitude::Units.Angle)
+    long = Units.Radian(longitude) |> Units.value
+    lat  = Units.Radian( latitude) |> Units.value
     ccall(("newDirection_longlat",libcasacorewrapper), Ptr{Void},
           (Cint, Float64, Float64), sys, long, lat) |> Direction_cxx |> to_julia
+end
+
+function Direction(sys::Directions.System, longitude::ASCIIString, latitude::ASCIIString)
+    Direction(sys, sexagesimal(longitude)*radians, sexagesimal(latitude)*radians)
 end
 
 """
@@ -208,12 +251,21 @@ The longitude and latitude should be given as sexagesimal strings.
 
 **Examples:**
 
+    Position(pos"WGS84", 5_000meters, "20d30m00s", "-80d00m00s")
+    Position(pos"WGS84", 5_000meters, 20.5degrees, -80degrees)
 """
-function Position(sys::Positions.System, elevation::Float64, longitude::ASCIIString, latitude::ASCIIString)
-    long = sexagesimal(longitude)
-    lat  = sexagesimal(latitude)
+function Position(sys::Positions.System, elevation::Units.Distance,
+                  longitude::Units.Angle, latitude::Units.Angle)
+    rad  = Units.Meter( elevation) |> Units.value
+    long = Units.Radian(longitude) |> Units.value
+    lat  = Units.Radian( latitude) |> Units.value
     ccall(("newPosition_elevationlonglat",libcasacorewrapper), Ptr{Void},
-          (Cint, Float64, Float64, Float64), sys, elevation, long, lat) |> Position_cxx |> to_julia
+          (Cint, Float64, Float64, Float64), sys, rad, long, lat) |> Position_cxx |> to_julia
+end
+
+function Position(sys::Positions.System, elevation::Units.Distance,
+                  longitude::ASCIIString, latitude::ASCIIString)
+    Position(sys, elevation, sexagesimal(longitude)*radians, sexagesimal(latitude)*radians)
 end
 
 function Base.show(io::IO, epoch::Epoch)
@@ -222,21 +274,21 @@ function Base.show(io::IO, epoch::Epoch)
 end
 
 function Base.show(io::IO, direction::Direction)
-    long_str = @sprintf("%.5f°, ", longitude(direction))
-    lat_str =  @sprintf("%.5f°",    latitude(direction))
-    print(io, long_str, lat_str)
+    long_str = direction |> longitude |> sexagesimal
+    lat_str  = direction |>  latitude |> sexagesimal
+    print(io, long_str, ", ", lat_str)
 end
 
 function Base.show(io::IO, position::Position)
     rad = radius(position)
     if rad > 1e5
-        rad_str = @sprintf("%.3f kilometers, ", rad/1e3)
+        rad_str = @sprintf("%.3f kilometers", rad/1e3)
     else
-        rad_str = @sprintf("%.3f meters, ", rad)
+        rad_str = @sprintf("%.3f meters", rad)
     end
-    long_str = @sprintf("%.5f°, ", longitude(position))
-    lat_str =  @sprintf("%.5f°",    latitude(position))
-    print(io, rad_str, long_str, lat_str)
+    long_str = position |> longitude |> sexagesimal
+    lat_str  = position |>  latitude |> sexagesimal
+    print(io, rad_str, ", ", long_str, ", ", lat_str)
 end
 
 function Base.show(io::IO, baseline::Baseline)
@@ -279,7 +331,7 @@ function observatory(name::ASCIIString)
 end
 
 """
-    sexagesimal(str) -> radians
+    sexagesimal(string)
 
 Parse angles given in sexagesimal format.
 
@@ -316,9 +368,47 @@ function sexagesimal(str::ASCIIString)
     sign*degrees |> deg2rad
 end
 
+"""
+    sexagesimal(angle; hours = false, digits = 0)
+
+Construct a sexagesimal string from the given angle.
+
+* If `hours` is `true`, the constructed string will use hours instead of degrees.
+* `digits` specifies the number of decimal points to use for seconds/arcseconds.
+"""
+function sexagesimal(angle; hours::Bool = false, digits::Int = 0)
+    radians = Units.Radian(angle) |> Units.value
+    s = sign(radians); radians = abs(radians)
+    if hours
+        value = radians * 12/π
+        value = round(value*3600, digits) / 3600
+        q1 = floor(Int, value)
+        s1 = @sprintf("%dh", s*q1)
+    else
+        value = radians * 180/π
+        value = round(value*3600, digits) / 3600
+        q1 = floor(Int, value)
+        s1 = @sprintf("%+03dd", s*q1)
+    end
+    value = (value - q1) * 60
+    q2 = floor(Int, value)
+    s2 = @sprintf("%02dm", q2)
+    value = (value - q2) * 60
+    q3 = round(value, digits)
+    s3 = @sprintf("%016.13f", q3)
+    # remove the extra decimal places, but be sure to remove the
+    # decimal point if we are removing all of the decimal places
+    if digits == 0
+        s3 = s3[1:2] * "s"
+    else
+        s3 = s3[1:digits+3] * "s"
+    end
+    string(s1, s2, s3)
+end
+
 radius(measure) = hypot(hypot(measure.x, measure.y), measure.z)
-longitude(measure) = atan2(measure.y, measure.x) |> rad2deg
-latitude(measure)  = atan2(measure.z, hypot(measure.x, measure.y)) |> rad2deg
+longitude(measure) = atan2(measure.y, measure.x)
+latitude(measure)  = atan2(measure.z, hypot(measure.x, measure.y))
 
 function Base.≈(lhs::Epoch, rhs::Epoch)
     lhs.sys === rhs.sys || error("Coordinate systems must match.")

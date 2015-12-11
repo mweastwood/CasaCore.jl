@@ -1,15 +1,15 @@
 @testset "Measures Tests" begin
     @test sexagesimal("12h34m56.78s") ≈ π/12.*(12.+34/60.+56.78/3600)
     @test sexagesimal("12h34m56s")    ≈ π/12.*(12.+34/60.+56./3600)
-    @test sexagesimal("12h34.56m")    ≈ π/12.*(12.+34.56/60.)
-    @test sexagesimal("12h34m")       ≈ π/12.*(12.+34./60.)
+    @test sexagesimal("12h34.56m")    ≈ π/12.*(12.+34.56/60)
+    @test sexagesimal("12h34m")       ≈ π/12.*(12.+34./60)
     @test sexagesimal("12.34h")       ≈ π/12.*(12.34)
-    @test sexagesimal("12h")          ≈ π/12.*(12.)
+    @test sexagesimal("12h")          ≈ π/12.*(12)
 
     @test sexagesimal("12d34m56.78s")  ≈ π/180.*(12.+34/60.+56.78/3600)
     @test sexagesimal("12d34m56s")     ≈ π/180.*(12.+34/60.+56./3600)
-    @test sexagesimal("12d34.56m")     ≈ π/180.*(12.+34.56/60.)
-    @test sexagesimal("12d34m")        ≈ π/180.*(12.+34./60.)
+    @test sexagesimal("12d34.56m")     ≈ π/180.*(12.+34.56/60)
+    @test sexagesimal("12d34m")        ≈ π/180.*(12.+34./60)
     @test sexagesimal("12.34d")        ≈ π/180.*(12.34)
     @test sexagesimal("12d")           ≈ π/180.*(12.)
     @test sexagesimal("+12d34m56.78s") ≈ π/180.*(12.+34/60.+56.78/3600)
@@ -20,10 +20,28 @@
     @test sexagesimal("+12d")          ≈ π/180.*(12.)
     @test sexagesimal("-12d34m56.78s") ≈ -1*π/180.*(12.+34/60.+56.78/3600)
     @test sexagesimal("-12d34m56s")    ≈ -1*π/180.*(12.+34/60.+56./3600)
-    @test sexagesimal("-12d34.56m")    ≈ -1*π/180.*(12.+34.56/60.)
-    @test sexagesimal("-12d34m")       ≈ -1*π/180.*(12.+34./60.)
+    @test sexagesimal("-12d34.56m")    ≈ -1*π/180.*(12.+34.56/60)
+    @test sexagesimal("-12d34m")       ≈ -1*π/180.*(12.+34./60)
     @test sexagesimal("-12.34d")       ≈ -1*π/180.*(12.34)
     @test sexagesimal("-12d")          ≈ -1*π/180.*(12.)
+
+    @test sexagesimal(sexagesimal("5d"))                     == "+05d00m00s"
+    @test sexagesimal(sexagesimal("180d"))                   == "+180d00m00s"
+    @test sexagesimal(sexagesimal("12d34m56s"))              == "+12d34m56s"
+    @test sexagesimal(sexagesimal("12d34m56.78s"))           == "+12d34m57s"
+    @test sexagesimal(sexagesimal("12d34m56.78s"),digits=2)  == "+12d34m56.78s"
+    @test sexagesimal(sexagesimal("-12d34m56s"))             == "-12d34m56s"
+    @test sexagesimal(sexagesimal("-12d34m56.78s"))          == "-12d34m57s"
+    @test sexagesimal(sexagesimal("-12d34m56.78s"),digits=2) == "-12d34m56.78s"
+    @test sexagesimal(sexagesimal("5h"),hours=true)                     == "5h00m00s"
+    @test sexagesimal(sexagesimal("12h34m56s"),hours=true)              == "12h34m56s"
+    @test sexagesimal(sexagesimal("12h34m56.78s"),hours=true)           == "12h34m57s"
+    @test sexagesimal(sexagesimal("12h34m56.78s"),hours=true,digits=2)  == "12h34m56.78s"
+    @test sexagesimal(sexagesimal("-12h34m56s"),hours=true)             == "-12h34m56s"
+    @test sexagesimal(sexagesimal("-12h34m56.78s"),hours=true)          == "-12h34m57s"
+    @test sexagesimal(sexagesimal("-12h34m56.78s"),hours=true,digits=2) == "-12h34m56.78s"
+    @test sexagesimal(20.5degrees) == "+20d30m00s"
+    @test sexagesimal(1.23radians) == "+70d28m26s"
 
     @test epoch"UTC"  === Measures.Epochs.UTC
     @test epoch"LAST" === Measures.Epochs.LAST
@@ -38,19 +56,19 @@
     @test baseline"J2000" === Measures.Baselines.J2000
 
     date = 0.0
-    time = Epoch(epoch"UTC",date,"d")
+    time = Epoch(epoch"UTC",date*days)
     @test time == Epoch(epoch"UTC",0.0)
     @test repr(time) == "1858-11-17T00:00:00"
 
     date = 57365.5
-    time = Epoch(epoch"UTC",date,"d")
+    time = Epoch(epoch"UTC",date*days)
     @test time == Epoch(epoch"UTC",date*24*60*60)
     @test repr(time) == "2015-12-09T12:00:00"
 
     # atomic time is 36 seconds ahead of UTC time (due to leap seconds)
     frame = ReferenceFrame()
     date = 57365.5
-    utc  = Epoch(epoch"UTC",date,"d")
+    utc  = Epoch(epoch"UTC",date*days)
     tai  = measure(frame,utc,epoch"TAI")
     utc′ = measure(frame,tai,epoch"UTC")
     @test utc.sys === utc′.sys === epoch"UTC"
@@ -59,8 +77,10 @@
     @test utc ≈ utc′
 
     dir = Direction(dir"J2000", "12h00m", "43d21m")
-    @test dir.x^2 + dir.y^2 + dir.z^2 ≈ 1
-    @test repr(dir) == "180.00000°, 43.35000°"
+    @test radius(dir) ≈ 1
+    @test longitude(dir) ≈ π
+    @test latitude(dir) ≈ 43.35 * π/180
+    @test repr(dir) == "+180d00m00s, +43d21m00s"
 
     dir1 = Direction(dir"J2000", "12h00m", "45d00m")
     dir2 = Direction(dir"J2000", -1/sqrt(2), 0.0, 1/sqrt(2))
@@ -68,12 +88,12 @@
 
     dir = Direction(dir"SUN")
     @test dir == Direction(dir"SUN", 1.0, 0.0, 0.0)
-    @test Measures.longitude(dir) == 0
-    @test Measures.latitude(dir)  == 0
+    @test longitude(dir) == 0
+    @test latitude(dir)  == 0
 
     frame = ReferenceFrame()
     set!(frame, observatory("OVRO_MMA"))
-    set!(frame, Epoch(epoch"UTC", 50237.29, "d"))
+    set!(frame, Epoch(epoch"UTC", 50237.29days))
     dir1  = Direction(dir"AZEL", "40.0d", "50.0d")
     j2000 = measure(frame,dir1,dir"J2000")
     dir2  = measure(frame,j2000,dir"AZEL")
@@ -88,13 +108,14 @@
     @test dir1 ≈ dir2
 
     frame = ReferenceFrame()
-    pos1 = Position(pos"WGS84", 1.0, "20d30m00s", "-80d")
+    pos1 = Position(pos"WGS84", 5_000meters, "20d30m00s", "-80d")
     pos2 = measure(frame,pos1,pos"ITRF")
     pos3 = measure(frame,pos2,pos"WGS84")
     @test pos1.sys === pos3.sys === pos"WGS84"
     @test pos2.sys === pos"ITRF"
     @test pos1 ≈ pos3
-    @test repr(pos1) == "1.000 meters, 20.50000°, -80.00000°"
+    @test pos1 ≈ Position(pos"WGS84", 5_000meters, 20.5degrees, -80degrees)
+    @test repr(pos1) == "5000.000 meters, +20d30m00s, -80d00m00s"
 
     alma = observatory("ALMA")
     vla  = observatory("VLA")
@@ -104,8 +125,8 @@
 
     frame = ReferenceFrame()
     set!(frame, observatory("OVRO_MMA"))
-    set!(frame, Epoch(epoch"UTC", 50237.29, "d"))
-    set!(frame, Direction(dir"AZEL", "0.0d", "90.0d"))
+    set!(frame, Epoch(epoch"UTC", 50237.29days))
+    set!(frame, Direction(dir"AZEL", 0degrees, 90degrees))
     u, v, w = 1.234, 5.678, 0.100
     baseline1 = Baseline(baseline"ITRF", u, v, w)
     baseline2 = measure(frame,baseline1,baseline"J2000")
