@@ -1,0 +1,89 @@
+{
+    "docs": [
+        {
+            "location": "/", 
+            "text": "CasaCore.jl\n\n\nCasaCore.jl is a Julia wrapper of \nCasaCore\n,\nwhich is a commonly used library in radio astronomy.\n\n\nFunctionality is divided into two submodules:\n\n\n\n\nCasaCore.Tables\n for interfacing with tables (for example Casa measurement sets), and\n\n\nCasaCore.Measures\n for performing coordinate system conversions (for example calculating the azimuth and elevation of an astronomical target).\n\n\n\n\nGetting Started\n\n\nPrior to using this package, the CasaCore library must be installed on your machine.\nYou can then obtain CasaCore.jl by running (from within the Julia REPL):\n\n\nPkg.add(\nCasaCore\n)\nPkg.test(\nCasaCore\n)\n\n\n\n\nIf \nPkg.add(\"CasaCore\")\n fails with a build error. Please open a Github issue.\n\n\nBugs and Feature Requests\n\n\nDevelopment of this package is ongoing and largely focused on my own requirements.\nIf you need additional features, open an issue or a pull request.\nIn the short term, you can use the excellent \nPyCall\n\npackage to access the Python wrapper of CasaCore (\npython-casacore\n).", 
+            "title": "Home"
+        }, 
+        {
+            "location": "/#casacorejl", 
+            "text": "CasaCore.jl is a Julia wrapper of  CasaCore ,\nwhich is a commonly used library in radio astronomy.  Functionality is divided into two submodules:   CasaCore.Tables  for interfacing with tables (for example Casa measurement sets), and  CasaCore.Measures  for performing coordinate system conversions (for example calculating the azimuth and elevation of an astronomical target).", 
+            "title": "CasaCore.jl"
+        }, 
+        {
+            "location": "/#getting-started", 
+            "text": "Prior to using this package, the CasaCore library must be installed on your machine.\nYou can then obtain CasaCore.jl by running (from within the Julia REPL):  Pkg.add( CasaCore )\nPkg.test( CasaCore )  If  Pkg.add(\"CasaCore\")  fails with a build error. Please open a Github issue.", 
+            "title": "Getting Started"
+        }, 
+        {
+            "location": "/#bugs-and-feature-requests", 
+            "text": "Development of this package is ongoing and largely focused on my own requirements.\nIf you need additional features, open an issue or a pull request.\nIn the short term, you can use the excellent  PyCall \npackage to access the Python wrapper of CasaCore ( python-casacore ).", 
+            "title": "Bugs and Feature Requests"
+        }, 
+        {
+            "location": "/tables/", 
+            "text": "Tables\n\n\nusing CasaCore.Tables\n\n\n\n\nInteracting with CasaCore tables requires you to first open the table:\n\n\ntable = Table(\n/path/to/table\n)\n\n\n\n\nThis will open an existing table or create a new table if a table does not already exist\nat the given path. A lock will automatically be acquired on an open table. Release this\nlock with \nunlock(table)\n and acquire it again with \nlock(table)\n.\n\n\nMeasurement sets (for example from the \nVLA\n)\nare simply CasaCore tables with a standardized set of columns, keywords, and subtables.\n\nIf you need to interface with a measurement set, \nCasaCore.Tables\n is right for you.\n\n\nColumns\n\n\nInterfacing with columns in a table is straight-forward.\n\n\ndata = table[\nDATA\n]\nmodel_data = function_to_gen_model_visibilities()\ntable[\nMODEL_DATA\n] = model_data\n\n\n\n\nNote that in this example the \nMODEL_DATA\n column will be created in the table\nif it does not already exist.\n\n\nCells\n\n\nIf you do not want to read or write to an entire column, you can instead\npick a single row of the column (ie. a cell).\n\n\nrow = 1\ncell = table[\nDATA\n, row]\ntable[\nMODEL_DATA\n, row] = new_cell\n\n\n\n\nNote that the indexing order is column first, row second. This is opposite\nfrom the usual matrix convention where the first index specifies the row.\n\n\nAlso note that the first row in a column is \n1\n (not \n0\n).\n\n\nKeywords\n\n\nKeywords are accessed using the \nkw\"...\"\n string macro. For example:\n\n\nms_version = table[kw\nMS_VERSION\n]\ntable[kw\nMS_VERSION\n] = 2.0\n\n\n\n\nSubtables\n\n\nSubtables can be opened by reading their location from the appropriate keyword,\nand opening them as you would a regular table.\n\n\nlocation = table[kw\nSPECTRAL_WINDOW\n]\nsubtable = Table(location)", 
+            "title": "CasaCore.Tables"
+        }, 
+        {
+            "location": "/tables/#tables", 
+            "text": "using CasaCore.Tables  Interacting with CasaCore tables requires you to first open the table:  table = Table( /path/to/table )  This will open an existing table or create a new table if a table does not already exist\nat the given path. A lock will automatically be acquired on an open table. Release this\nlock with  unlock(table)  and acquire it again with  lock(table) .  Measurement sets (for example from the  VLA )\nare simply CasaCore tables with a standardized set of columns, keywords, and subtables. \nIf you need to interface with a measurement set,  CasaCore.Tables  is right for you.", 
+            "title": "Tables"
+        }, 
+        {
+            "location": "/tables/#columns", 
+            "text": "Interfacing with columns in a table is straight-forward.  data = table[ DATA ]\nmodel_data = function_to_gen_model_visibilities()\ntable[ MODEL_DATA ] = model_data  Note that in this example the  MODEL_DATA  column will be created in the table\nif it does not already exist.", 
+            "title": "Columns"
+        }, 
+        {
+            "location": "/tables/#cells", 
+            "text": "If you do not want to read or write to an entire column, you can instead\npick a single row of the column (ie. a cell).  row = 1\ncell = table[ DATA , row]\ntable[ MODEL_DATA , row] = new_cell  Note that the indexing order is column first, row second. This is opposite\nfrom the usual matrix convention where the first index specifies the row.  Also note that the first row in a column is  1  (not  0 ).", 
+            "title": "Cells"
+        }, 
+        {
+            "location": "/tables/#keywords", 
+            "text": "Keywords are accessed using the  kw\"...\"  string macro. For example:  ms_version = table[kw MS_VERSION ]\ntable[kw MS_VERSION ] = 2.0", 
+            "title": "Keywords"
+        }, 
+        {
+            "location": "/tables/#subtables", 
+            "text": "Subtables can be opened by reading their location from the appropriate keyword,\nand opening them as you would a regular table.  location = table[kw SPECTRAL_WINDOW ]\nsubtable = Table(location)", 
+            "title": "Subtables"
+        }, 
+        {
+            "location": "/measures/", 
+            "text": "Measures\n\n\nusing CasaCore.Measures\n\n\n\n\nEpochs\n\n\nAn \nEpoch\n represents an instance in time.\n\n\nepoch = Epoch(epoch\nUTC\n, time * days)\n\n\n\n\n\n\nThe first argument specifies the coordinate system.\n\n\nThe second argument specifies the time as a modified Julian date.\n\n\n\n\nRecognized Coordinate Systems:\n\n\nLAST\n, \nLMST\n, \nGMST1\n, \nGAST\n, \nUT1\n, \nUT2\n, \nUTC\n,\n\nTAI\n, \nTDT\n, \nTCG\n, \nTDB\n, \nTCB\n\n\n\n\nDirections\n\n\nA \nDirection\n represents a position on the sky.\n\n\ndirection = Direction(dir\nJ2000\n, \n19h59m28.35663s\n, \n+40d44m02.0970s\n)\n\n\n\n\n\n\nThe first argument specifies the coordinate system.\n\n\nThe second argument specifies the longitude.\n\n\nThe third argument specifies the latitude.\n\n\n\n\nAlternatively the location of a known solar system object (see the list below)\nmay be obtained by using:\n\n\ndirection = Direction(dir\nJUPITER\n)\n\n\n\n\nRecognized Coordinate Systems:\n\n\nJ2000\n, \nJMEAN\n, \nJTRUE\n, \nAPP\n, \nB1950\n, \nB1950_VLA\n, \nBMEAN\n, \nBTRUE\n,\n\nGALACTIC\n, \nHADEC\n, \nAZEL\n, \nAZELSW\n, \nAZELGEO\n, \nAZELSWGEO\n, \nJNAT\n,\n\nECLIPTIC\n, \nMECLIPTIC\n, \nTECLIPTIC\n, \nSUPERGAL\n, \nITRF\n, \nTOPO\n, \nICRS\n,\n\nMERCURY\n, \nVENUS\n, \nMARS\n, \nJUPITER\n, \nSATURN\n, \nURANUS\n, \nNEPTUNE\n,\n\nPLUTO\n, \nSUN\n, \nMOON\n\n\n\n\nPositions\n\n\nA \nPosition\n represents a location on the Earth.\n\n\nAlternatively the position of a known observatory may be obtained by using:\n\n\nposition = observatory(\nVLA\n)\n\n\n\n\nRecognized Coordinate Systems:\n\n\nITRF\n, \nWGS84\n\n\n\n\nBaselines\n\n\nRecognized Coordinate Systems:\n\n\nJ2000\n, \nJMEAN\n, \nJTRUE\n, \nAPP\n, \nB1950\n, \nB1950_VLA\n, \nBMEAN\n, \nBTRUE\n,\n\nGALACTIC\n, \nHADEC\n, \nAZEL\n, \nAZELSW\n, \nAZELGEO\n, \nAZELSWGEO\n, \nJNAT\n,\n\nECLIPTIC\n, \nMECLIPTIC\n, \nTECLIPTIC\n, \nSUPERGAL\n, \nITRF\n, \nTOPO\n, \nICRS\n\n\n\n\nCoordinate System Conversions\n\n\nSome coordinate conversions require information about the associated frame of reference.\nFor example, the conversion from a J2000 right ascension and declination to a local\nazimuth and elevation requires information about the observer's time and location.\n\n\nHere are a few examples attaching information to a frame of reference:\n\n\nframe = ReferenceFrame()\nposition = observatory(\nVLA\n)\ntime = Epoch(epoch\nUTC\n, 50237.29days))\nset!(frame, position)\nset!(frame, time)\n\n\n\n\nframe = ReferenceFrame()\nset!(frame, observatory(\nALMA\n))\n\n\n\n\nIn general, the amount of information required depends on the specific coordinate system\nconversion. Converting between B1950 and J2000, for example, requires no additional information\nabout your frame of reference.\n\n\nOnce you have established the correct frame of reference, the conversion is performed as follows:\n\n\nazel_direction = measure(frame, j2000_direction, dir\nAZEL\n)\n\n\n\n\nitrf_position = measure(frame, wgs84_position, pos\nITRF\n)", 
+            "title": "CasaCore.Measures"
+        }, 
+        {
+            "location": "/measures/#measures", 
+            "text": "using CasaCore.Measures", 
+            "title": "Measures"
+        }, 
+        {
+            "location": "/measures/#epochs", 
+            "text": "An  Epoch  represents an instance in time.  epoch = Epoch(epoch UTC , time * days)   The first argument specifies the coordinate system.  The second argument specifies the time as a modified Julian date.   Recognized Coordinate Systems:  LAST ,  LMST ,  GMST1 ,  GAST ,  UT1 ,  UT2 ,  UTC , TAI ,  TDT ,  TCG ,  TDB ,  TCB", 
+            "title": "Epochs"
+        }, 
+        {
+            "location": "/measures/#directions", 
+            "text": "A  Direction  represents a position on the sky.  direction = Direction(dir J2000 ,  19h59m28.35663s ,  +40d44m02.0970s )   The first argument specifies the coordinate system.  The second argument specifies the longitude.  The third argument specifies the latitude.   Alternatively the location of a known solar system object (see the list below)\nmay be obtained by using:  direction = Direction(dir JUPITER )  Recognized Coordinate Systems:  J2000 ,  JMEAN ,  JTRUE ,  APP ,  B1950 ,  B1950_VLA ,  BMEAN ,  BTRUE , GALACTIC ,  HADEC ,  AZEL ,  AZELSW ,  AZELGEO ,  AZELSWGEO ,  JNAT , ECLIPTIC ,  MECLIPTIC ,  TECLIPTIC ,  SUPERGAL ,  ITRF ,  TOPO ,  ICRS , MERCURY ,  VENUS ,  MARS ,  JUPITER ,  SATURN ,  URANUS ,  NEPTUNE , PLUTO ,  SUN ,  MOON", 
+            "title": "Directions"
+        }, 
+        {
+            "location": "/measures/#positions", 
+            "text": "A  Position  represents a location on the Earth.  Alternatively the position of a known observatory may be obtained by using:  position = observatory( VLA )  Recognized Coordinate Systems:  ITRF ,  WGS84", 
+            "title": "Positions"
+        }, 
+        {
+            "location": "/measures/#baselines", 
+            "text": "Recognized Coordinate Systems:  J2000 ,  JMEAN ,  JTRUE ,  APP ,  B1950 ,  B1950_VLA ,  BMEAN ,  BTRUE , GALACTIC ,  HADEC ,  AZEL ,  AZELSW ,  AZELGEO ,  AZELSWGEO ,  JNAT , ECLIPTIC ,  MECLIPTIC ,  TECLIPTIC ,  SUPERGAL ,  ITRF ,  TOPO ,  ICRS", 
+            "title": "Baselines"
+        }, 
+        {
+            "location": "/measures/#coordinate-system-conversions", 
+            "text": "Some coordinate conversions require information about the associated frame of reference.\nFor example, the conversion from a J2000 right ascension and declination to a local\nazimuth and elevation requires information about the observer's time and location.  Here are a few examples attaching information to a frame of reference:  frame = ReferenceFrame()\nposition = observatory( VLA )\ntime = Epoch(epoch UTC , 50237.29days))\nset!(frame, position)\nset!(frame, time)  frame = ReferenceFrame()\nset!(frame, observatory( ALMA ))  In general, the amount of information required depends on the specific coordinate system\nconversion. Converting between B1950 and J2000, for example, requires no additional information\nabout your frame of reference.  Once you have established the correct frame of reference, the conversion is performed as follows:  azel_direction = measure(frame, j2000_direction, dir AZEL )  itrf_position = measure(frame, wgs84_position, pos ITRF )", 
+            "title": "Coordinate System Conversions"
+        }
+    ]
+}

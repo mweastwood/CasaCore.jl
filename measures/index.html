@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>CasaCore.Measures - CasaCore.jl</title>
+  
+
+  <link rel="shortcut icon" href="../img/favicon.ico">
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../css/highlight.css">
+
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "CasaCore.Measures";
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js"></script>
+  <script src="../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../js/highlight.pack.js"></script>
+  <script src="../js/theme.js"></script> 
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+  <script src="../mathjaxhelper.js"></script>
+
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> CasaCore.jl</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <ul class="current">
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="..">Home</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <ul class="subnav">
+    <li><span>Modules</span></li>
+
+        
+            
+    <li class="toctree-l1 ">
+        <a class="" href="../tables/">CasaCore.Tables</a>
+        
+    </li>
+
+        
+            
+    <li class="toctree-l1 current">
+        <a class="current" href="./">CasaCore.Measures</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#measures">Measures</a></li>
+                
+                    <li><a class="toctree-l4" href="#epochs">Epochs</a></li>
+                
+                    <li><a class="toctree-l4" href="#directions">Directions</a></li>
+                
+                    <li><a class="toctree-l4" href="#positions">Positions</a></li>
+                
+                    <li><a class="toctree-l4" href="#baselines">Baselines</a></li>
+                
+                    <li><a class="toctree-l4" href="#coordinate-system-conversions">Coordinate System Conversions</a></li>
+                
+            
+            </ul>
+        
+    </li>
+
+        
+    </ul>
+<li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">CasaCore.jl</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Modules &raquo;</li>
+        
+      
+    
+    <li>CasaCore.Measures</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        
+          <a href="https://github.com/mweastwood/CasaCore.jl" class="icon icon-github"> Edit on GitHub</a>
+        
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="measures">Measures</h1>
+<pre><code class="julia">using CasaCore.Measures
+</code></pre>
+
+<h2 id="epochs">Epochs</h2>
+<p>An <code>Epoch</code> represents an instance in time.</p>
+<pre><code class="julia">epoch = Epoch(epoch&quot;UTC&quot;, time * days)
+</code></pre>
+
+<ul>
+<li>The first argument specifies the coordinate system.</li>
+<li>The second argument specifies the time as a modified Julian date.</li>
+</ul>
+<p><strong>Recognized Coordinate Systems:</strong>
+<code>LAST</code>, <code>LMST</code>, <code>GMST1</code>, <code>GAST</code>, <code>UT1</code>, <code>UT2</code>, <code>UTC</code>,
+<code>TAI</code>, <code>TDT</code>, <code>TCG</code>, <code>TDB</code>, <code>TCB</code></p>
+<hr />
+<h2 id="directions">Directions</h2>
+<p>A <code>Direction</code> represents a position on the sky.</p>
+<pre><code class="julia">direction = Direction(dir&quot;J2000&quot;, &quot;19h59m28.35663s&quot;, &quot;+40d44m02.0970s&quot;)
+</code></pre>
+
+<ul>
+<li>The first argument specifies the coordinate system.</li>
+<li>The second argument specifies the longitude.</li>
+<li>The third argument specifies the latitude.</li>
+</ul>
+<p>Alternatively the location of a known solar system object (see the list below)
+may be obtained by using:</p>
+<pre><code class="julia">direction = Direction(dir&quot;JUPITER&quot;)
+</code></pre>
+
+<p><strong>Recognized Coordinate Systems:</strong>
+<code>J2000</code>, <code>JMEAN</code>, <code>JTRUE</code>, <code>APP</code>, <code>B1950</code>, <code>B1950_VLA</code>, <code>BMEAN</code>, <code>BTRUE</code>,
+<code>GALACTIC</code>, <code>HADEC</code>, <code>AZEL</code>, <code>AZELSW</code>, <code>AZELGEO</code>, <code>AZELSWGEO</code>, <code>JNAT</code>,
+<code>ECLIPTIC</code>, <code>MECLIPTIC</code>, <code>TECLIPTIC</code>, <code>SUPERGAL</code>, <code>ITRF</code>, <code>TOPO</code>, <code>ICRS</code>,
+<code>MERCURY</code>, <code>VENUS</code>, <code>MARS</code>, <code>JUPITER</code>, <code>SATURN</code>, <code>URANUS</code>, <code>NEPTUNE</code>,
+<code>PLUTO</code>, <code>SUN</code>, <code>MOON</code></p>
+<hr />
+<h2 id="positions">Positions</h2>
+<p>A <code>Position</code> represents a location on the Earth.</p>
+<p>Alternatively the position of a known observatory may be obtained by using:</p>
+<pre><code class="julia">position = observatory(&quot;VLA&quot;)
+</code></pre>
+
+<p><strong>Recognized Coordinate Systems:</strong>
+<code>ITRF</code>, <code>WGS84</code></p>
+<hr />
+<h2 id="baselines">Baselines</h2>
+<p><strong>Recognized Coordinate Systems:</strong>
+<code>J2000</code>, <code>JMEAN</code>, <code>JTRUE</code>, <code>APP</code>, <code>B1950</code>, <code>B1950_VLA</code>, <code>BMEAN</code>, <code>BTRUE</code>,
+<code>GALACTIC</code>, <code>HADEC</code>, <code>AZEL</code>, <code>AZELSW</code>, <code>AZELGEO</code>, <code>AZELSWGEO</code>, <code>JNAT</code>,
+<code>ECLIPTIC</code>, <code>MECLIPTIC</code>, <code>TECLIPTIC</code>, <code>SUPERGAL</code>, <code>ITRF</code>, <code>TOPO</code>, <code>ICRS</code></p>
+<hr />
+<h2 id="coordinate-system-conversions">Coordinate System Conversions</h2>
+<p>Some coordinate conversions require information about the associated frame of reference.
+For example, the conversion from a J2000 right ascension and declination to a local
+azimuth and elevation requires information about the observer's time and location.</p>
+<p>Here are a few examples attaching information to a frame of reference:</p>
+<pre><code class="julia">frame = ReferenceFrame()
+position = observatory(&quot;VLA&quot;)
+time = Epoch(epoch&quot;UTC&quot;, 50237.29days))
+set!(frame, position)
+set!(frame, time)
+</code></pre>
+
+<pre><code class="julia">frame = ReferenceFrame()
+set!(frame, observatory(&quot;ALMA&quot;))
+</code></pre>
+
+<p>In general, the amount of information required depends on the specific coordinate system
+conversion. Converting between B1950 and J2000, for example, requires no additional information
+about your frame of reference.</p>
+<p>Once you have established the correct frame of reference, the conversion is performed as follows:</p>
+<pre><code class="julia">azel_direction = measure(frame, j2000_direction, dir&quot;AZEL&quot;)
+</code></pre>
+
+<pre><code class="julia">itrf_position = measure(frame, wgs84_position, pos&quot;ITRF&quot;)
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="../tables/" class="btn btn-neutral" title="CasaCore.Tables"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+<div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+        <span><a href="../tables/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+    </span>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>CasaCore.Tables - CasaCore.jl</title>
+  
+
+  <link rel="shortcut icon" href="../img/favicon.ico">
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../css/highlight.css">
+
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "CasaCore.Tables";
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js"></script>
+  <script src="../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../js/highlight.pack.js"></script>
+  <script src="../js/theme.js"></script> 
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+  <script src="../mathjaxhelper.js"></script>
+
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> CasaCore.jl</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <ul class="current">
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="..">Home</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <ul class="subnav">
+    <li><span>Modules</span></li>
+
+        
+            
+    <li class="toctree-l1 current">
+        <a class="current" href="./">CasaCore.Tables</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#tables">Tables</a></li>
+                
+                    <li><a class="toctree-l4" href="#columns">Columns</a></li>
+                
+                    <li><a class="toctree-l4" href="#cells">Cells</a></li>
+                
+                    <li><a class="toctree-l4" href="#keywords">Keywords</a></li>
+                
+                    <li><a class="toctree-l4" href="#subtables">Subtables</a></li>
+                
+            
+            </ul>
+        
+    </li>
+
+        
+            
+    <li class="toctree-l1 ">
+        <a class="" href="../measures/">CasaCore.Measures</a>
+        
+    </li>
+
+        
+    </ul>
+<li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">CasaCore.jl</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Modules &raquo;</li>
+        
+      
+    
+    <li>CasaCore.Tables</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        
+          <a href="https://github.com/mweastwood/CasaCore.jl" class="icon icon-github"> Edit on GitHub</a>
+        
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="tables">Tables</h1>
+<pre><code class="julia">using CasaCore.Tables
+</code></pre>
+
+<p>Interacting with CasaCore tables requires you to first open the table:</p>
+<pre><code class="julia">table = Table(&quot;/path/to/table&quot;)
+</code></pre>
+
+<p>This will open an existing table or create a new table if a table does not already exist
+at the given path. A lock will automatically be acquired on an open table. Release this
+lock with <code>unlock(table)</code> and acquire it again with <code>lock(table)</code>.</p>
+<p><strong>Measurement sets (for example from the <a href="https://en.wikipedia.org/wiki/Karl_G._Jansky_Very_Large_Array">VLA</a>)
+are simply CasaCore tables with a standardized set of columns, keywords, and subtables.</strong>
+If you need to interface with a measurement set, <code>CasaCore.Tables</code> is right for you.</p>
+<h2 id="columns">Columns</h2>
+<p>Interfacing with columns in a table is straight-forward.</p>
+<pre><code class="julia">data = table[&quot;DATA&quot;]
+model_data = function_to_gen_model_visibilities()
+table[&quot;MODEL_DATA&quot;] = model_data
+</code></pre>
+
+<p>Note that in this example the <code>MODEL_DATA</code> column will be created in the table
+if it does not already exist.</p>
+<h2 id="cells">Cells</h2>
+<p>If you do not want to read or write to an entire column, you can instead
+pick a single row of the column (ie. a cell).</p>
+<pre><code class="julia">row = 1
+cell = table[&quot;DATA&quot;, row]
+table[&quot;MODEL_DATA&quot;, row] = new_cell
+</code></pre>
+
+<p>Note that the indexing order is column first, row second. This is opposite
+from the usual matrix convention where the first index specifies the row.</p>
+<p>Also note that the first row in a column is <code>1</code> (not <code>0</code>).</p>
+<h2 id="keywords">Keywords</h2>
+<p>Keywords are accessed using the <code>kw"..."</code> string macro. For example:</p>
+<pre><code class="julia">ms_version = table[kw&quot;MS_VERSION&quot;]
+table[kw&quot;MS_VERSION&quot;] = 2.0
+</code></pre>
+
+<h2 id="subtables">Subtables</h2>
+<p>Subtables can be opened by reading their location from the appropriate keyword,
+and opening them as you would a regular table.</p>
+<pre><code class="julia">location = table[kw&quot;SPECTRAL_WINDOW&quot;]
+subtable = Table(location)
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../measures/" class="btn btn-neutral float-right" title="CasaCore.Measures"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href=".." class="btn btn-neutral" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+<div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+        <span><a href=".." style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../measures/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+
+</body>
+</html>
