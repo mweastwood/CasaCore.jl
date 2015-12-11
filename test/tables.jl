@@ -2,6 +2,7 @@
     name  = tempname()*".ms"
     table = Table(name)
 
+    @test repr(table) == "Table: "*name
     @test Tables.iswritable(table) == true
     @test Tables.isreadable(table) == true
 
@@ -96,6 +97,16 @@
     @test table["CORRECTED_DATA",1] == corrected[:,:,1]
     @test_throws ErrorException table["FABRICATED_DATA",1]
 
+    # Fully populate the columns again for the test where the
+    # table is opened again
+    table["ANTENNA1"] = ant1
+    table["ANTENNA2"] = ant2
+    table["UVW"]      = uvw
+    table["TIME"]     = time
+    table["DATA"]           = data
+    table["MODEL_DATA"]     = model
+    table["CORRECTED_DATA"] = corrected
+
     subtable = Table("$name/SPECTRAL_WINDOW")
     Tables.addrows!(subtable,1)
     subtable["CHAN_FREQ"] = freq
@@ -122,5 +133,16 @@
     unlock(table)
     lock(table)
     unlock(table)
+
+    # Test opening the table again
+    table′ = Table(name)
+    @test table["ANTENNA1"] == ant1
+    @test table["ANTENNA2"] == ant2
+    @test table["UVW"]      == uvw
+    @test table["TIME"]     == time
+    @test table["DATA"]           == data
+    @test table["MODEL_DATA"]     == model
+    @test table["CORRECTED_DATA"] == corrected
+    @test_throws ErrorException table["FABRICATED_DATA"]
 end
 

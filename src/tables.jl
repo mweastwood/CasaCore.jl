@@ -73,6 +73,14 @@ function Table(name::ASCIIString)
     table
 end
 
+function Base.show(io::IO, table::Table)
+    N = ccall(("name_length",libcasacorewrapper), Int, (Ptr{Void},), table)
+    output = Array(Cchar, N)
+    ccall(("name",libcasacorewrapper), Void, (Ptr{Void}, Ptr{Cchar}), table, output)
+    chars = [Char(x) for x in output]
+    print(io, "Table: ", ascii(chars))
+end
+
 Base.iswritable(table::Table) = ccall(("iswritable",libcasacorewrapper), Bool, (Ptr{Void},), table)
 Base.isreadable(table::Table) = ccall(("isreadable",libcasacorewrapper), Bool, (Ptr{Void},), table)
 

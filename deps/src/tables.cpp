@@ -89,6 +89,15 @@ extern "C" {
         column[0] = String(name);
         t->removeColumns(column);
     }
+
+    int name_length(TableProxy* t) {return t->tableName().length();}
+    void name(TableProxy* t, char* output) {
+        String str = t->tableName();
+        int N = str.length();
+        for (int i = 0; i < N; ++i) {
+            output[i] = str[i];
+        }
+    }
 }
 
 // Read/Write Columns
