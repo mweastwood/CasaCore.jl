@@ -1,0 +1,18 @@
+site_name: CasaCore.jl
+repo_url: https://github.com/mweastwood/CasaCore.jl
+site_description: A Julia wrapper of CasaCore.
+site_author: Michael Eastwood
+
+markdown_extensions:
+    - math
+extra_javascript:
+    - https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML
+    - mathjaxhelper.js
+
+pages:
+    - Home: index.md
+    - Modules:
+        - CasaCore.Tables: tables.md
+        - CasaCore.Measures: measures.md
+theme: readthedocs
+
