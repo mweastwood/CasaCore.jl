@@ -4,6 +4,7 @@ julia:
     - nightly
 notifications:
     email: false
+sudo: required
 before_install:
     - sudo add-apt-repository ppa:radio-astro/main -y
     - sudo apt-get update -qq -y
@@ -11,7 +12,8 @@ before_install:
     - sudo apt-get install casacore-data -y
 script:
     - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-    - julia --check-bounds=yes -e "Pkg.clone(pwd()); Pkg.build(\"CasaCore\"); Pkg.test(\"CasaCore\"; coverage=true)"
+    - julia -e 'Pkg.clone(pwd()); Pkg.build("CasaCore")'
+    - julia --check-bounds=yes -e 'Pkg.test("CasaCore"; coverage=true)'
 after_success:
-    - julia -e "cd(Pkg.dir(\"CasaCore\")); Pkg.add(\"Coverage\"); using Coverage; Codecov.submit(process_folder())"
+    - julia -e 'cd(Pkg.dir("CasaCore")); Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
 
