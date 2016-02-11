@@ -383,12 +383,15 @@ function sexagesimal(angle; hours::Bool = false, digits::Int = 0)
         value = radians * 12/π
         value = round(value*3600, digits) / 3600
         q1 = floor(Int, value)
-        s1 = @sprintf("%dh", s*q1)
+        s1 = @sprintf("%dh", q1)
+        s < 0 && (s1 = "-"*s1)
     else
         value = radians * 180/π
         value = round(value*3600, digits) / 3600
         q1 = floor(Int, value)
-        s1 = @sprintf("%+03dd", s*q1)
+        s1 = @sprintf("%dd", q1)
+        s > 0 && (s1 = "+"*s1)
+        s < 0 && (s1 = "-"*s1)
     end
     value = (value - q1) * 60
     q2 = floor(Int, value)

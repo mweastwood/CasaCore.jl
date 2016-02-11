@@ -5,6 +5,8 @@
     @test sexagesimal("12h34m")       ≈ π/12.*(12.+34./60)
     @test sexagesimal("12.34h")       ≈ π/12.*(12.34)
     @test sexagesimal("12h")          ≈ π/12.*(12)
+    @test sexagesimal("-0h34m56.78s") ≈ -π/12.*(34/60.+56.78/3600)
+    @test sexagesimal("+0h34m56.78s") ≈ π/12.*(34/60.+56.78/3600)
 
     @test sexagesimal("12d34m56.78s")  ≈ π/180.*(12.+34/60.+56.78/3600)
     @test sexagesimal("12d34m56s")     ≈ π/180.*(12.+34/60.+56./3600)
@@ -24,8 +26,10 @@
     @test sexagesimal("-12d34m")       ≈ -1*π/180.*(12.+34./60)
     @test sexagesimal("-12.34d")       ≈ -1*π/180.*(12.34)
     @test sexagesimal("-12d")          ≈ -1*π/180.*(12.)
+    @test sexagesimal("-0d34m56.78s")  ≈ -π/180.*(34/60.+56.78/3600)
+    @test sexagesimal("+0d34m56.78s")  ≈ π/180.*(34/60.+56.78/3600)
 
-    @test sexagesimal(sexagesimal("5d"))                     == "+05d00m00s"
+    @test sexagesimal(sexagesimal("5d"))                     == "+5d00m00s"
     @test sexagesimal(sexagesimal("180d"))                   == "+180d00m00s"
     @test sexagesimal(sexagesimal("12d34m56s"))              == "+12d34m56s"
     @test sexagesimal(sexagesimal("12d34m56.78s"))           == "+12d34m57s"
@@ -33,6 +37,8 @@
     @test sexagesimal(sexagesimal("-12d34m56s"))             == "-12d34m56s"
     @test sexagesimal(sexagesimal("-12d34m56.78s"))          == "-12d34m57s"
     @test sexagesimal(sexagesimal("-12d34m56.78s"),digits=2) == "-12d34m56.78s"
+    @test sexagesimal(sexagesimal("-0d34m56.78s"),digits=2)  == "-0d34m56.78s"
+    @test sexagesimal(sexagesimal("+0d34m56.78s"),digits=2)  == "+0d34m56.78s"
     @test sexagesimal(sexagesimal("5h"),hours=true)                     == "5h00m00s"
     @test sexagesimal(sexagesimal("12h34m56s"),hours=true)              == "12h34m56s"
     @test sexagesimal(sexagesimal("12h34m56.78s"),hours=true)           == "12h34m57s"
@@ -40,6 +46,8 @@
     @test sexagesimal(sexagesimal("-12h34m56s"),hours=true)             == "-12h34m56s"
     @test sexagesimal(sexagesimal("-12h34m56.78s"),hours=true)          == "-12h34m57s"
     @test sexagesimal(sexagesimal("-12h34m56.78s"),hours=true,digits=2) == "-12h34m56.78s"
+    @test sexagesimal(sexagesimal("-0h34m56.78s"),hours=true,digits=2)  == "-0h34m56.78s"
+    @test sexagesimal(sexagesimal("+0h34m56.78s"),hours=true,digits=2)  == "0h34m56.78s"
     @test sexagesimal(20.5degrees) == "+20d30m00s"
     @test sexagesimal(1.23radians) == "+70d28m26s"
 
