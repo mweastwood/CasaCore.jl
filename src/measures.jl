@@ -126,8 +126,8 @@ macro wrap(expr)
             ccall(($cxx_set,libcasacorewrapper), Void, (Ptr{Void}, Ptr{Void}), frame, x)
         end
         function measure(frame::ReferenceFrame, x::$jl_name, newsys::$jl_names.System)
-            ccall(($cxx_convert,libcasacorewrapper), Ptr{Void},
-                  (Ptr{Void}, Ptr{Void}, Cint), frame, x, newsys) |> $cxx_name |> to_julia
+            (ccall(($cxx_convert,libcasacorewrapper), Ptr{Void},
+                   (Ptr{Void}, Ptr{Void}, Cint), frame, x, newsys) |> $cxx_name |> to_julia) :: $jl_name
         end
     end |> esc
 end
@@ -213,8 +213,8 @@ Note that the longitude and latitude should be given as sexagesimal strings.
 function Direction(sys::Directions.System, longitude::Units.Angle, latitude::Units.Angle)
     long = Units.Radian(longitude) |> Units.value
     lat  = Units.Radian( latitude) |> Units.value
-    ccall(("newDirection_longlat",libcasacorewrapper), Ptr{Void},
-          (Cint, Float64, Float64), sys, long, lat) |> Direction_cxx |> to_julia
+    (ccall(("newDirection_longlat",libcasacorewrapper), Ptr{Void},
+           (Cint, Float64, Float64), sys, long, lat) |> Direction_cxx |> to_julia) :: Direction
 end
 
 function Direction(sys::Directions.System, longitude::ASCIIString, latitude::ASCIIString)
@@ -259,8 +259,8 @@ function Position(sys::Positions.System, elevation::Units.Distance,
     rad  = Units.Meter( elevation) |> Units.value
     long = Units.Radian(longitude) |> Units.value
     lat  = Units.Radian( latitude) |> Units.value
-    ccall(("newPosition_elevationlonglat",libcasacorewrapper), Ptr{Void},
-          (Cint, Float64, Float64, Float64), sys, rad, long, lat) |> Position_cxx |> to_julia
+    (ccall(("newPosition_elevationlonglat",libcasacorewrapper), Ptr{Void},
+           (Cint, Float64, Float64, Float64), sys, rad, long, lat) |> Position_cxx |> to_julia) :: Position
 end
 
 function Position(sys::Positions.System, elevation::Units.Distance,
@@ -383,12 +383,15 @@ function sexagesimal(angle; hours::Bool = false, digits::Int = 0)
         value = radians * 12/π
         value = round(value*3600, digits) / 3600
         q1 = floor(Int, value)
-        s1 = @sprintf("%dh", s*q1)
+        s1 = @sprintf("%dh", q1)
+        s < 0 && (s1 = "-"*s1)
     else
         value = radians * 180/π
         value = round(value*3600, digits) / 3600
         q1 = floor(Int, value)
-        s1 = @sprintf("%+03dd", s*q1)
+        s1 = @sprintf("%dd", q1)
+        s > 0 && (s1 = "+"*s1)
+        s < 0 && (s1 = "-"*s1)
     end
     value = (value - q1) * 60
     q2 = floor(Int, value)
