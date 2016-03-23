@@ -43,7 +43,7 @@ void outputValueHolder(ValueHolder& value, T* output, int length) {
     Array<T> arr;
     value.getValue(arr);
     T* data = arr.data();
-    memcpy(output, data, length);
+    memcpy(output, data, length*sizeof(T));
 }
 
 // Table Operations
