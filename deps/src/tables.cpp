@@ -15,11 +15,8 @@
 
 #include <iostream>
 #include <casa/Containers/ValueHolder.h>
+#include <tables/Tables.h>
 #include <tables/Tables/TableProxy.h>
-#include <tables/Tables/TableRecord.h>
-#include <tables/Tables/TableColumn.h>
-#include <tables/Tables/ScaColData.h>
-#include <tables/Tables/ArrColData.h>
 
 using namespace std;
 using namespace casa;
@@ -30,31 +27,23 @@ ValueHolder createValueHolder(T* input, int* shape, int ndim) {
     for (int i = 0; i < ndim; ++i) {
         dimensions[i] = shape[i];
     }
-    Array<T> arr(dimensions);
-    int idx = 0;
-    for (typename Array<T>::IteratorSTL it = arr.begin(); it != arr.end(); ++it) {
-        *it = input[idx];
-        ++idx;
-    }
-    return casa::ValueHolder(arr);
+    Array<T> arr(dimensions, input, SHARE);
+    return ValueHolder(arr);
 }
 
 template <class T>
-T outputValueHolder(casa::ValueHolder& value) {
+T outputValueHolder(ValueHolder& value) {
     T output;
     value.getValue(output);
     return output;
 }
 
 template <class T>
-void outputValueHolder(casa::ValueHolder& value, T* output, int length) {
-    casa::Array<T> arr(casa::IPosition(1,length));
+void outputValueHolder(ValueHolder& value, T* output, int length) {
+    Array<T> arr;
     value.getValue(arr);
-    int idx = 0;
-    for (typename casa::Array<T>::IteratorSTL it = arr.begin(); it != arr.end(); ++it) {
-        output[idx] = *it;
-        ++idx;
-    }
+    T* data = arr.data();
+    memcpy(output, data, length);
 }
 
 // Table Operations
@@ -159,8 +148,6 @@ void addArrayColumn(TableProxy* t, char* name, int* dim, int ndim) {
 
 template <class T>
 void getColumn(TableProxy* t, char* column, T* output, int length) {
-    ROTableColumn col(t->table(), column);
-
     ValueHolder value = t->getColumn(column,0,-1,1);
     outputValueHolder<T>(value,output,length);
 }
