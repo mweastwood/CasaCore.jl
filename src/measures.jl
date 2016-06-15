@@ -217,7 +217,7 @@ function Direction(sys::Directions.System, longitude::Units.Angle, latitude::Uni
            (Cint, Float64, Float64), sys, long, lat) |> Direction_cxx |> to_julia) :: Direction
 end
 
-function Direction(sys::Directions.System, longitude::ASCIIString, latitude::ASCIIString)
+function Direction(sys::Directions.System, longitude::AbstractString, latitude::AbstractString)
     Direction(sys, sexagesimal(longitude)*radians, sexagesimal(latitude)*radians)
 end
 
@@ -264,7 +264,7 @@ function Position(sys::Positions.System, elevation::Units.Distance,
 end
 
 function Position(sys::Positions.System, elevation::Units.Distance,
-                  longitude::ASCIIString, latitude::ASCIIString)
+                  longitude::AbstractString, latitude::AbstractString)
     Position(sys, elevation, sexagesimal(longitude)*radians, sexagesimal(latitude)*radians)
 end
 
@@ -343,7 +343,7 @@ hours and degrees.
     sexagesimal("12h34m56.7s")
     sexagesimal("+12d34m56.7s")
 """
-function sexagesimal(str::ASCIIString)
+function sexagesimal(str::AbstractString)
     # Explanation of the regular expression:
     # (\+|-)?       Capture a + or - sign if it is provided
     # (\d*\.?\d+)   Capture a decimal number (required)
