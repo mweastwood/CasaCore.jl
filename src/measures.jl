@@ -378,7 +378,13 @@ Construct a sexagesimal string from the given angle.
 """
 function sexagesimal(angle; hours::Bool = false, digits::Int = 0)
     radians = Units.Radian(angle) |> Units.value
-    s = sign(radians); radians = abs(radians)
+    if hours
+        s = +1
+        radians = mod2pi(radians)
+    else
+        s = sign(radians)
+        radians = abs(radians)
+    end
     if hours
         value = radians * 12/π
         value = round(value*3600, digits) / 3600
