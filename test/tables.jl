@@ -144,5 +144,29 @@
     @test table["MODEL_DATA"]     == model
     @test table["CORRECTED_DATA"] == corrected
     @test_throws ErrorException table["FABRICATED_DATA"]
+
+    @testset "locks" begin
+        # a lock will guard against another process accessing
+        # the table, so let's use a worker to try and access
+        # a locked table
+        name = tempname()*".ms"
+        table = Table(name)
+        Tables.addrows!(table, 1)
+        table["COLUMN"] = [1.0]
+        @everywhere function load_and_read(name)
+            mytable = CasaCore.Tables.Table(name)
+            mytable["COLUMN",1]
+        end
+        unlock(table) # forces the write to disk
+        lock(table)
+        rr = RemoteRef()
+        @async put!(rr, remotecall_fetch(2, load_and_read, name))
+        for i = 1:3
+            sleep(1)
+            @test !isready(rr)
+        end
+        unlock(table)
+        @test fetch(rr) == 1.0
+    end
 end
 
