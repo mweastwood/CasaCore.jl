@@ -7,6 +7,7 @@ else
     using BaseTestNext
     const Test = BaseTestNext
 end
+using Compat
 
 srand(123)
 
