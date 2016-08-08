@@ -1,3 +1,4 @@
+addprocs(1) # worker used for testing Table locks
 using CasaCore.Tables
 using CasaCore.Measures
 if VERSION >= v"0.5-"
@@ -6,6 +7,7 @@ else
     using BaseTestNext
     const Test = BaseTestNext
 end
+using Compat
 
 srand(123)
 

@@ -24,6 +24,8 @@ export set!, measure
 export radius, longitude, latitude, observatory, sexagesimal
 export seconds, days, degrees, radians, meters
 
+using Compat
+import Compat.String
 using ..Common
 
 const libcasacorewrapper = joinpath(dirname(@__FILE__),"../deps/libcasacorewrapper.so")
@@ -100,8 +102,8 @@ const meters  = Units.Meter(1.0)
 
 macro wrap(expr)
     jl_name  = expr.args[2].args[1]
-    jl_names = symbol(jl_name, "s")
-    cxx_name = symbol(jl_name, "_cxx")
+    jl_names = Symbol(jl_name, "s")
+    cxx_name = Symbol(jl_name, "_cxx")
     cxx_delete  = string("delete", jl_name)  # delete the corresponding C++ object
     cxx_new     = string("new", jl_name)     # create a new corresponding C++ object
     cxx_get     = string("get", jl_name)     # bring the C++ object back to Julia
@@ -217,7 +219,7 @@ function Direction(sys::Directions.System, longitude::Units.Angle, latitude::Uni
            (Cint, Float64, Float64), sys, long, lat) |> Direction_cxx |> to_julia) :: Direction
 end
 
-function Direction(sys::Directions.System, longitude::ASCIIString, latitude::ASCIIString)
+function Direction(sys::Directions.System, longitude::AbstractString, latitude::AbstractString)
     Direction(sys, sexagesimal(longitude)*radians, sexagesimal(latitude)*radians)
 end
 
@@ -264,7 +266,7 @@ function Position(sys::Positions.System, elevation::Units.Distance,
 end
 
 function Position(sys::Positions.System, elevation::Units.Distance,
-                  longitude::ASCIIString, latitude::ASCIIString)
+                  longitude::AbstractString, latitude::AbstractString)
     Position(sys, elevation, sexagesimal(longitude)*radians, sexagesimal(latitude)*radians)
 end
 
@@ -297,23 +299,23 @@ function Base.show(io::IO, baseline::Baseline)
 end
 
 macro epoch_str(sys)
-    eval(current_module(),:(Measures.Epochs.$(symbol(sys))))
+    eval(current_module(),:(Measures.Epochs.$(Symbol(sys))))
 end
 
 macro dir_str(sys)
-    eval(current_module(),:(Measures.Directions.$(symbol(sys))))
+    eval(current_module(),:(Measures.Directions.$(Symbol(sys))))
 end
 
 macro pos_str(sys)
-    eval(current_module(),:(Measures.Positions.$(symbol(sys))))
+    eval(current_module(),:(Measures.Positions.$(Symbol(sys))))
 end
 
 macro baseline_str(sys)
-    eval(current_module(),:(Measures.Baselines.$(symbol(sys))))
+    eval(current_module(),:(Measures.Baselines.$(Symbol(sys))))
 end
 
 """
-    observatory(name::ASCIIString)
+    observatory(name::AbstractString)
 
 Get the position of an observatory from its name.
 
@@ -322,10 +324,10 @@ Get the position of an observatory from its name.
     observatory("VLA")  # the Very Large Array
     observatory("ALMA") # the Atacama Large Millimeter/submillimeter Array
 """
-function observatory(name::ASCIIString)
+function observatory(name::AbstractString)
     position = Position(pos"ITRF", 0.0, 0.0, 0.0) |> Ref{Position}
     status = ccall(("observatory",libcasacorewrapper), Bool,
-                   (Ref{Position}, Cstring), position, name)
+                   (Ref{Position}, Ptr{Cchar}), position, name)
     !status && error("Unknown observatory.")
     position[]
 end
@@ -343,7 +345,7 @@ hours and degrees.
     sexagesimal("12h34m56.7s")
     sexagesimal("+12d34m56.7s")
 """
-function sexagesimal(str::ASCIIString)
+function sexagesimal(str::AbstractString)
     # Explanation of the regular expression:
     # (\+|-)?       Capture a + or - sign if it is provided
     # (\d*\.?\d+)   Capture a decimal number (required)
@@ -378,7 +380,13 @@ Construct a sexagesimal string from the given angle.
 """
 function sexagesimal(angle; hours::Bool = false, digits::Int = 0)
     radians = Units.Radian(angle) |> Units.value
-    s = sign(radians); radians = abs(radians)
+    if hours
+        s = +1
+        radians = mod2pi(radians)
+    else
+        s = sign(radians)
+        radians = abs(radians)
+    end
     if hours
         value = radians * 12/π
         value = round(value*3600, digits) / 3600
@@ -413,12 +421,12 @@ radius(measure) = hypot(hypot(measure.x, measure.y), measure.z)
 longitude(measure) = atan2(measure.y, measure.x)
 latitude(measure)  = atan2(measure.z, hypot(measure.x, measure.y))
 
-function Base.≈(lhs::Epoch, rhs::Epoch)
+function Base.isapprox(lhs::Epoch, rhs::Epoch)
     lhs.sys === rhs.sys || error("Coordinate systems must match.")
     lhs.time ≈ rhs.time
 end
 
-function Base.≈{T<:Union{Direction,Position,Baseline}}(lhs::T, rhs::T)
+function Base.isapprox{T<:Union{Direction,Position,Baseline}}(lhs::T, rhs::T)
     lhs.sys === rhs.sys || error("Coordinate systems must match.")
     v1 = [lhs.x, lhs.y, lhs.z]
     v2 = [rhs.x, rhs.y, rhs.z]
