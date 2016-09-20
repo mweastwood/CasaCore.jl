@@ -155,18 +155,18 @@
         table["COLUMN"] = [1.0]
         @everywhere function load_and_read(name)
             mytable = CasaCore.Tables.Table(name)
-            mytable["COLUMN",1]
+            mytable["COLUMN"], mytable["COLUMN",1]
         end
         unlock(table) # forces the write to disk
         lock(table)
-        rr = RemoteRef()
-        @async put!(rr, remotecall_fetch(2, load_and_read, name))
+        rr = RemoteChannel()
+        @async put!(rr, remotecall_fetch(load_and_read, 2, name))
         for i = 1:3
             sleep(1)
             @test !isready(rr)
         end
         unlock(table)
-        @test fetch(rr) == 1.0
+        @test fetch(rr) == ([1.0], 1.0)
     end
 end
 
