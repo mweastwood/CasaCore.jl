@@ -24,6 +24,8 @@ export set!, measure
 export radius, longitude, latitude, observatory, sexagesimal
 export seconds, days, degrees, radians, meters
 
+using Compat
+import Compat.String
 using ..Common
 
 const libcasacorewrapper = joinpath(dirname(@__FILE__),"../deps/libcasacorewrapper.so")

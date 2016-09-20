@@ -18,6 +18,8 @@ module Tables
 export Table, @kw_str
 
 importall Base.Operators
+using Compat
+import Compat.String
 using ..Common
 
 const libcasacorewrapper = joinpath(dirname(@__FILE__),"../deps/libcasacorewrapper.so")
