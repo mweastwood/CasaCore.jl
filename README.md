@@ -5,7 +5,7 @@
 
 A Julia wrapper of CasaCore.
 
-**Documentation:** http://mweastwood.github.io/CasaCore.jl
+**Documentation:** http://mweastwood.info/CasaCore.jl/
 
 **Author:** Michael Eastwood
 

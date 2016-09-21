@@ -159,7 +159,7 @@
         end
         unlock(table) # forces the write to disk
         lock(table)
-        rr = @compat RemoteChannel()
+        rr = RemoteChannel()
         @async put!(rr, remotecall_fetch(load_and_read, 2, name))
         for i = 1:3
             sleep(1)
