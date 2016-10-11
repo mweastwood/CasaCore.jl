@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -c -Wall -Werror -fpic
+CXXFLAGS = -c -Wall -Werror -fpic -Wno-return-type-c-linkage
 
 all: libcasacorewrapper.so
 
