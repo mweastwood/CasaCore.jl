@@ -14,12 +14,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
-#include <casa/Containers/ValueHolder.h>
-#include <tables/Tables.h>
-#include <tables/Tables/TableProxy.h>
+#include <casacore/casa/Containers/ValueHolder.h>
+#include <casacore/tables/Tables.h>
+#include <casacore/tables/Tables/TableProxy.h>
 
 using namespace std;
-using namespace casa;
+using namespace casacore;
 
 template <class T>
 ValueHolder createValueHolder(T* input, int* shape, int ndim) {
