@@ -243,7 +243,7 @@ end
 
 # Define all the functions for all the types!
 
-for T in (Bool,Int32,Float32,Float64,Complex64)
+for T in (Bool, Int32, Float32, Float64, Complex64)
     typestr = type2str[T]
     c_addScalarColumn = "addScalarColumn_$typestr"
     c_addArrayColumn  = "addArrayColumn_$typestr"
@@ -257,18 +257,18 @@ for T in (Bool,Int32,Float32,Float64,Complex64)
 
     @eval function create_column!(table::Table, column::AbstractString, ::Type{$T}, shape)
         if length(shape) == 1
-            ccall(($c_addScalarColumn,libcasacorewrapper), Void,
-                  (Ptr{Void},Ptr{Cchar}), table, column)
+            ccall(($c_addScalarColumn, libcasacorewrapper), Void,
+                  (Ptr{Void}, Ptr{Cchar}), table, column)
         else
-            ccall(($c_addArrayColumn,libcasacorewrapper), Void,
-                  (Ptr{Void},Ptr{Cchar},Ptr{Cint},Cint),
+            ccall(($c_addArrayColumn, libcasacorewrapper), Void,
+                  (Ptr{Void}, Ptr{Cchar}, Ptr{Cint}, Cint),
                   table, column, shape[1:end-1] |> Vector{Cint}, length(shape)-1)
         end
     end
 
     @eval function read_into!(output::Array{$T}, table::Table, column::AbstractString)
-        ccall(($c_getColumn,libcasacorewrapper), Void,
-              (Ptr{Void},Ptr{Cchar},Ptr{$T},Cint),
+        ccall(($c_getColumn, libcasacorewrapper), Void,
+              (Ptr{Void}, Ptr{Cchar}, Ptr{$T}, Cint),
               table, column, output, length(output))
         output
     end
@@ -277,17 +277,16 @@ for T in (Bool,Int32,Float32,Float64,Complex64)
         shape = [size(input)...] |> Vector{Cint}
         ndim  = length(shape)
         exists(table, column) || create_column!(table, column, $T, shape)
-        ccall(($c_putColumn,libcasacorewrapper), Void,
-              (Ptr{Void},Ptr{Cchar},Ptr{$T},Ptr{Cint},Cint),
+        ccall(($c_putColumn, libcasacorewrapper), Void,
+              (Ptr{Void}, Ptr{Cchar}, Ptr{$T}, Ptr{Cint}, Cint),
               table, column, input, shape, ndim)
         input
     end
 
-    @eval function read_into!(output::Array{$T},table::Table,
-                              column::AbstractString,row::Int)
+    @eval function read_into!(output::Array{$T}, table::Table, column::AbstractString, row::Int)
         # Subtract 1 from the row number to convert to a 0-based indexing scheme
-        ccall(($c_getCell,libcasacorewrapper), Void,
-              (Ptr{Void},Ptr{Cchar},Cint,Ptr{$T},Cint),
+        ccall(($c_getCell, libcasacorewrapper), Void,
+              (Ptr{Void}, Ptr{Cchar}, Cint, Ptr{$T}, Cint),
               table, column, row-1, output, length(output))
         output
     end
@@ -297,27 +296,27 @@ for T in (Bool,Int32,Float32,Float64,Complex64)
         ndim  = length(shape)
         # Subtract 1 from the row number to convert to a 0-based indexing scheme
         ccall(($c_putCell,libcasacorewrapper), Void,
-              (Ptr{Void},Ptr{Cchar},Cint,Ptr{$T},Ptr{Cint},Cint),
+              (Ptr{Void}, Ptr{Cchar}, Cint, Ptr{$T}, Ptr{Cint}, Cint),
               table, column, row-1, input, shape, ndim)
         input
     end
 
     @eval function write_to!(table::Table, column::AbstractString, row::Int, input::$T)
         # Subtract 1 from the row number to convert to a 0-based indexing scheme
-        ccall(($c_putCell_scalar,libcasacorewrapper), Void,
-              (Ptr{Void},Ptr{Cchar},Cint,$T),
+        ccall(($c_putCell_scalar, libcasacorewrapper), Void,
+              (Ptr{Void}, Ptr{Cchar}, Cint, $T),
               table, column, row-1, input)
         input
     end
 
     @eval function read_keyword(table::Table, column::AbstractString, keyword::Keyword, ::Type{$T})
-        ccall(($c_getKeyword,libcasacorewrapper), $T,
+        ccall(($c_getKeyword, libcasacorewrapper), $T,
               (Ptr{Void}, Ptr{Cchar}, Ptr{Cchar}),
               table, column, keyword)
     end
 
     @eval function write_keyword!(table::Table, column::AbstractString, keyword::Keyword, input::$T)
-        ccall(($c_putKeyword,libcasacorewrapper), Void,
+        ccall(($c_putKeyword, libcasacorewrapper), Void,
               (Ptr{Void}, Ptr{Cchar}, Ptr{Cchar}, $T),
               table, column, keyword, input)
     end
@@ -326,10 +325,10 @@ end
 # Strings are special little snow flakes and need to be treated separately.
 
 function read_keyword(table::Table, column::AbstractString, keyword::Keyword, ::Type{String})
-    N = ccall(("getKeyword_string_length",libcasacorewrapper), Int,
+    N = ccall(("getKeyword_string_length", libcasacorewrapper), Int,
               (Ptr{Void}, Ptr{Cchar}, Ptr{Cchar}), table, column, keyword)
     output = Array(Cchar, N)
-    ccall(("getKeyword_string",libcasacorewrapper), Void,
+    ccall(("getKeyword_string", libcasacorewrapper), Void,
           (Ptr{Void}, Ptr{Cchar}, Ptr{Cchar}, Ptr{Cchar}),
           table, column, keyword, output)
     chars = [Char(x) for x in output]
@@ -337,7 +336,7 @@ function read_keyword(table::Table, column::AbstractString, keyword::Keyword, ::
 end
 
 function write_keyword!(table::Table, column::AbstractString, keyword::Keyword, input::AbstractString)
-    ccall(("putKeyword_string",libcasacorewrapper), Void,
+    ccall(("putKeyword_string", libcasacorewrapper), Void,
           (Ptr{Void}, Ptr{Cchar}, Ptr{Cchar}, Ptr{Cchar}),
           table, column, keyword, input)
 end
