@@ -56,20 +56,21 @@ Measurement Sets).
 @wrap_pointer Table
 
 """
-    Table(name::AbstractString)
+    Table(path::AbstractString)
 
-Open and lock the CasaCore table. If no table with the given name
-exists, a new table is created.
+Open and lock the CasaCore table. If no table at the given path exists, a new table is created.
 """
-function Table(name::AbstractString)
+function Table(path::AbstractString)
     # Remove the "Table: " prefix, if it exists
-    strippedname = replace(name,"Table: ","",1)
-    if isdir(strippedname)
-        table = ccall(("newTable_existing",libcasacorewrapper), Ptr{Void}, (Ptr{Cchar},), strippedname) |> Table
+    path = replace(path, "Table: ", "", 1)
+    # Expand a tilde to the home directory
+    path = expanduser(path)
+    if isdir(path)
+        table = ccall(("newTable_existing", libcasacorewrapper), Ptr{Void}, (Ptr{Cchar},), path) |> Table
     else
-        table = ccall(("newTable_create",libcasacorewrapper), Ptr{Void}, (Ptr{Cchar},), strippedname) |> Table
+        table = ccall(("newTable_create", libcasacorewrapper), Ptr{Void}, (Ptr{Cchar},), path) |> Table
     end
-    finalizer(table,delete)
+    finalizer(table, delete)
     table
 end
 

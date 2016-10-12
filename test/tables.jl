@@ -168,5 +168,18 @@
         unlock(table)
         @test fetch(rr) == ([1.0], 1.0)
     end
+
+    # Issue #58
+    # This will create a temporary table in the user's home directory so only run this test if we
+    # are running tests from a CI service
+    if get(ENV, "CI", "false") == "true"
+        println("Running test for issue #58")
+        ms1 = Table("~/issue58.ms")
+        Tables.addrows!(ms1, 1)
+        ms1["col"] = [1.0]
+        unlock(ms1)
+        ms2 = Table("~/issue58.ms")
+        @test ms2["col"] == [1.0]
+    end
 end
 
