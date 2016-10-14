@@ -19,6 +19,7 @@ Useful code that is shared between CasaCore submodules.
 module Common
 
 export @wrap_pointer
+export CasaCoreError
 
 macro wrap_pointer(name)
     cxx_delete = string("delete", name)
@@ -36,6 +37,12 @@ macro wrap_pointer(name)
         end
     end |> esc
 end
+
+type CasaCoreError <: Exception
+    msg :: String
+end
+
+Base.show(io::IO, err::CasaCoreError) = print(io, "CasaCoreError: ", err.msg)
 
 end
 

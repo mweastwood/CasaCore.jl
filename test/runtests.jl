@@ -7,6 +7,6 @@ srand(123)
 
 @testset "CasaCore Tests" begin
     include("tables.jl")
-    include("measures.jl")
+    #include("measures.jl")
 end
 
