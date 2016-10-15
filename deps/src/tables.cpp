@@ -509,6 +509,10 @@ extern "C" {
     cmplx getKeyword_complex(Table* t, char* keyword) {
         return getKeyword<Complex>(t, keyword);
     }
+    char* getKeyword_string(Table* t, char* keyword) {
+        String string = getKeyword<String>(t, keyword);
+        return output_string(string);
+    }
 
     void putKeyword_boolean(Table* t, char* keyword, bool input) {
         return putKeyword<Bool>(t, keyword, input);
@@ -524,6 +528,9 @@ extern "C" {
     }
     void putKeyword_complex(Table* t, char* keyword, cmplx input) {
         return putKeyword<Complex>(t, keyword, input);
+    }
+    void putKeyword_string(Table* t, char* keyword, char* input) {
+        return putKeyword<String>(t, keyword, input);
     }
 
     bool getKeyword_column_boolean(Table* t, char* column, char* keyword) {
@@ -541,6 +548,10 @@ extern "C" {
     cmplx getKeyword_column_complex(Table* t, char* column, char* keyword) {
         return getKeyword_column<Complex>(t, column, keyword);
     }
+    char* getKeyword_column_string(Table* t, char* column, char* keyword) {
+        String string = getKeyword_column<String>(t, column, keyword);
+        return output_string(string);
+    }
 
     void putKeyword_column_boolean(Table* t, char* column, char* keyword, bool input) {
         return putKeyword_column<Bool>(t, column, keyword, input);
@@ -557,77 +568,8 @@ extern "C" {
     void putKeyword_column_complex(Table* t, char* column, char* keyword, cmplx input) {
         return putKeyword_column<Complex>(t, column, keyword, input);
     }
-}
-
-/*
-
-// Read/Write Cells
-
-extern "C" {
-}
-
-template <class T>
-int getKeywordLength(TableProxy* t, char* column, char* keyword) {
-    ValueHolder value = t->getKeyword(column,keyword,-1);
-    Array<T> arr;
-    value.getValue(arr);
-    return arr.size();
-}
-
-template <class T>
-T getKeyword(TableProxy* t, char* column, char* keyword) {
-    ValueHolder value = t->getKeyword(column,keyword,-1);
-    return outputValueHolder<T>(value);
-}
-
-template <class T>
-void putKeyword(TableProxy* t, char* column, char* keyword, T const& keywordvalue) {
-    ValueHolder value(keywordvalue);
-    t->putKeyword(column,keyword,-1,false,value);
-}
-
-
-template <class T>
-void getKeywordArray(TableProxy* t, char* column, char* keyword, T* output, int length) {
-    ValueHolder value = t->getKeyword(column,keyword,-1);
-    outputValueHolder<T>(value,output,length);
-}
-
-template <class T>
-void putKeywordArray(TableProxy* t, char* column, char* keyword, T* input, int length) {
-    ValueHolder value = createValueHolder(input,&length,1);
-    t->putKeyword(column,keyword,-1,false,value);
-}
-
-extern "C" {
-
-    bool           getKeyword_boolean( TableProxy* t, char* column, char* keyword) {return getKeyword<Bool>(t,column,keyword);}
-    int            getKeyword_int(     TableProxy* t, char* column, char* keyword) {return getKeyword<Int>(t,column,keyword);}
-    float          getKeyword_float(   TableProxy* t, char* column, char* keyword) {return getKeyword<Float>(t,column,keyword);}
-    double         getKeyword_double(  TableProxy* t, char* column, char* keyword) {return getKeyword<Double>(t,column,keyword);}
-    complex<float> getKeyword_complex( TableProxy* t, char* column, char* keyword) {return getKeyword<Complex>(t,column,keyword);}
-
-    void putKeyword_boolean( TableProxy* t, char* column, char* keyword,           bool value) {return putKeyword<Bool>(t,column,keyword,value);}
-    void putKeyword_int(     TableProxy* t, char* column, char* keyword,            int value) {return putKeyword<Int>(t,column,keyword,value);}
-    void putKeyword_float(   TableProxy* t, char* column, char* keyword,          float value) {return putKeyword<Float>(t,column,keyword,value);}
-    void putKeyword_double(  TableProxy* t, char* column, char* keyword,         double value) {return putKeyword<Double>(t,column,keyword,value);}
-    void putKeyword_complex( TableProxy* t, char* column, char* keyword, complex<float> value) {return putKeyword<Complex>(t,column,keyword,value);}
-
-    int getKeyword_string_length(TableProxy* t, char* column, char* keyword) {
-        return getKeyword<String>(t,column,keyword).length();
-    }
-
-    void getKeyword_string(TableProxy* t, char* column, char* keyword, char* output) {
-        String str = getKeyword<String>(t,column,keyword);
-        int N = str.length();
-        for (int i = 0; i < N; ++i) {
-            output[i] = str[i];
-        }
-    }
-
-    void putKeyword_string(TableProxy* t, char* column, char* keyword, char* keywordvalue) {
-        putKeyword<String>(t,column,keyword,keywordvalue);
+    void putKeyword_column_string(Table* t, char* column, char* keyword, char* input) {
+        return putKeyword_column<String>(t, column, keyword, input);
     }
 }
-*/
 
