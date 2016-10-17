@@ -324,6 +324,12 @@ function getindex(table::Table, column::String, row::Int)
     read_cell(table, column, row, T, shape)
 end
 
+eltype_or_typeof(x::Array) = eltype(x)
+eltype_or_typeof(x::Number) = typeof(x)
+eltype_or_typeof(x::String) = String
+size_if_array(x::Array) = size(x)
+size_if_array(x) = ()
+
 function setindex!(table::Table, value, column::String, row::Int)
     if !column_exists(table, column)
         throw(CasaCoreError("the column \"$column\" is not present in this table"))
@@ -332,29 +338,11 @@ function setindex!(table::Table, value, column::String, row::Int)
         throw(CasaCoreError("row number out of range"))
     end
     T = column_eltype(table, column)
-    if T != typeof(value)
-        throw(CasaCoreError("element type mismatch for column \"$column\""))
-    end
-    shape = column_shape(table, column)
-    if length(shape) != 1
-        throw(CasaCoreError("shape mismatch for cell in column \"$column\""))
-    end
-    write_cell!(table, value, column, row)
-end
-
-function setindex!(table::Table, value::Array, column::String, row::Int)
-    if !column_exists(table, column)
-        throw(CasaCoreError("the column \"$column\" is not present in this table"))
-    end
-    if row ≤ 0 || row > numrows(table)
-        throw(CasaCoreError("row number out of range"))
-    end
-    T = column_eltype(table, column)
-    if T != eltype(value)
+    if T != eltype_or_typeof(value)
         throw(CasaCoreError("element type mismatch for column \"$column\""))
     end
     shape = column_shape(table, column)[1:end-1]
-    if shape != size(value)
+    if shape != size_if_array(value)
         throw(CasaCoreError("shape mismatch for cell in column \"$column\""))
     end
     write_cell!(table, value, column, row)
