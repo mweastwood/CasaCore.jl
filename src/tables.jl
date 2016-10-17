@@ -324,12 +324,6 @@ function getindex(table::Table, column::String, row::Int)
     read_cell(table, column, row, T, shape)
 end
 
-eltype_or_typeof(x::Array) = eltype(x)
-eltype_or_typeof(x::Number) = typeof(x)
-eltype_or_typeof(x::String) = String
-size_if_array(x::Array) = size(x)
-size_if_array(x) = ()
-
 function setindex!(table::Table, value, column::String, row::Int)
     if !column_exists(table, column)
         throw(CasaCoreError("the column \"$column\" is not present in this table"))
@@ -337,15 +331,37 @@ function setindex!(table::Table, value, column::String, row::Int)
     if row ≤ 0 || row > numrows(table)
         throw(CasaCoreError("row number out of range"))
     end
+    check_cell_type(table, column, value)
+    check_cell_size(table, column, value)
+    write_cell!(table, value, column, row)
+end
+
+function check_cell_type(table, column, value::Array)
     T = column_eltype(table, column)
-    if T != eltype_or_typeof(value)
+    if T != eltype(value)
         throw(CasaCoreError("element type mismatch for column \"$column\""))
     end
+end
+
+function check_cell_type(table, column, value)
+    T = column_eltype(table, column)
+    if T != typeof(value)
+        throw(CasaCoreError("element type mismatch for column \"$column\""))
+    end
+end
+
+function check_cell_size(table, column, value::Array)
     shape = column_shape(table, column)[1:end-1]
-    if shape != size_if_array(value)
+    if shape != size(value)
         throw(CasaCoreError("shape mismatch for cell in column \"$column\""))
     end
-    write_cell!(table, value, column, row)
+end
+
+function check_cell_size(table, column, value)
+    shape = column_shape(table, column)
+    if length(shape) != 1
+        throw(CasaCoreError("shape mismatch for cell in column \"$column\""))
+    end
 end
 
 for T in typelist_nostring
