@@ -1,4 +1,4 @@
-@testset "Measures Tests" begin
+@testset "measures.jl" begin
     @test sexagesimal("12h34m56.78s") ≈ π/12.*(12.+34/60.+56.78/3600)
     @test sexagesimal("12h34m56s")    ≈ π/12.*(12.+34/60.+56./3600)
     @test sexagesimal("12h34.56m")    ≈ π/12.*(12.+34.56/60)

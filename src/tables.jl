@@ -145,12 +145,12 @@ for T in typelist
     c_addScalarColumn = "addScalarColumn_$typestr"
     c_addArrayColumn  = "addArrayColumn_$typestr"
 
-    @eval function create_column!(table::Table, column::String, ::Type{$T}, shape::Tuple{Int})
+    @eval function addcolumn!(table::Table, column::String, ::Type{$T}, shape::Tuple{Int})
         ccall(($c_addScalarColumn, libcasacorewrapper), Void, (Ptr{Void}, Ptr{Cchar}),
               table, column)
     end
 
-    @eval function create_column!(table::Table, column::String, ::Type{$T}, shape::Tuple)
+    @eval function addcolumn!(table::Table, column::String, ::Type{$T}, shape::Tuple)
         cell_shape = convert(Vector{Cint}, collect(shape[1:end-1]))
         ccall(($c_addArrayColumn, libcasacorewrapper), Void,
               (Ptr{Void}, Ptr{Cchar}, Ptr{Cint}, Cint),
@@ -260,7 +260,7 @@ end
 
 function setindex!(table::Table, value, column::String)
     if !column_exists(table, column)
-        create_column!(table, column, eltype(value), size(value))
+        addcolumn!(table, column, eltype(value), size(value))
     end
     T = column_eltype(table, column)
     if T != eltype(value)

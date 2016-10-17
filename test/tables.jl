@@ -1,4 +1,4 @@
-@testset "Table Tests" begin
+@testset "tables.jl" begin
     table_name = tempname()*".ms"
     table = Table(table_name)
 
@@ -34,7 +34,7 @@
         types_nostring = types[1:end-1]
         for shape in ((10,), (11, 10), (12, 11, 10))
             for (name, T) in zip(names, types)
-                Tables.create_column!(table, name, T, shape)
+                Tables.addcolumn!(table, name, T, shape)
                 @test Tables.column_exists(table, name)
                 @test Tables.column_eltype(table, name) == T
                 @test Tables.column_dim(table, name) == length(shape)
@@ -94,12 +94,37 @@
             x = rand(T)
             table[kw"test"] = x
             @test table[kw"test"] == x
+            @test_throws CasaCoreError table[kw"tset"] # typo
+            @test_throws CasaCoreError table[kw"test"] = Float16(0) # incorrect type
             Tables.removekeyword!(table, kw"test")
         end
         x = "I am a banana!"
         table[kw"test"] = x
         @test table[kw"test"] == x
+        @test_throws CasaCoreError table[kw"tset"] # typo
+        @test_throws CasaCoreError table[kw"test"] = Float16(0) # incorrect type
         Tables.removekeyword!(table, kw"test")
+    end
+
+    @testset "column keywords" begin
+        Tables.addcolumn!(table, "column", Float64, (10,))
+        for T in (Bool, Int32, Float32, Float64, Complex64)
+            x = rand(T)
+            table["column", kw"test"] = x
+            @test table["column", kw"test"] == x
+            @test_throws CasaCoreError table["column", kw"tset"] # typo
+            @test_throws CasaCoreError table["column", kw"test"] = Float16(0) # incorrect type
+            Tables.removekeyword!(table, "column", kw"test")
+        end
+        x = "I am a banana!"
+        table["column", kw"test"] = x
+        @test table["column", kw"test"] == x
+        @test_throws CasaCoreError table["colunm", kw"test"] # typo
+        @test_throws CasaCoreError table["column", kw"tset"] # typo
+        @test_throws CasaCoreError table["colunm", kw"test"] = x # typo
+        @test_throws CasaCoreError table["column", kw"test"] = Float16(0) # incorrect type
+        Tables.removekeyword!(table, "column", kw"test")
+        Tables.removecolumn!(table, "column")
     end
 
     @testset "old tests" begin
