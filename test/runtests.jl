@@ -6,6 +6,7 @@ using Base.Test
 srand(123)
 
 @testset "CasaCore Tests" begin
+    include("common.jl")
     include("tables.jl")
     include("measures.jl")
 end

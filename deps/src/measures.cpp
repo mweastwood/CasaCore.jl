@@ -14,20 +14,20 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
-#include <measures/Measures.h>
-#include <measures/Measures/MeasFrame.h>
-#include <measures/Measures/MeasTable.h>
-#include <measures/Measures/MEpoch.h>
-#include <measures/Measures/MCEpoch.h>
-#include <measures/Measures/MDirection.h>
-#include <measures/Measures/MCDirection.h>
-#include <measures/Measures/MPosition.h>
-#include <measures/Measures/MCPosition.h>
-#include <measures/Measures/MBaseline.h>
-#include <measures/Measures/MCBaseline.h>
+#include <casacore/measures/Measures.h>
+#include <casacore/measures/Measures/MeasFrame.h>
+#include <casacore/measures/Measures/MeasTable.h>
+#include <casacore/measures/Measures/MEpoch.h>
+#include <casacore/measures/Measures/MCEpoch.h>
+#include <casacore/measures/Measures/MDirection.h>
+#include <casacore/measures/Measures/MCDirection.h>
+#include <casacore/measures/Measures/MPosition.h>
+#include <casacore/measures/Measures/MCPosition.h>
+#include <casacore/measures/Measures/MBaseline.h>
+#include <casacore/measures/Measures/MCBaseline.h>
 
 using namespace std;
-using namespace casa;
+using namespace casacore;
 
 struct Epoch {
     int sys;
