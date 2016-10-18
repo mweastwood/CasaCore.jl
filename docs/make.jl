@@ -14,6 +14,7 @@ makedocs(
 
 deploydocs(
     repo   = "github.com/mweastwood/CasaCore.jl.git",
+    julia  = "0.5",
     target = "build",
     deps   = nothing,
     make   = nothing
