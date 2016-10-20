@@ -22,7 +22,6 @@ export ReferenceFrame
 export set!, measure
 
 export radius, longitude, latitude, observatory, sexagesimal
-export seconds, days, degrees, radians, meters
 
 using ..Common
 
@@ -116,7 +115,7 @@ Use the `set!` function to add information to the given frame of reference.
 ``` julia
 frame = ReferenceFrame()
 set!(frame, observatory("VLA")) # set the observer's position to the location of the VLA
-set!(frame, Epoch(epoch"UTC", 50237.29days)) # set the current UTC time
+set!(frame, Epoch(epoch"UTC", 50237.29*u"d")) # set the current UTC time
 ```
 """
 @wrap_pointer ReferenceFrame
@@ -412,7 +411,7 @@ measure(frame, Direction(dir"SUN"), dir"AZEL")
 measure(frame, observatory("VLA"), pos"ITRF")
 
 # Compute the atomic time from a UTC time
-measure(frame, Epoch(epoch"UTC", 50237.29days), epoch"TAI")
+measure(frame, Epoch(epoch"UTC", 50237.29*u"d"), epoch"TAI")
 ```
 """
 measure
