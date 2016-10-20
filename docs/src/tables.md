@@ -1,6 +1,10 @@
 # CasaCore.Tables
 
-Load this module by running `using CasaCore.Tables`.
+Load this module by running
+
+``` julia
+using CasaCore.Tables
+```
 
 The `Tables` module is used to interact with CasaCore tables. This is a common data format in radio
 astronomy. For example CASA measurement sets and CASA calibration tables are simply CasaCore tables
@@ -67,7 +71,7 @@ The number of rows in the table can be obtained with `Tables.numrows(table)`.  N
 indexing order is column first, row second. This is opposite from the usual matrix convention where
 the first index specifies the row.
 
-!!! warning
+!!! important
     Julia is 1-indexed programming language. This means that the first element of an array `x` is
     accessed with `x[1]` instead of `x[0]` (as is the case for C and Python). Similarly, the first
     row of a table is row number 1. Attempting to access row number 0 will throw a `CasaCoreError`
@@ -78,9 +82,15 @@ the first index specifies the row.
 Keywords are accessed using the `kw"..."` string macro. For example:
 
 ``` julia
-ms_version = table[kw"MS_VERSION"]
-table[kw"MS_VERSION"] = 2.0
+ms_version = table[kw"MS_VERSION"] # read the value of the "MS_VERSION" keyword
+table[kw"MS_VERSION"] = 2.0        # set the value of the "MS_VERSION" keyword
 ```
+
+A keyword can be removed with the `Tables.removekeyword!` function.
+
+!!! warning
+    A current known limitation of CasaCore.jl is the inability to read from or write to keywords
+    that contain an array of values. This will be fixed if you file a bug report!
 
 ## Subtables
 
@@ -91,4 +101,7 @@ you would a regular table.
 location = table[kw"SPECTRAL_WINDOW"]
 subtable = Table(location)
 ```
+
+In this example the `SPECTRAL_WINDOW` keyword contains the path to the corresponding subtable, which
+usually contains information about the frequency bands and channels of a measurement set.
 

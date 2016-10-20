@@ -1,110 +1,90 @@
 # Measures
 
-```julia
+``` @meta
+CurrentModule = CasaCore.Measures
+```
+
+Load this module by running
+
+``` julia
 using CasaCore.Measures
 ```
 
-## Epochs
+The `Measures` module is used to interface with the CasaCore measures system, which can be used to
+perform coordinate system conversions. For example, UTC time can be converted to atomic time, or a
+B1950 coordinates can be converted to J2000 coordinates.
 
-An `Epoch` represents an instance in time.
+At the moment there are 3 different kinds of measures available:
 
-```julia
-epoch = Epoch(epoch"UTC", time * days)
+1. [Epochs](@ref) - representing an instance in time
+2. [Directions](@ref) - representing a direction to an object on the sky
+3. [Positions](@ref) - representing a location on the Earth
+
+## Units
+
+CasaCore.Measures depends on the [Unitful](https://github.com/ajkeller34/Unitful.jl) package in
+order to specify the units associated with various quantities. The Unitful package should have
+automatically been installed when you ran `Pkg.add("CasaCore")`. You can load the Unitful package by
+running `using Unitful` and [documentation for Unitful is also
+available](http://ajkeller34.github.io/Unitful.jl). Unitful is a particularly elegant package for
+unit-checked computation because the unit checking occurs at compile-time. That is, there is no
+run-time overhead associated with using Unitful.
+
+Unitful offers two ways to attach units to a quantity:
+
+``` julia
+using Unitful: m
+x = 10.0 * u"m" # using the u"..." string macro
+y = 10.0 * m    # using the Unitful.m object (which we have imported into our namespace)
 ```
 
-* The first argument specifies the coordinate system.
-* The second argument specifies the time as a modified Julian date.
+The first approach using the string macro is generally preferred because it avoids polluting the
+namespace. Simply replace the `...` in `u"..."` with your desired units. For example we could obtain
+units of meters per second by writing `u"m/s"` or radians per kilometer-squared by writing
+`u"rad/km^2"`.
 
-**Recognized Coordinate Systems:**
-`LAST`, `LMST`, `GMST1`, `GAST`, `UT1`, `UT2`, `UTC`,
-`TAI`, `TDT`, `TCG`, `TDB`, `TCB`
+CasaCore.Measures, however, will only expect quantities with three different kinds of units: times,
+lengths, and angles. These are summarized below.
 
---------------------------------------------------
+|    Unit    | Expression |
+|:----------:|:----------:|
+|   Seconds  |   `u"s"`   |
+|    Days    |   `u"dy"`  |
+|   Meters   |   `u"m"`   |
+| Kilometers |   `u"km"`  |
+|   Degrees  |   `u"°"`   |
+|   Radians  |  `u"rad"`  |
+
+!!! note
+    The ° character for degrees con be obtained at the Julia REPL by typing `\degree` and then
+    pressing `<tab>`. The Julia plugins for Emacs and vim also provide this functionality.
+
+## Epochs
+
+An epoch measure is created using the `Epoch(sys, time)` constructor where `sys` specifies the
+coordinate system and `time` specifies the Julian date.
+
+``` @docs
+Epoch(::Epochs.System, ::Unitful.Time)
+```
 
 ## Directions
 
-A `Direction` represents a position on the sky.
-
-```julia
-direction = Direction(dir"J2000", "19h59m28.35663s", "+40d44m02.0970s")
+``` @docs
+Direction(::Directions.System, ::Angle, ::Angle)
 ```
-
-* The first argument specifies the coordinate system.
-* The second argument specifies the longitude.
-* The third argument specifies the latitude.
-
-Alternatively the location of a known solar system object (see the list below)
-may be obtained by using:
-
-```julia
-direction = Direction(dir"JUPITER")
-```
-
-**Recognized Coordinate Systems:**
-`J2000`, `JMEAN`, `JTRUE`, `APP`, `B1950`, `B1950_VLA`, `BMEAN`, `BTRUE`,
-`GALACTIC`, `HADEC`, `AZEL`, `AZELSW`, `AZELGEO`, `AZELSWGEO`, `JNAT`,
-`ECLIPTIC`, `MECLIPTIC`, `TECLIPTIC`, `SUPERGAL`, `ITRF`, `TOPO`, `ICRS`,
-`MERCURY`, `VENUS`, `MARS`, `JUPITER`, `SATURN`, `URANUS`, `NEPTUNE`,
-`PLUTO`, `SUN`, `MOON`
-
---------------------------------------------------
 
 ## Positions
 
-A `Position` represents a location on the Earth.
-
-Alternatively the position of a known observatory may be obtained by using:
-
-```julia
-position = observatory("VLA")
+``` @docs
+Position(::Positions.System, ::Unitful.Length, ::Angle, ::Angle)
+observatory
 ```
-
-**Recognized Coordinate Systems:**
-`ITRF`, `WGS84`
-
---------------------------------------------------
-
-## Baselines
-
-**Recognized Coordinate Systems:**
-`J2000`, `JMEAN`, `JTRUE`, `APP`, `B1950`, `B1950_VLA`, `BMEAN`, `BTRUE`,
-`GALACTIC`, `HADEC`, `AZEL`, `AZELSW`, `AZELGEO`, `AZELSWGEO`, `JNAT`,
-`ECLIPTIC`, `MECLIPTIC`, `TECLIPTIC`, `SUPERGAL`, `ITRF`, `TOPO`, `ICRS`
-
---------------------------------------------------
 
 ## Coordinate System Conversions
 
-Some coordinate conversions require information about the associated frame of reference.
-For example, the conversion from a J2000 right ascension and declination to a local
-azimuth and elevation requires information about the observer's time and location.
-
-Here are a few examples attaching information to a frame of reference:
-
-```julia
-frame = ReferenceFrame()
-position = observatory("VLA")
-time = Epoch(epoch"UTC", 50237.29days))
-set!(frame, position)
-set!(frame, time)
-```
-
-```julia
-frame = ReferenceFrame()
-set!(frame, observatory("ALMA"))
-```
-
-In general, the amount of information required depends on the specific coordinate system
-conversion. Converting between B1950 and J2000, for example, requires no additional information
-about your frame of reference.
-
-Once you have established the correct frame of reference, the conversion is performed as follows:
-
-```julia
-azel_direction = measure(frame, j2000_direction, dir"AZEL")
-```
-
-```julia
-itrf_position = measure(frame, wgs84_position, pos"ITRF")
+``` @docs
+ReferenceFrame
+measure
 ```
 
