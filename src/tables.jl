@@ -131,11 +131,11 @@ function addrows!(table::Table, numrows::Integer)
 end
 
 """
-    Tables.removerows!(table::Table, rows)
+    Tables.remove_rows!(table::Table, rows)
 
 Remove the specified rows from the table.
 """
-function removerows!(table::Table, rows)
+function remove_rows!(table::Table, rows)
     c_rows = collect(rows-1)
     ccall(("removeRow", libcasacorewrapper), Void, (Ptr{Void}, Ptr{Cuint}, Csize_t),
           table, c_rows, length(c_rows))
@@ -160,12 +160,12 @@ for T in typelist
 end
 
 """
-    Tables.removecolumn!(table::Table, column::String)
+    Tables.remove_column!(table::Table, column::String)
 
 Remove the specified column from the table. Note that removing columns from a reference table does
 not remove the columns from the original table.
 """
-function removecolumn!(table::Table, column::String)
+function remove_column!(table::Table, column::String)
     ccall(("removeColumn", libcasacorewrapper), Void, (Ptr{Void}, Ptr{Cchar}), table, column)
 end
 
@@ -212,15 +212,15 @@ macro kw_str(string)
 end
 
 """
-    Tables.removekeyword!(table::Table, keyword::Keyword)
+    Tables.remove_keyword!(table::Table, keyword::Keyword)
 
 Remove the specified keyword from the table.
 """
-function removekeyword!(table::Table, keyword::Keyword)
+function remove_keyword!(table::Table, keyword::Keyword)
     ccall(("removeKeyword", libcasacorewrapper), Void, (Ptr{Void}, Ptr{Cchar}), table, keyword)
 end
 
-function removekeyword!(table::Table, column::String, keyword::Keyword)
+function remove_keyword!(table::Table, column::String, keyword::Keyword)
     ccall(("removeKeyword_column", libcasacorewrapper), Void, (Ptr{Void}, Ptr{Cchar}, Ptr{Cchar}),
           table, column, keyword)
 end
