@@ -105,3 +105,60 @@ subtable = Table(location)
 In this example the `SPECTRAL_WINDOW` keyword contains the path to the corresponding subtable, which
 usually contains information about the frequency bands and channels of a measurement set.
 
+## Best Practices
+
+### Type Stability
+
+Julia is a dynamically typed language. Because of this we can write statements like `column =
+table["column"]` without knowing the type of the column ahead of time. If the column contains
+`float`s (`Float32`), Julia will do the right thing. If the column contains `double`s (`Float64`),
+Julia will do the right thing. As a user, we did not need to know whether this column contains
+`float`s or `double`s ahead of time.
+
+However Julia also performs "type-inference". This means that Julia will attempt to deduce the types
+of your variables. If the types of your variables can be inferred at *compile time*, Julia will
+generate more efficient machine code specialized on the types that it inferred. If the types of your
+variables cannot be inferred at *compile time*, Julia will need to generate less efficient generic
+code to account for the uncertainty in the types of your variables.
+
+This concept is important for `CasaCore.Tables` because the result of `table["column"]` can be a
+wide variety of different types, and the actual type isn't known until *run time*. Now consider the
+following example:
+
+``` julia
+function add_one_to_data_column(table)
+    column = table["DATA"] # type of `column` cannot be inferred
+    for idx in eachindex(column)
+        column[idx] += 1
+    end
+    table["DATA"] = column
+end
+```
+
+This function will read the `DATA` column from the given table, add one to each element, and then
+write the result back to the table. However because the type of `column` cannot be inferred, the
+performance of the `for`-loop will be sub-optimal. We can remedy this problem by moving the
+computational kernel into a separate function:
+
+``` julia
+function add_one_to_data_column(table)
+    column = table["DATA"]
+    do_the_for_loop(column) # `do_the_for_loop` specializes on the actual type of `column`
+    table["DATA"] = column
+end
+
+function do_the_for_loop(column)
+    for idx in eachindex(column)
+        column[idx] += 1
+    end
+end
+```
+
+When `do_the_for_loop` is called, Julia will specialize the function on the actual type of `column`.
+That is, the `for`-loop will be compiled with the knowledge of the actual type of `column`.  This
+specialization ultimately means that the latter example will generally be faster.
+
+For more information please refer to the [performance tips
+section](http://docs.julialang.org/en/release-0.5/manual/performance-tips/#separate-kernel-functions-aka-function-barriers)
+of the Julia manual.
+
