@@ -25,7 +25,7 @@ macro wrap_pointer(name)
     cxx_delete = string("delete", name)
     cxx_new    = string("new", name)
     quote
-        Base.@__doc__ type $name
+        Base.@__doc__ mutable struct $name
             ptr :: Ptr{Void}
         end
         Base.unsafe_convert(::Type{Ptr{Void}}, x::$name) = x.ptr
@@ -38,7 +38,7 @@ macro wrap_pointer(name)
     end |> esc
 end
 
-type CasaCoreError <: Exception
+mutable struct CasaCoreError <: Exception
     msg :: String
 end
 
