@@ -29,7 +29,7 @@ using Unitful
 # See https://github.com/ajkeller34/Unitful.jl/issues/38 for a discussion of angle units in the
 # Unitful package. We decided that it makes sense for angles to be dimensionless, but Andrew was
 # hesitant to commit to this typealias within Unitful.
-typealias Angle{T} Unitful.DimensionlessQuantity{T}
+Angle{T} =  Unitful.DimensionlessQuantity{T}
 
 const libcasacorewrapper = joinpath(dirname(@__FILE__),"../deps/libcasacorewrapper.so")
 isfile(libcasacorewrapper) || error("Run Pkg.build(\"CasaCore\")")
@@ -65,14 +65,14 @@ module Baselines
     const AZELNEGEO = AZELGEO
 end
 
-abstract Measure
+abstract type Measure end
 
 """
     Epoch <: Measure
 
 This type represents an instance in time.
 """
-immutable Epoch <: Measure
+struct Epoch <: Measure
     sys  :: Epochs.System
     time :: Float64 # measured in seconds
 end
@@ -82,7 +82,7 @@ end
 
 This type represents a location on the sky.
 """
-immutable Direction <: Measure
+struct Direction <: Measure
     sys :: Directions.System
     x :: Float64 # measured in meters
     y :: Float64 # measured in meters
@@ -94,7 +94,7 @@ end
 
 This type represents a location on the surface of the Earth.
 """
-immutable Position <: Measure
+struct Position <: Measure
     sys :: Positions.System
     x :: Float64 # measured in meters
     y :: Float64 # measured in meters
@@ -106,7 +106,7 @@ end
 
 This type represents the location of one antenna relative to another antenna.
 """
-immutable Baseline <: Measure
+struct Baseline <: Measure
     sys :: Baselines.System
     x :: Float64 # measured in meters
     y :: Float64 # measured in meters
@@ -392,15 +392,15 @@ function sexagesimal(str::AbstractString)
     m = match(regex,str)
     m === nothing && error("Unknown sexagesimal format.")
 
-    sign = m.captures[1] == "-"? -1 : +1
+    sign = m.captures[1] == "-" ? -1 : +1
     degrees_or_hours = float(m.captures[2])
     isdegrees = m.captures[3] == "d"
-    minutes = m.captures[4] === nothing? 0.0 : float(m.captures[4])
-    seconds = m.captures[5] === nothing? 0.0 : float(m.captures[5])
+    minutes = m.captures[4] === nothing ? 0.0 : float(m.captures[4])
+    seconds = m.captures[5] === nothing ? 0.0 : float(m.captures[5])
 
     minutes += seconds/60
     degrees_or_hours += minutes/60
-    degrees = isdegrees? degrees_or_hours : 15degrees_or_hours
+    degrees = isdegrees ? degrees_or_hours : 15degrees_or_hours
     sign*degrees |> deg2rad
 end
 
@@ -412,7 +412,7 @@ Construct a sexagesimal string from the given angle.
 * If `hours` is `true`, the constructed string will use hours instead of degrees.
 * `digits` specifies the number of decimal points to use for seconds/arcseconds.
 """
-function sexagesimal{T}(angle::T; hours::Bool = false, digits::Int = 0)
+function sexagesimal(angle::T; hours::Bool = false, digits::Int = 0) where T
     if T <: Angle
         radians = uconvert(u"rad", angle) |> ustrip
     else
@@ -464,14 +464,14 @@ function Base.isapprox(lhs::Epoch, rhs::Epoch)
     lhs.time ≈ rhs.time
 end
 
-function Base.isapprox{T<:Union{Direction,Position,Baseline}}(lhs::T, rhs::T)
+function Base.isapprox(lhs::T, rhs::T) where T<:Union{Direction,Position,Baseline}
     lhs.sys === rhs.sys || error("Coordinate systems must match.")
     v1 = [lhs.x, lhs.y, lhs.z]
     v2 = [rhs.x, rhs.y, rhs.z]
     v1 ≈ v2
 end
 
-type ReferenceFrame
+mutable struct ReferenceFrame
     epoch :: Nullable{Epoch}
     direction :: Nullable{Direction}
     position :: Nullable{Position}

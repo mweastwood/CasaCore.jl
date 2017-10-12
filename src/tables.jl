@@ -195,7 +195,7 @@ function column_exists(table::Table, column::String)
     ccall(("columnExists", libcasacorewrapper), Bool, (Ptr{Void}, Ptr{Cchar}), table, column)
 end
 
-immutable Keyword
+struct Keyword
     name::String
 end
 

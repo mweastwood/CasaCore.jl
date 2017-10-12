@@ -48,8 +48,8 @@
             @test Tables.numcolumns(table) == 0
             for T in types_nostring
                 x = rand(T, shape)
-                y = length(shape) == 1? rand(T): rand(T, shape[1:end-1])
-                z = length(shape) == 1? rand(Float16): rand(Float16, shape[1:end-1])
+                y = length(shape) == 1 ? rand(T) : rand(T, shape[1:end-1])
+                z = length(shape) == 1 ? rand(Float16) : rand(Float16, shape[1:end-1])
                 table["test"] = x
                 @test table["test"] == x
                 @test_throws CasaCoreError table["test"] = rand(T, (6, 5)) # incorrect shape
@@ -68,8 +68,8 @@
                 Tables.remove_column!(table, "test")
             end
             x = fill("Hello, world!", shape)
-            y = length(shape) == 1? "Wassup??": fill("Wassup??", shape[1:end-1])
-            z = length(shape) == 1? rand(Float16): rand(Float16, shape[1:end-1])
+            y = length(shape) == 1 ? "Wassup??" : fill("Wassup??", shape[1:end-1])
+            z = length(shape) == 1 ? rand(Float16) : rand(Float16, shape[1:end-1])
             table["test"] = x
             @test table["test"] == x
             @test_throws CasaCoreError table["test"] = fill("A", (6, 5)) # incorrect shape
