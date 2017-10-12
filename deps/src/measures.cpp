@@ -63,17 +63,17 @@ struct Baseline {
 // NOTE: In Julia v0.6 the `isnull` field changed to `hasvalue`.
 
 struct NullableEpoch {
-    bool isnull;
+    bool hasvalue;
     Epoch value;
 };
 
 struct NullableDirection {
-    bool isnull;
+    bool hasvalue;
     Direction value;
 };
 
 struct NullablePosition {
-    bool isnull;
+    bool hasvalue;
     Position value;
 };
 
@@ -145,15 +145,15 @@ MBaseline getMBaseline(Baseline const& baseline) {
 
 MeasFrame getMeasFrame(ReferenceFrame const& frame) {
     MeasFrame mframe = MeasFrame();
-    if (!frame.epoch.isnull) {
+    if (frame.epoch.hasvalue) {
         MEpoch mepoch = getMEpoch(frame.epoch.value);
         mframe.set(mepoch);
     }
-    if (!frame.direction.isnull) {
+    if (frame.direction.hasvalue) {
         MDirection mdirection = getMDirection(frame.direction.value);
         mframe.set(mdirection);
     }
-    if (!frame.position.isnull) {
+    if (frame.position.hasvalue) {
         MPosition mposition = getMPosition(frame.position.value);
         mframe.set(mposition);
     }
