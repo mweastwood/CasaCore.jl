@@ -3,6 +3,7 @@ using Documenter, CasaCore
 makedocs(
     format = :html,
     sitename = "CasaCore.jl",
+    authors = "Michael Eastwood",
     pages = [
         "Introduction" => "index.md",
         "Modules" => [

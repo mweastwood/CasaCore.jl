@@ -14,15 +14,15 @@
     @testset "rows" begin
         Tables.addrows!(table, 20)
         @test Tables.numrows(table) == 20
-        Tables.removerows!(table, 1:10)
+        Tables.remove_rows!(table, 1:10)
         @test Tables.numrows(table) == 10
-        Tables.removerows!(table, 1)
+        Tables.remove_rows!(table, 1)
         @test Tables.numrows(table) == 9
-        Tables.removerows!(table, [8, 9])
+        Tables.remove_rows!(table, [8, 9])
         @test Tables.numrows(table) == 7
         Tables.addrows!(table, 3)
         @test Tables.numrows(table) == 10
-        Tables.removerows!(table, 1:10)
+        Tables.remove_rows!(table, 1:10)
         @test Tables.numrows(table) == 0
     end
 
@@ -42,7 +42,7 @@
             end
             @test Tables.numcolumns(table) == 6
             for name in names
-                Tables.removecolumn!(table, name)
+                Tables.remove_column!(table, name)
                 @test !Tables.column_exists(table, name)
             end
             @test Tables.numcolumns(table) == 0
@@ -65,7 +65,7 @@
                 @test_throws CasaCoreError table["tset",  3] # typo
                 @test_throws CasaCoreError table["test",  0] # out-of-bounds
                 @test_throws CasaCoreError table["test", 11] # out-of-bounds
-                Tables.removecolumn!(table, "test")
+                Tables.remove_column!(table, "test")
             end
             x = fill("Hello, world!", shape)
             y = length(shape) == 1? "Wassup??": fill("Wassup??", shape[1:end-1])
@@ -85,7 +85,7 @@
             @test_throws CasaCoreError table["tset",  3] # typo
             @test_throws CasaCoreError table["test",  0] # out-of-bounds
             @test_throws CasaCoreError table["test", 11] # out-of-bounds
-            Tables.removecolumn!(table, "test")
+            Tables.remove_column!(table, "test")
         end
     end
 
@@ -96,14 +96,14 @@
             @test table[kw"test"] == x
             @test_throws CasaCoreError table[kw"tset"] # typo
             @test_throws CasaCoreError table[kw"test"] = Float16(0) # incorrect type
-            Tables.removekeyword!(table, kw"test")
+            Tables.remove_keyword!(table, kw"test")
         end
         x = "I am a banana!"
         table[kw"test"] = x
         @test table[kw"test"] == x
         @test_throws CasaCoreError table[kw"tset"] # typo
         @test_throws CasaCoreError table[kw"test"] = Float16(0) # incorrect type
-        Tables.removekeyword!(table, kw"test")
+        Tables.remove_keyword!(table, kw"test")
     end
 
     @testset "column keywords" begin
@@ -114,7 +114,7 @@
             @test table["column", kw"test"] == x
             @test_throws CasaCoreError table["column", kw"tset"] # typo
             @test_throws CasaCoreError table["column", kw"test"] = Float16(0) # incorrect type
-            Tables.removekeyword!(table, "column", kw"test")
+            Tables.remove_keyword!(table, "column", kw"test")
         end
         x = "I am a banana!"
         table["column", kw"test"] = x
@@ -123,15 +123,15 @@
         @test_throws CasaCoreError table["column", kw"tset"] # typo
         @test_throws CasaCoreError table["colunm", kw"test"] = x # typo
         @test_throws CasaCoreError table["column", kw"test"] = Float16(0) # incorrect type
-        Tables.removekeyword!(table, "column", kw"test")
-        Tables.removecolumn!(table, "column")
+        Tables.remove_keyword!(table, "column", kw"test")
+        Tables.remove_column!(table, "column")
     end
 
     @testset "old tests" begin
         @test Tables.column_exists(table,"SKA_DATA") == false
         table["SKA_DATA"] = ones(10)
         @test Tables.column_exists(table,"SKA_DATA") == true
-        Tables.removecolumn!(table,"SKA_DATA")
+        Tables.remove_column!(table,"SKA_DATA")
         @test Tables.column_exists(table,"SKA_DATA") == false
 
         ant1 = Array(Int32,10)

@@ -1,5 +1,7 @@
 # CasaCore.jl
 
+<img src="docs/src/assets/logo.png" alt="CasaCore.jl" width="200">
+
 [![Build Status](https://travis-ci.org/mweastwood/CasaCore.jl.svg?branch=master)](https://travis-ci.org/mweastwood/CasaCore.jl)
 [![codecov](https://codecov.io/gh/mweastwood/CasaCore.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/mweastwood/CasaCore.jl)
 
