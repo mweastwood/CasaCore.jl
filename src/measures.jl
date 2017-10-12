@@ -65,61 +65,6 @@ module Baselines
     const AZELNEGEO = AZELGEO
 end
 
-macro wrap(expr)
-    jl_name  = expr.args[2].args[1]
-    jl_names = Symbol(jl_name, "s")
-    cxx_name = Symbol(jl_name, "_cxx")
-    cxx_delete  = string("delete", jl_name)  # delete the corresponding C++ object
-    cxx_new     = string("new", jl_name)     # create a new corresponding C++ object
-    cxx_get     = string("get", jl_name)     # bring the C++ object back to Julia
-    cxx_set     = string("set", jl_name)     # attach the measure to a frame of reference
-    cxx_convert = string("convert", jl_name) # convert the measure to a new coordinate system
-
-    quote
-        Base.@__doc__ $expr # the original expression
-        type $cxx_name
-            ptr :: Ptr{Void}
-        end
-        Base.unsafe_convert(::Type{Ptr{Void}}, x::$cxx_name) = x.ptr
-        Base.unsafe_convert(::Type{Ptr{Void}}, x::$jl_name) = Base.unsafe_convert(Ptr{Void}, x |> to_cxx)
-        delete(x::$cxx_name) = ccall(($cxx_delete,libcasacorewrapper), Void, (Ptr{Void},), x)
-        function to_cxx(x::$jl_name)
-            y = ccall(($cxx_new,libcasacorewrapper), Ptr{Void}, ($jl_name,), x) |> $cxx_name
-            finalizer(y, delete)
-            y
-        end
-        to_julia(x::$cxx_name) = ccall(($cxx_get,libcasacorewrapper), $jl_name, (Ptr{Void},), x)
-        function set!(frame::ReferenceFrame, x::$jl_name)
-            ccall(($cxx_set,libcasacorewrapper), Void, (Ptr{Void}, Ptr{Void}), frame, x)
-        end
-        function measure(frame::ReferenceFrame, x::$jl_name, newsys::$jl_names.System)
-            (ccall(($cxx_convert,libcasacorewrapper), Ptr{Void},
-                   (Ptr{Void}, Ptr{Void}, Cint), frame, x, newsys) |> $cxx_name |> to_julia) :: $jl_name
-        end
-    end |> esc
-end
-
-"""
-    ReferenceFrame
-
-The `ReferenceFrame` type contains information about the frame of reference to use when converting
-between coordinate systems. For example converting from J2000 coordinates to AZEL coordinates
-requires knowledge of the observer's location, and the current time. However converting between
-B1950 coordinates and J2000 coordinates requires no additional information about the observer's
-frame of reference.
-
-Use the `set!` function to add information to the given frame of reference.
-
-**Example:**
-
-``` julia
-frame = ReferenceFrame()
-set!(frame, observatory("VLA")) # set the observer's position to the location of the VLA
-set!(frame, Epoch(epoch"UTC", 50237.29*u"d")) # set the current UTC time
-```
-"""
-@wrap_pointer ReferenceFrame
-
 abstract Measure
 
 """
@@ -127,7 +72,7 @@ abstract Measure
 
 This type represents an instance in time.
 """
-@wrap immutable Epoch <: Measure
+immutable Epoch <: Measure
     sys  :: Epochs.System
     time :: Float64 # measured in seconds
 end
@@ -137,7 +82,7 @@ end
 
 This type represents a location on the sky.
 """
-@wrap immutable Direction <: Measure
+immutable Direction <: Measure
     sys :: Directions.System
     x :: Float64 # measured in meters
     y :: Float64 # measured in meters
@@ -149,7 +94,7 @@ end
 
 This type represents a location on the surface of the Earth.
 """
-@wrap immutable Position <: Measure
+immutable Position <: Measure
     sys :: Positions.System
     x :: Float64 # measured in meters
     y :: Float64 # measured in meters
@@ -161,7 +106,7 @@ end
 
 This type represents the location of one antenna relative to another antenna.
 """
-@wrap immutable Baseline <: Measure
+immutable Baseline <: Measure
     sys :: Baselines.System
     x :: Float64 # measured in meters
     y :: Float64 # measured in meters
@@ -272,8 +217,10 @@ Direction(dir"JUPITER") # the direction towards Jupiter
 function Direction(sys::Directions.System, longitude::Angle, latitude::Angle)
     long = uconvert(u"rad", longitude) |> ustrip
     lat  = uconvert(u"rad",  latitude) |> ustrip
-    (ccall(("newDirection_longlat",libcasacorewrapper), Ptr{Void},
-           (Cint, Float64, Float64), sys, long, lat) |> Direction_cxx |> to_julia) :: Direction
+    x = cos(lat)*cos(long)
+    y = cos(lat)*sin(long)
+    z = sin(lat)
+    Direction(sys, x, y, z)
 end
 
 function Direction(sys::Directions.System, longitude::AbstractString, latitude::AbstractString)
@@ -313,8 +260,10 @@ function Position(sys::Positions.System, elevation::Unitful.Length, longitude::A
     rad  = uconvert(u"m", elevation) |> ustrip
     long = uconvert(u"rad", longitude) |> ustrip
     lat  = uconvert(u"rad",  latitude) |> ustrip
-    (ccall(("newPosition_elevationlonglat",libcasacorewrapper), Ptr{Void},
-           (Cint, Float64, Float64, Float64), sys, rad, long, lat) |> Position_cxx |> to_julia) :: Position
+    x = rad*cos(lat)*cos(long)
+    y = rad*cos(lat)*sin(long)
+    z = rad*sin(lat)
+    Position(sys, x, y, z)
 end
 
 function Position(sys::Positions.System, elevation::Unitful.Length,
@@ -520,6 +469,64 @@ function Base.isapprox{T<:Union{Direction,Position,Baseline}}(lhs::T, rhs::T)
     v1 = [lhs.x, lhs.y, lhs.z]
     v2 = [rhs.x, rhs.y, rhs.z]
     v1 ≈ v2
+end
+
+type ReferenceFrame
+    epoch :: Nullable{Epoch}
+    direction :: Nullable{Direction}
+    position :: Nullable{Position}
+end
+
+"""
+    ReferenceFrame
+
+The `ReferenceFrame` type contains information about the frame of reference to use when converting
+between coordinate systems. For example converting from J2000 coordinates to AZEL coordinates
+requires knowledge of the observer's location, and the current time. However converting between
+B1950 coordinates and J2000 coordinates requires no additional information about the observer's
+frame of reference.
+
+Use the `set!` function to add information to the given frame of reference.
+
+**Example:**
+
+``` julia
+frame = ReferenceFrame()
+set!(frame, observatory("VLA")) # set the observer's position to the location of the VLA
+set!(frame, Epoch(epoch"UTC", 50237.29*u"d")) # set the current UTC time
+```
+"""
+function ReferenceFrame()
+    ReferenceFrame(nothing, nothing, nothing)
+end
+
+set!(frame::ReferenceFrame, epoch::Epoch) = frame.epoch = epoch
+set!(frame::ReferenceFrame, direction::Direction) = frame.direction = direction
+set!(frame::ReferenceFrame, position::Position) = frame.position = position
+
+# TODO we don't actually use the reference frame in the epoch conversions, can we come up with a
+# new API that doesn't require it?
+
+function measure(frame::ReferenceFrame, epoch::Epoch, newsys::Epochs.System)
+    ccall(("convertEpoch", libcasacorewrapper), Epoch, (Ref{Epoch}, Cint), epoch, newsys)
+end
+
+function measure(frame::ReferenceFrame, direction::Direction, newsys::Directions.System)
+    ccall(("convertDirection", libcasacorewrapper), Direction,
+          (Ref{Direction}, Cint, Ref{ReferenceFrame}),
+          direction, newsys, frame)
+end
+
+function measure(frame::ReferenceFrame, position::Position, newsys::Positions.System)
+    ccall(("convertPosition", libcasacorewrapper), Position,
+          (Ref{Position}, Cint, Ref{ReferenceFrame}),
+          position, newsys, frame)
+end
+
+function measure(frame::ReferenceFrame, baseline::Baseline, newsys::Baselines.System)
+    ccall(("convertBaseline", libcasacorewrapper), Baseline,
+          (Ref{Baseline}, Cint, Ref{ReferenceFrame}),
+          baseline, newsys, frame)
 end
 
 end
