@@ -19,9 +19,13 @@ module Tables
 export CasaCoreTablesError
 export Table
 
-const libcasacorewrapper = joinpath(@__DIR__, "..", "deps", "src", "libcasacorewrapper.so")
+const libcasacorewrapper = normpath(joinpath(@__DIR__, "..", "deps", "src",
+                                             "libcasacorewrapper.so"))
 
 function __init__()
+    @show libcasacorewrapper isfile(libcasacorewrapper)
+    println(@__DIR__)
+    run(`ls $(dirname(libcasacorewrapper))`)
     isfile(libcasacorewrapper) || error("Run Pkg.build(\"CasaCore\")")
 end
 
