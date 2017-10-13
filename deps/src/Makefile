@@ -1,21 +1,28 @@
 CXX = g++
 CXXFLAGS = -c -std=c++0x -Wall -Werror -fpic -Wno-return-type-c-linkage
+LDLIBS = -lcasa_tables -lcasa_measures
+LDFLAGS = -Wl,-rpath,\$$ORIGIN
+
+TABLES_SRC=tables/util.cpp tables/tables.cpp tables/rows.cpp tables/columns.cpp
+TABLES_OBJ=$(TABLES_SRC:.cpp=.o) 
+
+LIBRARIES=libcasacorewrapper_tables.so
 
 all: libcasacorewrapper.so
 
-tables.o: tables.cpp
-	$(CXX) $(CXXFLAGS) tables.cpp
+$(TABLES_OBJ): %.o: %.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $<
 
-measures.o: measures.cpp
-	$(CXX) $(CXXFLAGS) measures.cpp
+libcasacorewrapper_tables.so: $(TABLES_OBJ)
+	$(CXX) -shared $(LDFLAGS) -o libcasacorewrapper_tables.so $(TABLES_OBJ) $(LDLIBS)
 
-libcasacorewrapper.so: tables.o measures.o
-	$(CXX) -shared -o libcasacorewrapper.so tables.o measures.o -lcasa_tables -lcasa_measures
+libcasacorewrapper.so: libcasacorewrapper_tables.so
+	$(CXX) -shared $(LDFLAGS) -o libcasacorewrapper.so $(LIBRARIES) $(LDLIBS)
 
 clean:
-	-rm *.o
-	-rm *.so
+	-rm -f $(TABLES_OBJ)
 
-install:
-	cp libcasacorewrapper.so ..
+distclean: clean
+	-rm -f $(LIBRARIES)
+	-rm libcasacorewrapper.so
 
