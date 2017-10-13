@@ -141,10 +141,12 @@ extern "C" {
             // compute the number of dimensions
             *dimension = col.ndim(0) + 1;
             // compute the size of each dimension
-            int N = *dimension - 1;
             int* shape = new int[*dimension];
-            memcpy(shape, col.shape(0).storage(), N*sizeof(int));
-            shape[N] = t->nrow();
+            auto colshape0 = col.shape(0);
+            for (uint i = 0; i < colshape0.size(); ++i) {
+                shape[i] = colshape0[i];
+            }
+            shape[col.ndim(0)] = t->nrow();
             return shape;
         }
     }
