@@ -176,6 +176,29 @@
         rm(path, force=true, recursive=true)
     end
 
+    @testset "basic keywords" begin
+        path = tempname()*".ms"
+        table = Tables.create(path)
+
+        for T in (Bool, Int32, Float32, Float64, Complex64)
+            x = rand(T)
+            table[kw"test"] = x
+            @test table[kw"test"] == x
+            @test_throws CasaCoreTablesError table[kw"tset"] # typo
+            @test_throws CasaCoreTablesError table[kw"test"] = Float16(0) # incorrect type
+            Tables.remove_keyword!(table, kw"test")
+        end
+        x = "I am a banana!"
+        table[kw"test"] = x
+        @test table[kw"test"] == x
+        @test_throws CasaCoreTablesError table[kw"tset"] # typo
+        @test_throws CasaCoreTablesError table[kw"test"] = Float16(0) # incorrect type
+        Tables.remove_keyword!(table, kw"test")
+
+        Tables.close(table)
+        rm(path, force=true, recursive=true)
+    end
+
 
     #@test repr(table) == "Table: "*table_name
 
@@ -189,20 +212,6 @@
     #Tables.addrows!(table, 10)
 
     #@testset "keywords" begin
-    #    for T in (Bool, Int32, Float32, Float64, Complex64)
-    #        x = rand(T)
-    #        table[kw"test"] = x
-    #        @test table[kw"test"] == x
-    #        @test_throws CasaCoreError table[kw"tset"] # typo
-    #        @test_throws CasaCoreError table[kw"test"] = Float16(0) # incorrect type
-    #        Tables.remove_keyword!(table, kw"test")
-    #    end
-    #    x = "I am a banana!"
-    #    table[kw"test"] = x
-    #    @test table[kw"test"] == x
-    #    @test_throws CasaCoreError table[kw"tset"] # typo
-    #    @test_throws CasaCoreError table[kw"test"] = Float16(0) # incorrect type
-    #    Tables.remove_keyword!(table, kw"test")
     #end
 
     #@testset "column keywords" begin

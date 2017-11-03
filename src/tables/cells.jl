@@ -56,10 +56,10 @@ end
 for T in typelist
     Tc = type2cpp[T]
     typestr = type2str[T]
-    c_get_cell_scalar = "get_cell_scalar_$typestr"
-    c_get_cell_array  = "get_cell_array_$typestr"
-    c_put_cell_scalar = "put_cell_scalar_$typestr"
-    c_put_cell_array  = "put_cell_array_$typestr"
+    c_get_cell_scalar = String(Symbol(:get_cell_scalar_, typestr))
+    c_get_cell_array  = String(Symbol(:get_cell_array_,  typestr))
+    c_put_cell_scalar = String(Symbol(:put_cell_scalar_, typestr))
+    c_put_cell_array  = String(Symbol(:put_cell_array_,  typestr))
 
     @eval function read_cell(table::Table, column::String, row::Int, ::Type{$T}, shape::Tuple{})
         # Subtract 1 from the row number to convert to a 0-based indexing scheme
