@@ -21,14 +21,36 @@
       TpArrayDComplex, TpArrayString, TpRecord, TpOther, TpQuantity,
       TpArrayQuantity, TpInt64, TpArrayInt64, TpNumberOfTypes)
 
-const type2str  = ObjectIdDict(Bool       => :boolean, Int32      => :int,
-                               Float32    => :float,   Float64    => :double,
-                               Complex64  => :complex, String     => :string)
+const type2cpp = ObjectIdDict(Bool      => Bool,      Int32   => Int32,
+                              Float32   => Float32,   Float64 => Float64,
+                              Complex64 => Complex64, String  => Ptr{Cchar})
+
+const type2str = ObjectIdDict(Bool      => :boolean,  Int32   => :int,
+                              Float32   => :float,    Float64 => :double,
+                              Complex64 => :complex,  String  => :string)
 
 const enum2type = Dict(TpBool    => Bool,      TpInt     => Int32,
                        TpFloat   => Float32,   TpDouble  => Float64,
                        TpComplex => Complex64, TpString  => String)
 
 const typelist = (Bool, Int32, Float32, Float64, Complex64, String)
-const typelist_nostring = (Bool, Int32, Float32, Float64, Complex64)
+
+function wrap(ptr::Ptr{T}, shape) where T <: Number
+    N = length(shape)
+    unsafe_wrap(Array{T, N}, ptr, shape, true)
+end
+
+function wrap(ptr::Ptr{Ptr{Cchar}}, shape)
+    N = length(shape)
+    wrap_string.(unsafe_wrap(Array{Ptr{Cchar}, N}, ptr, shape, true))
+end
+
+function wrap_string(ptr::Ptr{Cchar})
+    string = unsafe_string(ptr)
+    # `unsafe_string` copies the data, so we need to free the previously allocated data. Apparently
+    # I can't do this with `Libc.free` because julia might be using a different version of libc than
+    # what was used to allocate the memory.
+    ccall((:free_string, libcasacorewrapper), Void, (Ptr{Cchar},), ptr)
+    string
+end
 

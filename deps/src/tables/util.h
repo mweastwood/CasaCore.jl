@@ -73,5 +73,7 @@ unique_ptr<Array<T> > input_array(T const* input, int const* dims, int ndim) {
 
 unique_ptr<Array<String> > input_array(char* const* input, int const* dims, int ndim);
 
+extern "C" void free_string(char* string);
+
 #endif // JL_CASACORE_TABLES_UTIL_H
 

@@ -45,42 +45,6 @@
 // special cased.
 
 template <typename T>
-T getCell_scalar(Table* t, char const* name, uint row) {
-    ScalarColumn<T> column(*t, name);
-    return column(row);
-}
-
-template <typename T>
-void putCell_scalar(Table* t, char const* name, uint row, T input) {
-    ScalarColumn<T> column(*t, name);
-    column.put(row, input);
-}
-
-template <typename T, typename R>
-R* getCell_array(Table* t, char const* name, uint row) {
-    ArrayColumn<T> column(*t, name);
-    Array<T> array = column(row);
-    return output_array(array);
-}
-
-template <typename T>
-T* getCell_array(Table* t, char const* name, uint row) {
-    return getCell_array<T, T>(t, name, row);
-}
-
-template <typename T, typename R>
-void putCell_array(Table* t, char const* name, uint row, R* input, int const* dims, int ndim) {
-    ArrayColumn<T> column(*t, name);
-    auto array = input_array(input, dims, ndim);
-    column.put(row, *array);
-}
-
-template <typename T>
-void putCell_array(Table* t, char const* name, uint row, T* input, int const* dims, int ndim) {
-    putCell_array<T, T>(t, name, row, input, dims, ndim);
-}
-
-template <typename T>
 T getKeyword(Table* t, char const* keyword) {
     T output;
     auto keywords = t->keywordSet();
@@ -150,82 +114,6 @@ extern "C" {
 //        keywords.removeField(keyword);
 //    }
 //
-//    bool getCell_scalar_boolean(Table* t, char* name, uint row) {
-//        return getCell_scalar<Bool>(t, name, row);
-//    }
-//    int getCell_scalar_int(Table* t, char* name, uint row) {
-//        return getCell_scalar<Int>(t, name, row);
-//    }
-//    float getCell_scalar_float(Table* t, char* name, uint row) {
-//        return getCell_scalar<Float>(t, name, row);
-//    }
-//    double getCell_scalar_double(Table* t, char* name, uint row) {
-//        return getCell_scalar<Double>(t, name, row);
-//    }
-//    cmplx getCell_scalar_complex(Table* t, char* name, uint row) {
-//        return getCell_scalar<Complex>(t, name, row);
-//    }
-//    char* getCell_scalar_string(Table* t, char* name, uint row) {
-//        ScalarColumn<String> column(*t, name);
-//        return output_string(column(row));
-//    }
-//
-//    void putCell_scalar_boolean(Table* t, char* name, uint row, bool input) {
-//        putCell_scalar(t, name, row, input);
-//    }
-//    void putCell_scalar_int(Table* t, char* name, uint row, int input) {
-//        putCell_scalar(t, name, row, input);
-//    }
-//    void putCell_scalar_float(Table* t, char* name, uint row, float input) {
-//        putCell_scalar(t, name, row, input);
-//    }
-//    void putCell_scalar_double(Table* t, char* name, uint row, double input) {
-//        putCell_scalar(t, name, row, input);
-//    }
-//    void putCell_scalar_complex(Table* t, char* name, uint row, cmplx input) {
-//        putCell_scalar(t, name, row, input);
-//    }
-//    void putCell_scalar_string(Table* t, char* name, uint row, char* input) {
-//        putCell_scalar(t, name, row, String(input));
-//    }
-//
-//    bool* getCell_array_boolean(Table* t, char* name, uint row) {
-//        return getCell_array<Bool>(t, name, row);
-//    }
-//    int* getCell_array_int(Table* t, char* name, uint row) {
-//        return getCell_array<Int>(t, name, row);
-//    }
-//    float* getCell_array_float(Table* t, char* name, uint row) {
-//        return getCell_array<Float>(t, name, row);
-//    }
-//    double* getCell_array_double(Table* t, char* name, uint row) {
-//        return getCell_array<Double>(t, name, row);
-//    }
-//    cmplx* getCell_array_complex(Table* t, char* name, uint row) {
-//        return getCell_array<Complex>(t, name, row);
-//    }
-//    char** getCell_array_string(Table* t, char* name, uint row) {
-//        return getCell_array<String, char*>(t, name, row);
-//    }
-//
-//    void putCell_array_boolean(Table* t, char* name, uint row, bool* input, int* dims, int ndim) {
-//        return putCell_array(t, name, row, input, dims, ndim);
-//    }
-//    void putCell_array_int(Table* t, char* name, uint row, int* input, int* dims, int ndim) {
-//        return putCell_array(t, name, row, input, dims, ndim);
-//    }
-//    void putCell_array_float(Table* t, char* name, uint row, float* input, int* dims, int ndim) {
-//        return putCell_array(t, name, row, input, dims, ndim);
-//    }
-//    void putCell_array_double(Table* t, char* name, uint row, double* input, int* dims, int ndim) {
-//        return putCell_array(t, name, row, input, dims, ndim);
-//    }
-//    void putCell_array_complex(Table* t, char* name, uint row, cmplx* input, int* dims, int ndim) {
-//        return putCell_array(t, name, row, input, dims, ndim);
-//    }
-//    void putCell_array_string(Table* t, char* name, uint row, char** input, int* dims, int ndim) {
-//        return putCell_array<String, char*>(t, name, row, input, dims, ndim);
-//    }
 //
 //    int getKeywordType(Table* t, char* keyword) {
 //        auto keywords = t->keywordSet();

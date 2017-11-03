@@ -70,3 +70,5 @@ unique_ptr<Array<String> > input_array(char* const* input, int const* dims, int 
     return arr;
 }
 
+extern "C" void free_string(char* string) {delete[] string;}
+

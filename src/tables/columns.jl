@@ -128,40 +128,24 @@ function Base.setindex!(table::Table, value, column::String)
     write_column!(table, value, column)
 end
 
-for T in typelist_nostring
+for T in typelist
+    Tc = type2cpp[T]
     typestr = type2str[T]
     c_get_column = String(Symbol(:get_column_, typestr))
     c_put_column = String(Symbol(:put_column_, typestr))
 
     @eval function read_column(table::Table, column::String, ::Type{$T}, shape)
-        N = length(shape)
-        ptr = ccall(($c_get_column, libcasacorewrapper), Ptr{$T},
+        ptr = ccall(($c_get_column, libcasacorewrapper), Ptr{$Tc},
                     (Ptr{CasaCoreTable}, Ptr{Cchar}), table, column)
-        unsafe_wrap(Array{$T, N}, ptr, shape, true)
+        wrap(ptr, shape)
     end
 
     @eval function write_column!(table::Table, value::Array{$T}, column::String)
         shape = convert(Vector{Cint}, collect(size(value)))
         ccall(($c_put_column, libcasacorewrapper), Void,
-              (Ptr{CasaCoreTable}, Ptr{Cchar}, Ptr{$T}, Ptr{Cint}, Cint),
+              (Ptr{CasaCoreTable}, Ptr{Cchar}, Ptr{$Tc}, Ptr{Cint}, Cint),
               table, column, value, shape, length(shape))
         value
     end
 end
-
-#function read_column(table::Table, column::String, ::Type{String}, shape)
-#    N = length(shape)
-#    ptr = ccall(("getColumn_string", libcasacorewrapper), Ptr{Ptr{Cchar}},
-#                (Ptr{CasaCoreTable}, Ptr{Cchar}), table, column)
-#    arr = unsafe_wrap(Array{Ptr{Cchar}, N}, ptr, shape, true)
-#    [String(unsafe_wrap(Vector{UInt8}, my_ptr, true)) for my_ptr in arr]
-#end
-#
-#function write_column!(table::Table, value::Array{String}, column::String)
-#    shape = convert(Vector{Cint}, collect(size(value)))
-#    ccall(("putColumn_string", libcasacorewrapper), Void,
-#          (Ptr{CasaCoreTable}, Ptr{Cchar}, Ptr{Ptr{Cchar}}, Ptr{Cint}, Cint),
-#          table, column, value, shape, length(shape))
-#    value
-#end
 
