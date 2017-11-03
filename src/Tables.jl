@@ -36,6 +36,7 @@ include("tables/types.jl")
 include("tables/tables.jl")
 include("tables/rows.jl")
 include("tables/columns.jl")
+include("tables/cells.jl")
 
 
 

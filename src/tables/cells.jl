@@ -13,127 +13,82 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-## Read/Write Cells
-#
-#function getindex(table::Table, column::String, row::Int)
-#    if !column_exists(table, column)
-#        throw(CasaCoreError("the column \"$column\" is not present in this table"))
-#    end
-#    if row ≤ 0 || row > numrows(table)
-#        throw(CasaCoreError("row number out of range"))
-#    end
-#    T = column_eltype(table, column)
-#    shape = column_shape(table, column)[1:end-1]
-#    read_cell(table, column, row, T, shape)
-#end
-#
-#function setindex!(table::Table, value, column::String, row::Int)
-#    if !column_exists(table, column)
-#        throw(CasaCoreError("the column \"$column\" is not present in this table"))
-#    end
-#    if row ≤ 0 || row > numrows(table)
-#        throw(CasaCoreError("row number out of range"))
-#    end
-#    check_cell_type(table, column, value)
-#    check_cell_size(table, column, value)
-#    write_cell!(table, value, column, row)
-#end
-#
-#function check_cell_type(table, column, value::Array)
-#    T = column_eltype(table, column)
-#    if T != eltype(value)
-#        throw(CasaCoreError("element type mismatch for column \"$column\""))
-#    end
-#end
-#
-#function check_cell_type(table, column, value)
-#    T = column_eltype(table, column)
-#    if T != typeof(value)
-#        throw(CasaCoreError("element type mismatch for column \"$column\""))
-#    end
-#end
-#
-#function check_cell_size(table, column, value::Array)
-#    shape = column_shape(table, column)[1:end-1]
-#    if shape != size(value)
-#        throw(CasaCoreError("shape mismatch for cell in column \"$column\""))
-#    end
-#end
-#
-#function check_cell_size(table, column, value)
-#    shape = column_shape(table, column)
-#    if length(shape) != 1
-#        throw(CasaCoreError("shape mismatch for cell in column \"$column\""))
-#    end
-#end
-#
-#for T in typelist_nostring
-#    typestr = type2str[T]
-#    c_getCell_scalar = "getCell_scalar_$typestr"
-#    c_getCell_array  = "getCell_array_$typestr"
-#    c_putCell_scalar = "putCell_scalar_$typestr"
-#    c_putCell_array  = "putCell_array_$typestr"
-#
-#    @eval function read_cell(table::Table, column::String, row::Int, ::Type{$T}, shape::Tuple{})
-#        # Subtract 1 from the row number to convert to a 0-based indexing scheme
-#        ccall(($c_getCell_scalar, libcasacorewrapper), $T, (Ptr{Void}, Ptr{Cchar}, Cuint),
-#              table, column, row-1)
-#    end
-#
-#    @eval function read_cell(table::Table, column::String, row::Int, ::Type{$T}, shape::Tuple)
-#        # Subtract 1 from the row number to convert to a 0-based indexing scheme
-#        N = length(shape)
-#        ptr = ccall(($c_getCell_array, libcasacorewrapper), Ptr{$T}, (Ptr{Void}, Ptr{Cchar}, Cuint),
-#                    table, column, row-1)
-#        unsafe_wrap(Array{$T, N}, ptr, shape, true)
-#    end
-#
-#    @eval function write_cell!(table::Table, value::$T, column::String, row::Int)
-#        # Subtract 1 from the row number to convert to a 0-based indexing scheme
-#        ccall(($c_putCell_scalar, libcasacorewrapper), Void, (Ptr{Void}, Ptr{Cchar}, Cuint, $T),
-#              table, column, row-1, value)
-#        value
-#    end
-#
-#    @eval function write_cell!(table::Table, value::Array{$T}, column::String, row::Int)
-#        # Subtract 1 from the row number to convert to a 0-based indexing scheme
-#        shape = convert(Vector{Cint}, collect(size(value)))
-#        ccall(($c_putCell_array, libcasacorewrapper), Void,
-#              (Ptr{Void}, Ptr{Cchar}, Cuint, Ptr{$T}, Ptr{Cint}, Cint),
-#              table, column, row-1, value, shape, length(shape))
-#        value
-#    end
-#end
-#
-#function read_cell(table::Table, column::String, row::Int, ::Type{String}, shape::Tuple{})
-#    # Subtract 1 from the row number to convert to a 0-based indexing scheme
-#    ptr = ccall(("getCell_scalar_string", libcasacorewrapper), Ptr{Cchar},
-#                (Ptr{Void}, Ptr{Cchar}, Cuint), table, column, row-1)
-#    unsafe_wrap(String, ptr, true)
-#end
-#
-#function read_cell(table::Table, column::String, row::Int, ::Type{String}, shape::Tuple)
-#    # Subtract 1 from the row number to convert to a 0-based indexing scheme
-#    N = length(shape)
-#    ptr = ccall(("getCell_array_string", libcasacorewrapper), Ptr{Ptr{Cchar}},
-#                (Ptr{Void}, Ptr{Cchar}, Cuint), table, column, row-1)
-#    arr = unsafe_wrap(Array{Ptr{Cchar}, N}, ptr, shape, true)
-#    [unsafe_wrap(String, my_ptr, true) for my_ptr in arr]
-#end
-#
-#function write_cell!(table::Table, value::String, column::String, row::Int)
-#    # Subtract 1 from the row number to convert to a 0-based indexing scheme
-#    ccall(("putCell_scalar_string", libcasacorewrapper), Void,
-#          (Ptr{Void}, Ptr{Cchar}, Cuint, Ptr{Cchar}), table, column, row-1, value)
-#    value
-#end
-#
-#function write_cell!(table::Table, value::Array{String}, column::String, row::Int)
-#    # Subtract 1 from the row number to convert to a 0-based indexing scheme
-#    shape = convert(Vector{Cint}, collect(size(value)))
-#    ccall(("putCell_array_string", libcasacorewrapper), Void,
-#          (Ptr{Void}, Ptr{Cchar}, Cuint, Ptr{Ptr{Cchar}}, Ptr{Cint}, Cint),
-#          table, column, row-1, value, shape, length(shape))
-#    value
-#end
+function Base.getindex(table::Table, column::String, row::Integer)
+    check_column_row(table, column, row)
+    T, shape = column_info(table, column)
+    read_cell(table, column, row, T, shape[1:end-1])
+end
+
+function Base.setindex!(table::Table, value, column::String, row::Integer)
+    check_column_row(table, column, row)
+    T, shape = column_info(table, column)
+    check_cell(value, column, T, shape)
+    write_cell!(table, value, column, row)
+end
+
+function check_column_row(table, column, row)
+    if !column_exists(table, column)
+        column_missing_error(column)
+    end
+    if row ≤ 0 || row > num_rows(table)
+        row_out_of_bounds_error(row)
+    end
+end
+
+function check_cell(value::Array, column, T, shape)
+    if T != eltype(value)
+        column_element_type_error(column)
+    end
+    if shape[1:end-1] != size(value)
+        column_shape_error(column)
+    end
+end
+
+function check_cell(value, column, T, shape)
+    if T != typeof(value)
+        column_element_type_error(column)
+    end
+    if length(shape) != 1
+        column_shape_error(column)
+    end
+end
+
+for T in typelist
+    Tc = type2cpp[T]
+    typestr = type2str[T]
+    c_get_cell_scalar = "get_cell_scalar_$typestr"
+    c_get_cell_array  = "get_cell_array_$typestr"
+    c_put_cell_scalar = "put_cell_scalar_$typestr"
+    c_put_cell_array  = "put_cell_array_$typestr"
+
+    @eval function read_cell(table::Table, column::String, row::Int, ::Type{$T}, shape::Tuple{})
+        # Subtract 1 from the row number to convert to a 0-based indexing scheme
+        value = ccall(($c_get_cell_scalar, libcasacorewrapper), $Tc,
+                      (Ptr{CasaCoreTable}, Ptr{Cchar}, Cuint), table, column, row-1)
+        wrap_value(value)
+    end
+
+    @eval function read_cell(table::Table, column::String, row::Int, ::Type{$T}, shape::Tuple)
+        # Subtract 1 from the row number to convert to a 0-based indexing scheme
+        ptr = ccall(($c_get_cell_array, libcasacorewrapper), Ptr{$Tc},
+                    (Ptr{CasaCoreTable}, Ptr{Cchar}, Cuint), table, column, row-1)
+        wrap(ptr, shape)
+    end
+
+    @eval function write_cell!(table::Table, value::$T, column::String, row::Int)
+        # Subtract 1 from the row number to convert to a 0-based indexing scheme
+        ccall(($c_put_cell_scalar, libcasacorewrapper), Void,
+              (Ptr{CasaCoreTable}, Ptr{Cchar}, Cuint, $Tc), table, column, row-1, value)
+        value
+    end
+
+    @eval function write_cell!(table::Table, value::Array{$T}, column::String, row::Int)
+        # Subtract 1 from the row number to convert to a 0-based indexing scheme
+        shape = convert(Vector{Cint}, collect(size(value)))
+        ccall(($c_put_cell_array, libcasacorewrapper), Void,
+              (Ptr{CasaCoreTable}, Ptr{Cchar}, Cuint, Ptr{$Tc}, Ptr{Cint}, Cint),
+              table, column, row-1, value, shape, length(shape))
+        value
+    end
+end
 

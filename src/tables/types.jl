@@ -42,10 +42,10 @@ end
 
 function wrap(ptr::Ptr{Ptr{Cchar}}, shape)
     N = length(shape)
-    wrap_string.(unsafe_wrap(Array{Ptr{Cchar}, N}, ptr, shape, true))
+    wrap_value.(unsafe_wrap(Array{Ptr{Cchar}, N}, ptr, shape, true))
 end
 
-function wrap_string(ptr::Ptr{Cchar})
+function wrap_value(ptr::Ptr{Cchar})
     string = unsafe_string(ptr)
     # `unsafe_string` copies the data, so we need to free the previously allocated data. Apparently
     # I can't do this with `Libc.free` because julia might be using a different version of libc than
@@ -53,4 +53,6 @@ function wrap_string(ptr::Ptr{Cchar})
     ccall((:free_string, libcasacorewrapper), Void, (Ptr{Cchar},), ptr)
     string
 end
+
+wrap_value(x) = x
 

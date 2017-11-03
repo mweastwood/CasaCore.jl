@@ -112,17 +112,6 @@
                 @test_throws CasaCoreTablesError table["test"] = rand(T, (6, 5)) # incorrect shape
                 @test_throws CasaCoreTablesError table["test"] = rand(Float16, shape) # incorrect type
                 @test_throws CasaCoreTablesError table["tset"] # typo
-                # cells
-                #table["test", 3] = y
-                #@test table["test", 3] == y
-                #@test_throws CasaCoreTablesError table["tset",  3] = y # typo
-                #@test_throws CasaCoreTablesError table["test",  0] = y # out-of-bounds
-                #@test_throws CasaCoreTablesError table["test", 11] = y # out-of-bounds
-                #@test_throws CasaCoreTablesError table["test",  3] = rand(T, (6, 5)) # incorrect shape
-                #@test_throws CasaCoreTablesError table["test",  3] = z # incorrect type
-                #@test_throws CasaCoreTablesError table["tset",  3] # typo
-                #@test_throws CasaCoreTablesError table["test",  0] # out-of-bounds
-                #@test_throws CasaCoreTablesError table["test", 11] # out-of-bounds
                 Tables.remove_column!(table, "test")
             end
             x = fill("Hello, world!", shape)
@@ -133,16 +122,53 @@
             @test_throws CasaCoreTablesError table["test"] = fill("A", (6, 5)) # incorrect shape
             @test_throws CasaCoreTablesError table["test"] = rand(Float16, shape) # incorrect type
             @test_throws CasaCoreTablesError table["tset"] # typo
-            #table["test", 3] = y
-            #@test table["test", 3] == y
-            #@test_throws CasaCoreError table["tset",  3] = y # typo
-            #@test_throws CasaCoreError table["test",  0] = y # out-of-bounds
-            #@test_throws CasaCoreError table["test", 11] = y # out-of-bounds
-            #@test_throws CasaCoreError table["test",  3] = fill("A", (6, 5)) # incorrect shape
-            #@test_throws CasaCoreError table["test",  3] = z # incorrect type
-            #@test_throws CasaCoreError table["tset",  3] # typo
-            #@test_throws CasaCoreError table["test",  0] # out-of-bounds
-            #@test_throws CasaCoreError table["test", 11] # out-of-bounds
+            Tables.remove_column!(table, "test")
+        end
+
+        Tables.close(table)
+        rm(path, force=true, recursive=true)
+    end
+
+    @testset "basic cells" begin
+        path = tempname()*".ms"
+        table = Tables.create(path)
+        Tables.add_rows!(table, 10)
+
+        names = ("bools", "ints", "floats", "doubles", "complex", "strings")
+        types = (Bool, Int32, Float32, Float64, Complex64, String)
+        types_nostring = types[1:end-1]
+        for shape in ((10,), (11, 10), (12, 11, 10))
+            for T in types_nostring
+                x = rand(T, shape)
+                y = length(shape) == 1 ? rand(T) : rand(T, shape[1:end-1])
+                z = length(shape) == 1 ? rand(Float16) : rand(Float16, shape[1:end-1])
+                table["test"] = x
+                table["test", 3] = y
+                @test table["test", 3] == y
+                @test_throws CasaCoreTablesError table["tset",  3] = y # typo
+                @test_throws CasaCoreTablesError table["test",  0] = y # out-of-bounds
+                @test_throws CasaCoreTablesError table["test", 11] = y # out-of-bounds
+                @test_throws CasaCoreTablesError table["test",  3] = rand(T, (6, 5)) # incorrect shape
+                @test_throws CasaCoreTablesError table["test",  3] = z # incorrect type
+                @test_throws CasaCoreTablesError table["tset",  3] # typo
+                @test_throws CasaCoreTablesError table["test",  0] # out-of-bounds
+                @test_throws CasaCoreTablesError table["test", 11] # out-of-bounds
+                Tables.remove_column!(table, "test")
+            end
+            x = fill("Hello, world!", shape)
+            y = length(shape) == 1 ? "Wassup??" : fill("Wassup??", shape[1:end-1])
+            z = length(shape) == 1 ? rand(Float16) : rand(Float16, shape[1:end-1])
+            table["test"] = x
+            table["test", 3] = y
+            @test table["test", 3] == y
+            @test_throws CasaCoreTablesError table["tset",  3] = y # typo
+            @test_throws CasaCoreTablesError table["test",  0] = y # out-of-bounds
+            @test_throws CasaCoreTablesError table["test", 11] = y # out-of-bounds
+            @test_throws CasaCoreTablesError table["test",  3] = fill("A", (6, 5)) # incorrect shape
+            @test_throws CasaCoreTablesError table["test",  3] = z # incorrect type
+            @test_throws CasaCoreTablesError table["tset",  3] # typo
+            @test_throws CasaCoreTablesError table["test",  0] # out-of-bounds
+            @test_throws CasaCoreTablesError table["test", 11] # out-of-bounds
             Tables.remove_column!(table, "test")
         end
 
