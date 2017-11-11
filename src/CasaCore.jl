@@ -18,9 +18,7 @@ __precompile__()
 module CasaCore
 
 include("Tables.jl")
-#include("common.jl")
-#include("tables.jl")
-#include("measures.jl")
+include("Measures.jl")
 
 end
 

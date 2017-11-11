@@ -1,4 +1,19 @@
-@testset "measures.jl" begin
+# Copyright (c) 2015-2017 Michael Eastwood
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+@testset "Measures" begin
     @testset "sexagesimal" begin
         @test sexagesimal("12h34m56.78s") ≈ π/12.*(12.+34/60.+56.78/3600)
         @test sexagesimal("12h34m56s")    ≈ π/12.*(12.+34/60.+56./3600)
@@ -133,7 +148,7 @@
         vla  = observatory("VLA")
         @test alma ≈ Position(pos"WGS84", 1.761867423e3, -4.307634996e3, -1.97770831e3)
         @test vla  ≈ Position(pos"ITRF", -1.601185365e6, -5.041977547e6,  3.55487587e6)
-        @test_throws ErrorException observatory("SKA")
+        @test_throws CasaCoreMeasuresError observatory("SKA")
     end
 
     @testset "baslines" begin

@@ -2,7 +2,7 @@ CXX = g++
 LDLIBS = -lcasa_tables -lcasa_measures
 LDFLAGS = -Wl,-rpath,\$$ORIGIN
 
-MODULES = tables
+MODULES = tables measures
 OBJ = $(addsuffix /module.o, $(MODULES))
 
 .PHONY: all clean $(MODULES)

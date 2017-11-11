@@ -1,4 +1,4 @@
-# Copyright (c) 2015, 2016 Michael Eastwood
+# Copyright (c) 2015-2017 Michael Eastwood
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,26 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-module Measures
-
-export Epoch, Direction, Position, Baseline
-export @epoch_str, @dir_str, @pos_str, @baseline_str
-
-export ReferenceFrame
-export set!, measure
-
-export radius, longitude, latitude, observatory, sexagesimal
-
-using ..Common
-
 using Unitful
 # See https://github.com/ajkeller34/Unitful.jl/issues/38 for a discussion of angle units in the
 # Unitful package. We decided that it makes sense for angles to be dimensionless, but Andrew was
 # hesitant to commit to this typealias within Unitful.
 Angle{T} =  Unitful.DimensionlessQuantity{T}
-
-const libcasacorewrapper = joinpath(dirname(@__FILE__),"../deps/libcasacorewrapper.so")
-isfile(libcasacorewrapper) || error("Run Pkg.build(\"CasaCore\")")
 
 module Epochs
     @enum(System, LAST, LMST, GMST1, GAST, UT1, UT2, UTC, TAI, TDT, TCG, TDB, TCB)
@@ -331,7 +316,7 @@ function observatory(name::AbstractString)
     position = Position(pos"ITRF", 0.0, 0.0, 0.0) |> Ref{Position}
     status = ccall(("observatory",libcasacorewrapper), Bool,
                    (Ref{Position}, Ptr{Cchar}), position, name)
-    !status && error("Unknown observatory.")
+    !status && err("Unknown observatory.")
     position[]
 end
 
@@ -390,7 +375,7 @@ function sexagesimal(str::AbstractString)
     #               decimal number preceding the letter s
     regex = r"(\+|-)?(\d*\.?\d+)(d|h)(?:(\d*\.?\d+)m(?:(\d*\.?\d+)s)?)?"
     m = match(regex,str)
-    m === nothing && error("Unknown sexagesimal format.")
+    m === nothing && err("Unknown sexagesimal format.")
 
     sign = m.captures[1] == "-" ? -1 : +1
     degrees_or_hours = float(m.captures[2])
@@ -460,12 +445,12 @@ longitude(measure) = atan2(measure.y, measure.x)
 latitude(measure)  = atan2(measure.z, hypot(measure.x, measure.y))
 
 function Base.isapprox(lhs::Epoch, rhs::Epoch)
-    lhs.sys === rhs.sys || error("Coordinate systems must match.")
+    lhs.sys === rhs.sys || err("Coordinate systems must match.")
     lhs.time ≈ rhs.time
 end
 
 function Base.isapprox(lhs::T, rhs::T) where T<:Union{Direction,Position,Baseline}
-    lhs.sys === rhs.sys || error("Coordinate systems must match.")
+    lhs.sys === rhs.sys || err("Coordinate systems must match.")
     v1 = [lhs.x, lhs.y, lhs.z]
     v2 = [rhs.x, rhs.y, rhs.z]
     v1 ≈ v2
@@ -527,7 +512,5 @@ function measure(frame::ReferenceFrame, baseline::Baseline, newsys::Baselines.Sy
     ccall(("convertBaseline", libcasacorewrapper), Baseline,
           (Ref{Baseline}, Cint, Ref{ReferenceFrame}),
           baseline, newsys, frame)
-end
-
 end
 

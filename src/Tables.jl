@@ -40,12 +40,6 @@ include("tables/columns.jl")
 include("tables/cells.jl")
 include("tables/keywords.jl")
 
-
-
-
-
-
-
 #"""
 #    Tables.lock(table::Table; writelock = true, attempts = 5)
 #
@@ -67,6 +61,6 @@ include("tables/keywords.jl")
 #function Base.unlock(table::Table)
 #    ccall(("unlock", libcasacorewrapper), Void, (Ptr{Void},), table)
 #end
-#
+
 end
 
