@@ -97,7 +97,7 @@ function Base.getindex(table::Table, keyword::Keyword)
         keyword_missing_error(keyword)
     end
     T, shape = keyword_info(table, keyword)
-    read_keyword(table, keyword, T)
+    read_keyword(table, keyword, T, shape)
 end
 
 function Base.setindex!(table::Table, value, keyword::Keyword)
@@ -138,14 +138,22 @@ for T in typelist
     Tc = type2cpp[T]
     typestr = type2str[T]
     c_get_keyword        = String(Symbol(:get_keyword_, typestr))
+    c_get_keyword_array  = String(Symbol(:get_keyword_array_, typestr))
     #c_get_keyword_column = String(Symbol(:get_keyword_column_, typestr))
     c_put_keyword        = String(Symbol(:put_keyword_, typestr))
+    c_put_keyword_array  = String(Symbol(:put_keyword_array_, typestr))
     #c_put_keyword_column = String(Symbol(:put_keyword_column_, typestr))
 
-    @eval function read_keyword(table::Table, keyword::Keyword, ::Type{$T})
+    @eval function read_keyword(table::Table, keyword::Keyword, ::Type{$T}, shape)
         value = ccall(($c_get_keyword, libcasacorewrapper), $Tc,
                       (Ptr{CasaCoreTable}, Ptr{Cchar}), table, keyword)
         wrap_value(value)
+    end
+
+    @eval function read_keyword(table::Table, keyword::Keyword, ::Type{Array{$T}}, shape)
+        ptr = ccall(($c_get_keyword_array, libcasacorewrapper), Ptr{$Tc},
+                    (Ptr{CasaCoreTable}, Ptr{Cchar}), table, keyword)
+        wrap(ptr, shape)
     end
 
 #    @eval function read_keyword(table::Table, column::String, keyword::Keyword, ::Type{$T})
@@ -159,12 +167,21 @@ for T in typelist
         value
     end
 
+    @eval function write_keyword!(table::Table, value::Array{$T}, keyword::Keyword)
+        shape = convert(Vector{Cint}, collect(size(value)))
+        ccall(($c_put_keyword_array, libcasacorewrapper), Void,
+              (Ptr{CasaCoreTable}, Ptr{Cchar}, Ptr{$Tc}, Ptr{Cint}, Cint),
+              table, keyword, value, shape, length(shape))
+        value
+    end
+
 #    @eval function write_keyword!(table::Table, value::$T, column::String, keyword::Keyword)
 #        ccall(($c_put_keyword_column, libcasacorewrapper), Void,
 #              (Ptr{Void}, Ptr{Cchar}, Ptr{Cchar}, $T), table, column, keyword, value)
 #        value
 #    end
 end
+
 #
 #function read_keyword(table::Table, keyword::Keyword, ::Type{String})
 #    ptr = ccall(("getKeyword_string", libcasacorewrapper), Ptr{Cchar}, (Ptr{Void}, Ptr{Cchar}),

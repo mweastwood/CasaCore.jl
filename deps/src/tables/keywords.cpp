@@ -31,21 +31,37 @@ void putKeyword(Table* t, char const* keyword, T input) {
     keywords.define(keyword, input);
 }
 
-template <typename T>
-T getKeyword_column(Table* t, char const* column, char const* keyword) {
-    T output;
-    auto keywords = TableColumn(*t, column).keywordSet();
+template <typename T, typename R>
+R* getKeyword_array(Table* t, char const* keyword) {
+    Array<T> output;
+    auto keywords = t->keywordSet();
     keywords.get(keyword, output);
-    return output;
+    return output_array(output);
 }
 
-template <typename T>
-void putKeyword_column(Table* t, char const* column, char const* keyword, T input) {
+template <typename T, typename R>
+void putKeyword_array(Table* t, char const* keyword, R* input, int const* dims, int ndim) {
     // Note that it is very important that `keywords` is a reference here. Otherwise we will make a
     // copy of the `TableRecord` and any changes will fail to propagate back to the table.
-    TableRecord& keywords = TableColumn(*t, column).rwKeywordSet();
-    keywords.define(keyword, input);
+    TableRecord& keywords = t->rwKeywordSet();
+    keywords.define(keyword, *input_array(input, dims, ndim));
 }
+
+//template <typename T>
+//T getKeyword_column(Table* t, char const* column, char const* keyword) {
+//    T output;
+//    auto keywords = TableColumn(*t, column).keywordSet();
+//    keywords.get(keyword, output);
+//    return output;
+//}
+//
+//template <typename T>
+//void putKeyword_column(Table* t, char const* column, char const* keyword, T input) {
+//    // Note that it is very important that `keywords` is a reference here. Otherwise we will make a
+//    // copy of the `TableRecord` and any changes will fail to propagate back to the table.
+//    TableRecord& keywords = TableColumn(*t, column).rwKeywordSet();
+//    keywords.define(keyword, input);
+//}
 
 extern "C" {
     uint num_keywords(Table* t) {
@@ -74,12 +90,14 @@ extern "C" {
     }
 
     int* keyword_info(Table* t, char* keyword, int* element_type, int* dimension) {
-        // We only support scalar keywords for now.
         auto keywords = t->keywordSet();
         *element_type = keywords.dataType(keyword);
-        *dimension = 1;
-        int* shape = new int[1];
-        shape[0] = 1;
+        auto iposition_shape = keywords.shape(keyword);
+        *dimension = iposition_shape.size();
+        int* shape = new int[*dimension];
+        for (int i = 0; i < *dimension; ++i) {
+            shape[i] = iposition_shape[i];
+        }
         return shape;
     }
 
@@ -109,22 +127,60 @@ extern "C" {
     }
 
     void put_keyword_boolean(Table* t, char* keyword, bool input) {
-        return putKeyword<Bool>(t, keyword, input);
+        putKeyword<Bool>(t, keyword, input);
     }
     void put_keyword_int(Table* t, char* keyword, int input) {
-        return putKeyword<Int>(t, keyword, input);
+        putKeyword<Int>(t, keyword, input);
     }
     void put_keyword_float(Table* t, char* keyword, float input) {
-        return putKeyword<Float>(t, keyword, input);
+        putKeyword<Float>(t, keyword, input);
     }
     void put_keyword_double(Table* t, char* keyword, double input) {
-        return putKeyword<Double>(t, keyword, input);
+        putKeyword<Double>(t, keyword, input);
     }
     void put_keyword_complex(Table* t, char* keyword, cmplx input) {
-        return putKeyword<Complex>(t, keyword, input);
+        putKeyword<Complex>(t, keyword, input);
     }
     void put_keyword_string(Table* t, char* keyword, char* input) {
-        return putKeyword<String>(t, keyword, input);
+        putKeyword<String>(t, keyword, input);
+    }
+
+    bool* get_keyword_array_boolean(Table* t, char* keyword) {
+        return getKeyword_array<Bool, bool>(t, keyword);
+    }
+    int* get_keyword_array_int(Table* t, char* keyword) {
+        return getKeyword_array<Int, int>(t, keyword);
+    }
+    float* get_keyword_array_float(Table* t, char* keyword) {
+        return getKeyword_array<Float, float>(t, keyword);
+    }
+    double* get_keyword_array_double(Table* t, char* keyword) {
+        return getKeyword_array<Double, double>(t, keyword);
+    }
+    cmplx* get_keyword_array_complex(Table* t, char* keyword) {
+        return getKeyword_array<Complex, cmplx>(t, keyword);
+    }
+    char** get_keyword_array_string(Table* t, char* keyword) {
+        return getKeyword_array<String, char*>(t, keyword);
+    }
+
+    void put_keyword_array_boolean(Table* t, char* keyword, bool* input, int* dims, int ndim) {
+        putKeyword_array<Bool, bool>(t, keyword, input, dims, ndim);
+    }
+    void put_keyword_array_int(Table* t, char* keyword, int* input, int* dims, int ndim) {
+        putKeyword_array<Int, int>(t, keyword, input, dims, ndim);
+    }
+    void put_keyword_array_float(Table* t, char* keyword, float* input, int* dims, int ndim) {
+        putKeyword_array<Float, float>(t, keyword, input, dims, ndim);
+    }
+    void put_keyword_array_double(Table* t, char* keyword, double* input, int* dims, int ndim) {
+        putKeyword_array<Double, double>(t, keyword, input, dims, ndim);
+    }
+    void put_keyword_array_complex(Table* t, char* keyword, cmplx* input, int* dims, int ndim) {
+        putKeyword_array<Complex, cmplx>(t, keyword, input, dims, ndim);
+    }
+    void put_keyword_array_string(Table* t, char* keyword, char** input, int* dims, int ndim) {
+        putKeyword_array<String, char*>(t, keyword, input, dims, ndim);
     }
 
     //bool getKeyword_column_boolean(Table* t, char* column, char* keyword) {

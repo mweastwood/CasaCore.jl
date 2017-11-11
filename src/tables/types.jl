@@ -25,13 +25,16 @@ const type2cpp = ObjectIdDict(Bool      => Bool,      Int32   => Int32,
                               Float32   => Float32,   Float64 => Float64,
                               Complex64 => Complex64, String  => Ptr{Cchar})
 
-const type2str = ObjectIdDict(Bool      => :boolean,  Int32   => :int,
-                              Float32   => :float,    Float64 => :double,
-                              Complex64 => :complex,  String  => :string)
+const type2str = ObjectIdDict(Bool      => :boolean,  Int32     => :int,
+                              Float32   => :float,    Float64   => :double,
+                              Complex64 => :complex,  String    => :string)
 
-const enum2type = Dict(TpBool    => Bool,      TpInt     => Int32,
-                       TpFloat   => Float32,   TpDouble  => Float64,
-                       TpComplex => Complex64, TpString  => String)
+const enum2type = Dict(TpBool    => Bool,      TpArrayBool    => Array{Bool},
+                       TpInt     => Int32,     TpArrayInt     => Array{Int32},
+                       TpFloat   => Float32,   TpArrayFloat   => Array{Float32},
+                       TpDouble  => Float64,   TpArrayDouble  => Array{Float64},
+                       TpComplex => Complex64, TpArrayComplex => Array{Complex64},
+                       TpString  => String,    TpArrayString  => Array{String})
 
 const typelist = (Bool, Int32, Float32, Float64, Complex64, String)
 

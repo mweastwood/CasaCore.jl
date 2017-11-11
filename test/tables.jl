@@ -180,7 +180,12 @@
         path = tempname()*".ms"
         table = Tables.create(path)
 
-        for T in (Bool, Int32, Float32, Float64, Complex64)
+        names = ("bools", "ints", "floats", "doubles", "complex", "strings")
+        types = (Bool, Int32, Float32, Float64, Complex64, String)
+        types_nostring = types[1:end-1]
+
+        # scalars
+        for T in types_nostring
             x = rand(T)
             table[kw"test"] = x
             @test table[kw"test"] == x
@@ -194,6 +199,18 @@
         @test_throws CasaCoreTablesError table[kw"tset"] # typo
         @test_throws CasaCoreTablesError table[kw"test"] = Float16(0) # incorrect type
         Tables.remove_keyword!(table, kw"test")
+
+        # arrays
+        for shape in ((10,), (11, 10), (12, 11, 10))
+            for T in types_nostring
+                x = rand(T, shape)
+                table[kw"test"] = x
+                @test table[kw"test"] == x
+                @test_throws CasaCoreTablesError table[kw"test"] = rand(Float16, shape) # incorrect type
+                @test_throws CasaCoreTablesError table[kw"tset"] # typo
+                Tables.remove_keyword!(table, kw"test")
+            end
+        end
 
         Tables.close(table)
         rm(path, force=true, recursive=true)
