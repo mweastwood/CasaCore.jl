@@ -56,6 +56,10 @@ extern "C" {
     }
     void delete_table(Table* t) {delete t;}
 
+    char* table_name(Table* t) {
+        return output_string(t->tableName());
+    }
+
     //bool lock(Table* t, bool write, int attempts) {return t->lock(write, attempts);}
     //void unlock(Table* t) {t->unlock();}
 }

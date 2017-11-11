@@ -125,6 +125,10 @@ extern "C" {
         String string = getKeyword<String>(t, keyword);
         return output_string(string);
     }
+    Table* get_keyword_table(Table* t, char* keyword) {
+        auto keywords = t->keywordSet();
+        return new Table(keywords.asTable(keyword));
+    }
 
     void put_keyword_boolean(Table* t, char* keyword, bool input) {
         putKeyword<Bool>(t, keyword, input);

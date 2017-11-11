@@ -182,23 +182,18 @@ for T in typelist
 #    end
 end
 
-#
-#function read_keyword(table::Table, keyword::Keyword, ::Type{String})
-#    ptr = ccall(("getKeyword_string", libcasacorewrapper), Ptr{Cchar}, (Ptr{Void}, Ptr{Cchar}),
-#                table, keyword)
-#    unsafe_wrap(String, ptr, true)
-#end
-#
+function read_keyword(table::Table, keyword::Keyword, ::Type{Table}, shape)
+    ptr = ccall((:get_keyword_table, libcasacorewrapper), Ptr{CasaCoreTable},
+                (Ptr{CasaCoreTable}, Ptr{Cchar}), table, keyword)
+    path = ccall((:table_name, libcasacorewrapper), Ptr{Cchar},
+                 (Ptr{CasaCoreTable},), ptr) |> wrap_value
+    Table(path, readwrite, ptr)
+end
+
 #function read_keyword(table::Table, column::String, keyword::Keyword, ::Type{String})
 #    ptr = ccall(("getKeyword_column_string", libcasacorewrapper), Ptr{Cchar},
 #                (Ptr{Void}, Ptr{Cchar}, Ptr{Cchar}), table, column, keyword)
 #    unsafe_wrap(String, ptr, true)
-#end
-#
-#function write_keyword!(table::Table, value::String, keyword::Keyword)
-#    ccall(("putKeyword_string", libcasacorewrapper), Void, (Ptr{Void}, Ptr{Cchar}, Ptr{Cchar}),
-#          table, keyword, value)
-#    value
 #end
 #
 #function write_keyword!(table::Table, value::String, column::String, keyword::Keyword)

@@ -43,6 +43,7 @@ struct Table
     ptr    :: Ptr{CasaCoreTable}
 end
 
+enum2type[TpTable] = Table
 Base.unsafe_convert(::Type{Ptr{CasaCoreTable}}, table::Table) = table.ptr
 
 function create(path)
