@@ -219,14 +219,6 @@
 
     #@test repr(table) == "Table: "*table_name
 
-    ##@test Tables.iswritable(table) == true
-    ##@test Tables.isreadable(table) == true
-
-    #@test Tables.numrows(table) == 0
-    #@test Tables.numcolumns(table) == 0
-    #@test Tables.numkeywords(table) == 0
-
-    #Tables.addrows!(table, 10)
 
     #@testset "keywords" begin
     #end
@@ -237,158 +229,170 @@
     #        x = rand(T)
     #        table["column", kw"test"] = x
     #        @test table["column", kw"test"] == x
-    #        @test_throws CasaCoreError table["column", kw"tset"] # typo
-    #        @test_throws CasaCoreError table["column", kw"test"] = Float16(0) # incorrect type
+    #        @test_throws CasaCoreTablesError table["column", kw"tset"] # typo
+    #        @test_throws CasaCoreTablesError table["column", kw"test"] = Float16(0) # incorrect type
     #        Tables.remove_keyword!(table, "column", kw"test")
     #    end
     #    x = "I am a banana!"
     #    table["column", kw"test"] = x
     #    @test table["column", kw"test"] == x
-    #    @test_throws CasaCoreError table["colunm", kw"test"] # typo
-    #    @test_throws CasaCoreError table["column", kw"tset"] # typo
-    #    @test_throws CasaCoreError table["colunm", kw"test"] = x # typo
-    #    @test_throws CasaCoreError table["column", kw"test"] = Float16(0) # incorrect type
+    #    @test_throws CasaCoreTablesError table["colunm", kw"test"] # typo
+    #    @test_throws CasaCoreTablesError table["column", kw"tset"] # typo
+    #    @test_throws CasaCoreTablesError table["colunm", kw"test"] = x # typo
+    #    @test_throws CasaCoreTablesError table["column", kw"test"] = Float16(0) # incorrect type
     #    Tables.remove_keyword!(table, "column", kw"test")
     #    Tables.remove_column!(table, "column")
     #end
 
-    #@testset "old tests" begin
-    #    @test Tables.column_exists(table,"SKA_DATA") == false
-    #    table["SKA_DATA"] = ones(10)
-    #    @test Tables.column_exists(table,"SKA_DATA") == true
-    #    Tables.remove_column!(table,"SKA_DATA")
-    #    @test Tables.column_exists(table,"SKA_DATA") == false
+    @testset "old tests" begin
+        path = tempname()*".ms"
+        table = Tables.create(path)
 
-    #    ant1 = Array{Int32}(10)
-    #    ant2 = Array{Int32}(10)
-    #    uvw  = Array{Float64}(3, 10)
-    #    time = Array{Float64}(10)
-    #    data      = Array{Complex64}(4, 109, 10)
-    #    model     = Array{Complex64}(4, 109, 10)
-    #    corrected = Array{Complex64}(4, 109, 10)
-    #    freq = Array{Float64}(109, 1)
+        @test Tables.num_rows(table) == 0
+        @test Tables.num_columns(table) == 0
+        @test Tables.num_keywords(table) == 0
 
-    #    rand!(ant1)
-    #    rand!(ant2)
-    #    rand!(uvw)
-    #    rand!(time)
-    #    rand!(data)
-    #    rand!(model)
-    #    rand!(corrected)
-    #    rand!(freq)
+        Tables.add_rows!(table, 10)
 
-    #    table["ANTENNA1"] = ant1
-    #    table["ANTENNA2"] = ant2
-    #    table["UVW"]      = uvw
-    #    table["TIME"]     = time
-    #    table["DATA"]           = data
-    #    table["MODEL_DATA"]     = model
-    #    table["CORRECTED_DATA"] = corrected
+        @test Tables.column_exists(table,"SKA_DATA") == false
+        table["SKA_DATA"] = ones(10)
+        @test Tables.column_exists(table,"SKA_DATA") == true
+        Tables.remove_column!(table,"SKA_DATA")
+        @test Tables.column_exists(table,"SKA_DATA") == false
 
-    #    @test Tables.numcolumns(table) == 7
-    #    @test size(table) == (10,7)
-    #    @test Tables.column_exists(table,"ANTENNA1") == true
-    #    @test Tables.column_exists(table,"ANTENNA2") == true
-    #    @test Tables.column_exists(table,"UVW")      == true
-    #    @test Tables.column_exists(table,"TIME")     == true
-    #    @test Tables.column_exists(table,"DATA")            == true
-    #    @test Tables.column_exists(table,"MODEL_DATA")      == true
-    #    @test Tables.column_exists(table,"CORRECTED_DATA")  == true
-    #    @test Tables.column_exists(table,"FABRICATED_DATA") == false
+        ant1 = Array{Int32}(10)
+        ant2 = Array{Int32}(10)
+        uvw  = Array{Float64}(3, 10)
+        time = Array{Float64}(10)
+        data      = Array{Complex64}(4, 109, 10)
+        model     = Array{Complex64}(4, 109, 10)
+        corrected = Array{Complex64}(4, 109, 10)
+        freq = Array{Float64}(109, 1)
 
-    #    @test table["ANTENNA1"] == ant1
-    #    @test table["ANTENNA2"] == ant2
-    #    @test table["UVW"]      == uvw
-    #    @test table["TIME"]     == time
-    #    @test table["DATA"]           == data
-    #    @test table["MODEL_DATA"]     == model
-    #    @test table["CORRECTED_DATA"] == corrected
-    #    @test_throws CasaCoreError table["FABRICATED_DATA"]
+        rand!(ant1)
+        rand!(ant2)
+        rand!(uvw)
+        rand!(time)
+        rand!(data)
+        rand!(model)
+        rand!(corrected)
+        rand!(freq)
 
-    #    @test table["ANTENNA1",1] == ant1[1]
-    #    @test table["ANTENNA2",1] == ant2[1]
-    #    @test table["UVW",1]      == uvw[:,1]
-    #    @test table["TIME",1]     == time[1]
-    #    @test table["DATA",1]           == data[:,:,1]
-    #    @test table["MODEL_DATA",1]     == model[:,:,1]
-    #    @test table["CORRECTED_DATA",1] == corrected[:,:,1]
-    #    @test_throws CasaCoreError table["FABRICATED_DATA",1]
+        table["ANTENNA1"] = ant1
+        table["ANTENNA2"] = ant2
+        table["UVW"]      = uvw
+        table["TIME"]     = time
+        table["DATA"]           = data
+        table["MODEL_DATA"]     = model
+        table["CORRECTED_DATA"] = corrected
 
-    #    rand!(ant1)
-    #    rand!(ant2)
-    #    rand!(uvw)
-    #    rand!(time)
-    #    rand!(data)
-    #    rand!(model)
-    #    rand!(corrected)
-    #    rand!(freq)
+        @test Tables.num_columns(table) == 7
+        @test Tables.column_exists(table,"ANTENNA1") == true
+        @test Tables.column_exists(table,"ANTENNA2") == true
+        @test Tables.column_exists(table,"UVW")      == true
+        @test Tables.column_exists(table,"TIME")     == true
+        @test Tables.column_exists(table,"DATA")            == true
+        @test Tables.column_exists(table,"MODEL_DATA")      == true
+        @test Tables.column_exists(table,"CORRECTED_DATA")  == true
+        @test Tables.column_exists(table,"FABRICATED_DATA") == false
 
-    #    table["ANTENNA1",1] = ant1[1]
-    #    table["ANTENNA2",1] = ant2[1]
-    #    table["UVW",1]      = uvw[:,1]
-    #    table["TIME",1]     = time[1]
-    #    table["DATA",1]           = data[:,:,1]
-    #    table["MODEL_DATA",1]     = model[:,:,1]
-    #    table["CORRECTED_DATA",1] = corrected[:,:,1]
-    #    @test_throws CasaCoreError table["FABRICATED_DATA",1] = 1
+        @test table["ANTENNA1"] == ant1
+        @test table["ANTENNA2"] == ant2
+        @test table["UVW"]      == uvw
+        @test table["TIME"]     == time
+        @test table["DATA"]           == data
+        @test table["MODEL_DATA"]     == model
+        @test table["CORRECTED_DATA"] == corrected
+        @test_throws CasaCoreTablesError table["FABRICATED_DATA"]
 
-    #    @test table["ANTENNA1",1] == ant1[1]
-    #    @test table["ANTENNA2",1] == ant2[1]
-    #    @test table["UVW",1]      == uvw[:,1]
-    #    @test table["TIME",1]     == time[1]
-    #    @test table["DATA",1]           == data[:,:,1]
-    #    @test table["MODEL_DATA",1]     == model[:,:,1]
-    #    @test table["CORRECTED_DATA",1] == corrected[:,:,1]
-    #    @test_throws CasaCoreError table["FABRICATED_DATA",1]
+        @test table["ANTENNA1",1] == ant1[1]
+        @test table["ANTENNA2",1] == ant2[1]
+        @test table["UVW",1]      == uvw[:,1]
+        @test table["TIME",1]     == time[1]
+        @test table["DATA",1]           == data[:,:,1]
+        @test table["MODEL_DATA",1]     == model[:,:,1]
+        @test table["CORRECTED_DATA",1] == corrected[:,:,1]
+        @test_throws CasaCoreTablesError table["FABRICATED_DATA",1]
 
-    #    # Fully populate the columns again for the test where the
-    #    # table is opened again
-    #    table["ANTENNA1"] = ant1
-    #    table["ANTENNA2"] = ant2
-    #    table["UVW"]      = uvw
-    #    table["TIME"]     = time
-    #    table["DATA"]           = data
-    #    table["MODEL_DATA"]     = model
-    #    table["CORRECTED_DATA"] = corrected
+        rand!(ant1)
+        rand!(ant2)
+        rand!(uvw)
+        rand!(time)
+        rand!(data)
+        rand!(model)
+        rand!(corrected)
+        rand!(freq)
 
-    #    subtable = Table("$table_name/SPECTRAL_WINDOW")
-    #    Tables.addrows!(subtable,1)
-    #    subtable["CHAN_FREQ"] = freq
-    #    @test subtable["CHAN_FREQ"] == freq
-    #    finalize(subtable)
+        table["ANTENNA1",1] = ant1[1]
+        table["ANTENNA2",1] = ant2[1]
+        table["UVW",1]      = uvw[:,1]
+        table["TIME",1]     = time[1]
+        table["DATA",1]           = data[:,:,1]
+        table["MODEL_DATA",1]     = model[:,:,1]
+        table["CORRECTED_DATA",1] = corrected[:,:,1]
+        @test_throws CasaCoreTablesError table["FABRICATED_DATA",1] = 1
 
-    #    @test Tables.numkeywords(table) == 0
-    #    table[kw"SPECTRAL_WINDOW"] = "Table: $table_name/SPECTRAL_WINDOW"
-    #    @test Tables.numkeywords(table) == 1
-    #    @test table[kw"SPECTRAL_WINDOW"] == "Table: $table_name/SPECTRAL_WINDOW"
+        @test table["ANTENNA1",1] == ant1[1]
+        @test table["ANTENNA2",1] == ant2[1]
+        @test table["UVW",1]      == uvw[:,1]
+        @test table["TIME",1]     == time[1]
+        @test table["DATA",1]           == data[:,:,1]
+        @test table["MODEL_DATA",1]     == model[:,:,1]
+        @test table["CORRECTED_DATA",1] == corrected[:,:,1]
+        @test_throws CasaCoreTablesError table["FABRICATED_DATA",1]
 
-    #    table["DATA",kw"Hello,"] = "World!"
-    #    @test table["DATA",kw"Hello,"] == "World!"
-    #    table[kw"MICHAEL_IS_COOL"] = true
-    #    @test table[kw"MICHAEL_IS_COOL"] == true
-    #    table[kw"PI"] = 3.14159
-    #    @test table[kw"PI"] == 3.14159
+        # Fully populate the columns again for the test where the
+        # table is opened again
+        table["ANTENNA1"] = ant1
+        table["ANTENNA2"] = ant2
+        table["UVW"]      = uvw
+        table["TIME"]     = time
+        table["DATA"]           = data
+        table["MODEL_DATA"]     = model
+        table["CORRECTED_DATA"] = corrected
 
-    #    @test_throws CasaCoreError table[kw"BOBBY_TABLES"]
-    #    @test_throws CasaCoreError table["DATA",kw"SYSTEMATIC_ERRORS"]
-    #    @test_throws CasaCoreError table["SKA_DATA",kw"SCHEDULE"]
+        subtable = Tables.create("$path/SPECTRAL_WINDOW")
+        Tables.add_rows!(subtable,1)
+        subtable["CHAN_FREQ"] = freq
+        @test subtable["CHAN_FREQ"] == freq
+        Tables.close(subtable)
 
-    #    # Try locking and unlocking the table
-    #    Tables.unlock(table)
-    #    Tables.lock(table)
-    #    Tables.unlock(table)
+        @test Tables.num_keywords(table) == 0
+        table[kw"SPECTRAL_WINDOW"] = "Table: $path/SPECTRAL_WINDOW"
+        @test Tables.num_keywords(table) == 1
+        @test table[kw"SPECTRAL_WINDOW"] == "Table: $path/SPECTRAL_WINDOW"
 
-    #    # Test opening the table again
-    #    table′ = Table(table_name)
-    #    @test table["ANTENNA1"] == ant1
-    #    @test table["ANTENNA2"] == ant2
-    #    @test table["UVW"]      == uvw
-    #    @test table["TIME"]     == time
-    #    @test table["DATA"]           == data
-    #    @test table["MODEL_DATA"]     == model
-    #    @test table["CORRECTED_DATA"] == corrected
-    #    @test_throws CasaCoreError table["FABRICATED_DATA"]
-    #end
+        #table["DATA",kw"Hello,"] = "World!"
+        #@test table["DATA",kw"Hello,"] == "World!"
+        table[kw"MICHAEL_IS_COOL"] = true
+        @test table[kw"MICHAEL_IS_COOL"] == true
+        table[kw"PI"] = 3.14159
+        @test table[kw"PI"] == 3.14159
+
+        @test_throws CasaCoreTablesError table[kw"BOBBY_TABLES"]
+        #@test_throws CasaCoreTablesError table["DATA",kw"SYSTEMATIC_ERRORS"]
+        #@test_throws CasaCoreTablesError table["SKA_DATA",kw"SCHEDULE"]
+
+        # Try locking and unlocking the table
+        #Tables.unlock(table)
+        #Tables.lock(table)
+        #Tables.unlock(table)
+        Tables.close(table)
+
+        # Test opening the table again
+        table′ = Tables.open(path)
+        @test table["ANTENNA1"] == ant1
+        @test table["ANTENNA2"] == ant2
+        @test table["UVW"]      == uvw
+        @test table["TIME"]     == time
+        @test table["DATA"]           == data
+        @test table["MODEL_DATA"]     == model
+        @test table["CORRECTED_DATA"] == corrected
+        @test_throws CasaCoreTablesError table["FABRICATED_DATA"]
+        Tables.close(table′)
+
+        rm(path, force=true, recursive=true)
+    end
 
     #@testset "locks" begin
     #    # a lock will guard against another process accessing
