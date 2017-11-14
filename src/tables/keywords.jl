@@ -55,7 +55,7 @@ end
 
 function keyword_exists(table::Table, column::String, keyword::Keyword)
     ccall((:column_keyword_exists, libcasacorewrapper), Bool,
-          (Ptr{Void}, Ptr{Cchar}, Ptr{Cchar}), table, column, keyword)
+          (Ptr{CasaCoreTable}, Ptr{Cchar}, Ptr{Cchar}), table, column, keyword)
 end
 
 """
@@ -216,7 +216,7 @@ function read_keyword(table::Table, keyword::Keyword, ::Type{Table}, shape)
                 (Ptr{CasaCoreTable}, Ptr{Cchar}), table, keyword)
     path = ccall((:table_name, libcasacorewrapper), Ptr{Cchar},
                  (Ptr{CasaCoreTable},), ptr) |> wrap_value
-    Table(path, readwrite, ptr)
+    Table(path, table.status, ptr)
 end
 
 function write_keyword!(table::Table, value::Table, keyword::Keyword)

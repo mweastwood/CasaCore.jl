@@ -176,252 +176,251 @@
         rm(path, force=true, recursive=true)
     end
 
-#    @testset "basic keywords" begin
-#        path = tempname()*".ms"
-#        table = Tables.create(path)
-#
-#        names = ("bools", "ints", "floats", "doubles", "complex", "strings")
-#        types = (Bool, Int32, Float32, Float64, Complex64, String)
-#        types_nostring = types[1:end-1]
-#
-#        # scalars
-#        for T in types_nostring
-#            x = rand(T)
-#            table[kw"test"] = x
-#            @test table[kw"test"] == x
-#            @test_throws CasaCoreTablesError table[kw"tset"] # typo
-#            @test_throws CasaCoreTablesError table[kw"test"] = Float16(0) # incorrect type
-#            Tables.remove_keyword!(table, kw"test")
-#        end
-#        x = "I am a banana!"
-#        table[kw"test"] = x
-#        @test table[kw"test"] == x
-#        @test_throws CasaCoreTablesError table[kw"tset"] # typo
-#        @test_throws CasaCoreTablesError table[kw"test"] = Float16(0) # incorrect type
-#        Tables.remove_keyword!(table, kw"test")
-#
-#        # arrays
-#        for shape in ((10,), (11, 10), (12, 11, 10))
-#            for T in types_nostring
-#                x = rand(T, shape)
-#                table[kw"test"] = x
-#                @test table[kw"test"] == x
-#                @test_throws CasaCoreTablesError table[kw"test"] = rand(Float16, shape) # incorrect type
-#                @test_throws CasaCoreTablesError table[kw"tset"] # typo
-#                Tables.remove_keyword!(table, kw"test")
-#            end
-#        end
-#
-#        Tables.close(table)
-#        rm(path, force=true, recursive=true)
-#    end
-#
-#    @testset "column keywords" begin
-#        Tables.addcolumn!(table, "column", Float64, (10,))
-#        for T in (Bool, Int32, Float32, Float64, Complex64)
-#            x = rand(T)
-#            table["column", kw"test"] = x
-#            @test table["column", kw"test"] == x
-#            @test_throws CasaCoreTablesError table["column", kw"tset"] # typo
-#            @test_throws CasaCoreTablesError table["column", kw"test"] = Float16(0) # incorrect type
-#            Tables.remove_keyword!(table, "column", kw"test")
-#        end
-#        x = "I am a banana!"
-#        table["column", kw"test"] = x
-#        @test table["column", kw"test"] == x
-#        @test_throws CasaCoreTablesError table["colunm", kw"test"] # typo
-#        @test_throws CasaCoreTablesError table["column", kw"tset"] # typo
-#        @test_throws CasaCoreTablesError table["colunm", kw"test"] = x # typo
-#        @test_throws CasaCoreTablesError table["column", kw"test"] = Float16(0) # incorrect type
-#        Tables.remove_keyword!(table, "column", kw"test")
-#        Tables.remove_column!(table, "column")
-#    end
-#
-#    @testset "old tests" begin
-#        path = tempname()*".ms"
-#        table = Tables.create(path)
-#
-#        @test Tables.num_rows(table) == 0
-#        @test Tables.num_columns(table) == 0
-#        @test Tables.num_keywords(table) == 0
-#
-#        Tables.add_rows!(table, 10)
-#
-#        @test Tables.column_exists(table,"SKA_DATA") == false
-#        table["SKA_DATA"] = ones(10)
-#        @test Tables.column_exists(table,"SKA_DATA") == true
-#        Tables.remove_column!(table,"SKA_DATA")
-#        @test Tables.column_exists(table,"SKA_DATA") == false
-#
-#        ant1 = Array{Int32}(10)
-#        ant2 = Array{Int32}(10)
-#        uvw  = Array{Float64}(3, 10)
-#        time = Array{Float64}(10)
-#        data      = Array{Complex64}(4, 109, 10)
-#        model     = Array{Complex64}(4, 109, 10)
-#        corrected = Array{Complex64}(4, 109, 10)
-#        freq = Array{Float64}(109, 1)
-#
-#        rand!(ant1)
-#        rand!(ant2)
-#        rand!(uvw)
-#        rand!(time)
-#        rand!(data)
-#        rand!(model)
-#        rand!(corrected)
-#        rand!(freq)
-#
-#        table["ANTENNA1"] = ant1
-#        table["ANTENNA2"] = ant2
-#        table["UVW"]      = uvw
-#        table["TIME"]     = time
-#        table["DATA"]           = data
-#        table["MODEL_DATA"]     = model
-#        table["CORRECTED_DATA"] = corrected
-#
-#        @test Tables.num_columns(table) == 7
-#        @test Tables.column_exists(table,"ANTENNA1") == true
-#        @test Tables.column_exists(table,"ANTENNA2") == true
-#        @test Tables.column_exists(table,"UVW")      == true
-#        @test Tables.column_exists(table,"TIME")     == true
-#        @test Tables.column_exists(table,"DATA")            == true
-#        @test Tables.column_exists(table,"MODEL_DATA")      == true
-#        @test Tables.column_exists(table,"CORRECTED_DATA")  == true
-#        @test Tables.column_exists(table,"FABRICATED_DATA") == false
-#
-#        @test table["ANTENNA1"] == ant1
-#        @test table["ANTENNA2"] == ant2
-#        @test table["UVW"]      == uvw
-#        @test table["TIME"]     == time
-#        @test table["DATA"]           == data
-#        @test table["MODEL_DATA"]     == model
-#        @test table["CORRECTED_DATA"] == corrected
-#        @test_throws CasaCoreTablesError table["FABRICATED_DATA"]
-#
-#        @test table["ANTENNA1",1] == ant1[1]
-#        @test table["ANTENNA2",1] == ant2[1]
-#        @test table["UVW",1]      == uvw[:,1]
-#        @test table["TIME",1]     == time[1]
-#        @test table["DATA",1]           == data[:,:,1]
-#        @test table["MODEL_DATA",1]     == model[:,:,1]
-#        @test table["CORRECTED_DATA",1] == corrected[:,:,1]
-#        @test_throws CasaCoreTablesError table["FABRICATED_DATA",1]
-#
-#        rand!(ant1)
-#        rand!(ant2)
-#        rand!(uvw)
-#        rand!(time)
-#        rand!(data)
-#        rand!(model)
-#        rand!(corrected)
-#        rand!(freq)
-#
-#        table["ANTENNA1",1] = ant1[1]
-#        table["ANTENNA2",1] = ant2[1]
-#        table["UVW",1]      = uvw[:,1]
-#        table["TIME",1]     = time[1]
-#        table["DATA",1]           = data[:,:,1]
-#        table["MODEL_DATA",1]     = model[:,:,1]
-#        table["CORRECTED_DATA",1] = corrected[:,:,1]
-#        @test_throws CasaCoreTablesError table["FABRICATED_DATA",1] = 1
-#
-#        @test table["ANTENNA1",1] == ant1[1]
-#        @test table["ANTENNA2",1] == ant2[1]
-#        @test table["UVW",1]      == uvw[:,1]
-#        @test table["TIME",1]     == time[1]
-#        @test table["DATA",1]           == data[:,:,1]
-#        @test table["MODEL_DATA",1]     == model[:,:,1]
-#        @test table["CORRECTED_DATA",1] == corrected[:,:,1]
-#        @test_throws CasaCoreTablesError table["FABRICATED_DATA",1]
-#
-#        # Fully populate the columns again for the test where the
-#        # table is opened again
-#        table["ANTENNA1"] = ant1
-#        table["ANTENNA2"] = ant2
-#        table["UVW"]      = uvw
-#        table["TIME"]     = time
-#        table["DATA"]           = data
-#        table["MODEL_DATA"]     = model
-#        table["CORRECTED_DATA"] = corrected
-#
-#        subtable = Tables.create("$path/SPECTRAL_WINDOW")
-#        Tables.add_rows!(subtable,1)
-#        subtable["CHAN_FREQ"] = freq
-#        @test subtable["CHAN_FREQ"] == freq
-#        Tables.close(subtable)
-#
-#        @test Tables.num_keywords(table) == 0
-#        table[kw"SPECTRAL_WINDOW"] = "Table: $path/SPECTRAL_WINDOW"
-#        @test Tables.num_keywords(table) == 1
-#        @test table[kw"SPECTRAL_WINDOW"] == "Table: $path/SPECTRAL_WINDOW"
-#
-#        #table["DATA",kw"Hello,"] = "World!"
-#        #@test table["DATA",kw"Hello,"] == "World!"
-#        table[kw"MICHAEL_IS_COOL"] = true
-#        @test table[kw"MICHAEL_IS_COOL"] == true
-#        table[kw"PI"] = 3.14159
-#        @test table[kw"PI"] == 3.14159
-#
-#        @test_throws CasaCoreTablesError table[kw"BOBBY_TABLES"]
-#        #@test_throws CasaCoreTablesError table["DATA",kw"SYSTEMATIC_ERRORS"]
-#        #@test_throws CasaCoreTablesError table["SKA_DATA",kw"SCHEDULE"]
-#
-#        # Try locking and unlocking the table
-#        #Tables.unlock(table)
-#        #Tables.lock(table)
-#        #Tables.unlock(table)
-#        Tables.close(table)
-#
-#        # Test opening the table again
-#        table′ = Tables.open(path)
-#        @test table["ANTENNA1"] == ant1
-#        @test table["ANTENNA2"] == ant2
-#        @test table["UVW"]      == uvw
-#        @test table["TIME"]     == time
-#        @test table["DATA"]           == data
-#        @test table["MODEL_DATA"]     == model
-#        @test table["CORRECTED_DATA"] == corrected
-#        @test_throws CasaCoreTablesError table["FABRICATED_DATA"]
-#        Tables.close(table′)
-#
-#        rm(path, force=true, recursive=true)
-#    end
-#
-#    #@testset "locks" begin
-#    #    # a lock will guard against another process accessing
-#    #    # the table, so let's use a worker to try and access
-#    #    # a locked table
-#    #    name = tempname()*".ms"
-#    #    table = Table(name)
-#    #    Tables.addrows!(table, 1)
-#    #    table["COLUMN"] = [1.0]
-#    #    @everywhere function load_and_read(name)
-#    #        mytable = CasaCore.Tables.Table(name)
-#    #        mytable["COLUMN"], mytable["COLUMN",1]
-#    #    end
-#    #    Tables.unlock(table) # forces the write to disk
-#    #    Tables.lock(table)
-#    #    rr = RemoteChannel()
-#    #    @async put!(rr, remotecall_fetch(load_and_read, 2, name))
-#    #    for i = 1:3
-#    #        sleep(1)
-#    #        @test !isready(rr)
-#    #    end
-#    #    Tables.unlock(table)
-#    #    @test fetch(rr) == ([1.0], 1.0)
-#    #end
-#
-#    ## Issue #58
-#    ## This will create a temporary table in the user's home directory so only run this test if we
-#    ## are running tests from a CI service
-#    #if get(ENV, "CI", "false") == "true"
-#    #    println("Running test for issue #58")
-#    #    ms1 = Table("~/issue58.ms")
-#    #    Tables.addrows!(ms1, 1)
-#    #    ms1["col"] = [1.0]
-#    #    unlock(ms1)
-#    #    ms2 = Table("~/issue58.ms")
-#    #    @test ms2["col"] == [1.0]
-#    #end
+    @testset "basic keywords" begin
+        path = tempname()*".ms"
+        table = Tables.create(path)
+
+        names = ("bools", "ints", "floats", "doubles", "complex", "strings")
+        types = (Bool, Int32, Float32, Float64, Complex64, String)
+        types_nostring = types[1:end-1]
+
+        # scalars
+        for T in types_nostring
+            x = rand(T)
+            table[kw"test"] = x
+            @test table[kw"test"] == x
+            @test_throws CasaCoreTablesError table[kw"tset"] # typo
+            @test_throws CasaCoreTablesError table[kw"test"] = Float16(0) # incorrect type
+            Tables.remove_keyword!(table, kw"test")
+        end
+        x = "I am a banana!"
+        table[kw"test"] = x
+        @test table[kw"test"] == x
+        @test_throws CasaCoreTablesError table[kw"tset"] # typo
+        @test_throws CasaCoreTablesError table[kw"test"] = Float16(0) # incorrect type
+        Tables.remove_keyword!(table, kw"test")
+
+        # arrays
+        for shape in ((10,), (11, 10), (12, 11, 10))
+            for T in types_nostring
+                x = rand(T, shape)
+                table[kw"test"] = x
+                @test table[kw"test"] == x
+                @test_throws CasaCoreTablesError table[kw"test"] = rand(Float16, shape) # incorrect type
+                @test_throws CasaCoreTablesError table[kw"tset"] # typo
+                Tables.remove_keyword!(table, kw"test")
+            end
+        end
+
+        Tables.close(table)
+        rm(path, force=true, recursive=true)
+    end
+
+    @testset "column keywords" begin
+        path = tempname()*".ms"
+        table = Tables.create(path)
+        Tables.add_rows!(table, 10)
+        Tables.add_column!(table, "column", Float64, (10,))
+
+        names = ("bools", "ints", "floats", "doubles", "complex", "strings")
+        types = (Bool, Int32, Float32, Float64, Complex64, String)
+        types_nostring = types[1:end-1]
+
+        # scalars
+        for T in types_nostring
+            x = rand(T)
+            table["column", kw"test"] = x
+            @test table["column", kw"test"] == x
+            @test_throws CasaCoreTablesError table["column", kw"tset"] # typo
+            @test_throws CasaCoreTablesError table["column", kw"test"] = Float16(0) # incorrect type
+            Tables.remove_keyword!(table, "column", kw"test")
+        end
+        x = "I am a banana!"
+        table["column", kw"test"] = x
+        @test table["column", kw"test"] == x
+        @test_throws CasaCoreTablesError table["column", kw"tset"] # typo
+        @test_throws CasaCoreTablesError table["column", kw"test"] = Float16(0) # incorrect type
+        Tables.remove_keyword!(table, "column", kw"test")
+
+        # arrays
+        for shape in ((10,), (11, 10), (12, 11, 10))
+            for T in types_nostring
+                x = rand(T, shape)
+                table["column", kw"test"] = x
+                @test table["column", kw"test"] == x
+                @test_throws CasaCoreTablesError table["column", kw"test"] = rand(Float16, shape) # incorrect type
+                @test_throws CasaCoreTablesError table["column", kw"tset"] # typo
+                @test_throws CasaCoreTablesError table["colunm", kw"test"] = x # typo
+                @test_throws CasaCoreTablesError table["column", kw"test"] = Float16(0) # incorrect type
+                Tables.remove_keyword!(table, "column", kw"test")
+            end
+        end
+
+        Tables.close(table)
+        rm(path, force=true, recursive=true)
+    end
+
+    @testset "old tests" begin
+        path = tempname()*".ms"
+        table = Tables.create(path)
+
+        @test Tables.num_rows(table) == 0
+        @test Tables.num_columns(table) == 0
+        @test Tables.num_keywords(table) == 0
+
+        Tables.add_rows!(table, 10)
+
+        @test Tables.column_exists(table,"SKA_DATA") == false
+        table["SKA_DATA"] = ones(10)
+        @test Tables.column_exists(table,"SKA_DATA") == true
+        Tables.remove_column!(table,"SKA_DATA")
+        @test Tables.column_exists(table,"SKA_DATA") == false
+
+        ant1 = Array{Int32}(10)
+        ant2 = Array{Int32}(10)
+        uvw  = Array{Float64}(3, 10)
+        time = Array{Float64}(10)
+        data      = Array{Complex64}(4, 109, 10)
+        model     = Array{Complex64}(4, 109, 10)
+        corrected = Array{Complex64}(4, 109, 10)
+        freq = Array{Float64}(109, 1)
+
+        rand!(ant1)
+        rand!(ant2)
+        rand!(uvw)
+        rand!(time)
+        rand!(data)
+        rand!(model)
+        rand!(corrected)
+        rand!(freq)
+
+        table["ANTENNA1"] = ant1
+        table["ANTENNA2"] = ant2
+        table["UVW"]      = uvw
+        table["TIME"]     = time
+        table["DATA"]           = data
+        table["MODEL_DATA"]     = model
+        table["CORRECTED_DATA"] = corrected
+
+        @test Tables.num_columns(table) == 7
+        @test Tables.column_exists(table,"ANTENNA1") == true
+        @test Tables.column_exists(table,"ANTENNA2") == true
+        @test Tables.column_exists(table,"UVW")      == true
+        @test Tables.column_exists(table,"TIME")     == true
+        @test Tables.column_exists(table,"DATA")            == true
+        @test Tables.column_exists(table,"MODEL_DATA")      == true
+        @test Tables.column_exists(table,"CORRECTED_DATA")  == true
+        @test Tables.column_exists(table,"FABRICATED_DATA") == false
+
+        @test table["ANTENNA1"] == ant1
+        @test table["ANTENNA2"] == ant2
+        @test table["UVW"]      == uvw
+        @test table["TIME"]     == time
+        @test table["DATA"]           == data
+        @test table["MODEL_DATA"]     == model
+        @test table["CORRECTED_DATA"] == corrected
+        @test_throws CasaCoreTablesError table["FABRICATED_DATA"]
+
+        @test table["ANTENNA1",1] == ant1[1]
+        @test table["ANTENNA2",1] == ant2[1]
+        @test table["UVW",1]      == uvw[:,1]
+        @test table["TIME",1]     == time[1]
+        @test table["DATA",1]           == data[:,:,1]
+        @test table["MODEL_DATA",1]     == model[:,:,1]
+        @test table["CORRECTED_DATA",1] == corrected[:,:,1]
+        @test_throws CasaCoreTablesError table["FABRICATED_DATA",1]
+
+        rand!(ant1)
+        rand!(ant2)
+        rand!(uvw)
+        rand!(time)
+        rand!(data)
+        rand!(model)
+        rand!(corrected)
+        rand!(freq)
+
+        table["ANTENNA1",1] = ant1[1]
+        table["ANTENNA2",1] = ant2[1]
+        table["UVW",1]      = uvw[:,1]
+        table["TIME",1]     = time[1]
+        table["DATA",1]           = data[:,:,1]
+        table["MODEL_DATA",1]     = model[:,:,1]
+        table["CORRECTED_DATA",1] = corrected[:,:,1]
+        @test_throws CasaCoreTablesError table["FABRICATED_DATA",1] = 1
+
+        @test table["ANTENNA1",1] == ant1[1]
+        @test table["ANTENNA2",1] == ant2[1]
+        @test table["UVW",1]      == uvw[:,1]
+        @test table["TIME",1]     == time[1]
+        @test table["DATA",1]           == data[:,:,1]
+        @test table["MODEL_DATA",1]     == model[:,:,1]
+        @test table["CORRECTED_DATA",1] == corrected[:,:,1]
+        @test_throws CasaCoreTablesError table["FABRICATED_DATA",1]
+
+        # Fully populate the columns again for the test where the
+        # table is opened again
+        table["ANTENNA1"] = ant1
+        table["ANTENNA2"] = ant2
+        table["UVW"]      = uvw
+        table["TIME"]     = time
+        table["DATA"]           = data
+        table["MODEL_DATA"]     = model
+        table["CORRECTED_DATA"] = corrected
+
+        subtable = Tables.create("$path/SPECTRAL_WINDOW")
+        Tables.add_rows!(subtable,1)
+        subtable["CHAN_FREQ"] = freq
+        @test subtable["CHAN_FREQ"] == freq
+
+        @test Tables.num_keywords(table) == 0
+        table[kw"SPECTRAL_WINDOW"] = subtable
+        @test Tables.num_keywords(table) == 1
+        subtable′ = table[kw"SPECTRAL_WINDOW"]
+        @test subtable′["CHAN_FREQ"] == freq
+
+        table["DATA",kw"Hello,"] = "World!"
+        @test table["DATA",kw"Hello,"] == "World!"
+        table[kw"MICHAEL_IS_COOL"] = true
+        @test table[kw"MICHAEL_IS_COOL"] == true
+        table[kw"PI"] = 3.14159
+        @test table[kw"PI"] == 3.14159
+
+        @test_throws CasaCoreTablesError table[kw"BOBBY_TABLES"]
+        @test_throws CasaCoreTablesError table["DATA",kw"SYSTEMATIC_ERRORS"]
+        @test_throws CasaCoreTablesError table["SKA_DATA",kw"SCHEDULE"]
+
+        Tables.close(table)
+        Tables.close(subtable)
+        Tables.close(subtable′)
+
+        # Test opening the table again
+        table′ = Tables.open(path)
+        @test table′["ANTENNA1"] == ant1
+        @test table′["ANTENNA2"] == ant2
+        @test table′["UVW"]      == uvw
+        @test table′["TIME"]     == time
+        @test table′["DATA"]           == data
+        @test table′["MODEL_DATA"]     == model
+        @test table′["CORRECTED_DATA"] == corrected
+        @test_throws CasaCoreTablesError table′["FABRICATED_DATA"]
+        Tables.close(table′)
+
+        rm(path, force=true, recursive=true)
+    end
+
+    # Issue #58
+    # This will create a temporary table in the user's home directory so only run this test if we
+    # are running tests from a CI service
+    if get(ENV, "CI", "false") == "true"
+        println("Running test for issue #58")
+        ms1 = Tables.create("~/issue58.ms")
+        Tables.addrows!(ms1, 1)
+        ms1["col"] = [1.0]
+        Tables.close(ms1)
+        ms2 = Tables.open("~/issue58.ms")
+        @test ms2["col"] == [1.0]
+        Tables.close(ms2)
+        rm("~/issue58.ms", force=true, recursive=true)
+    end
 end
 

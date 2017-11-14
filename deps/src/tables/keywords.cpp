@@ -176,7 +176,8 @@ extern "C" {
     }
     Table* get_keyword_table(Table* t, char* keyword) {
         auto keywords = t->keywordSet();
-        return new Table(keywords.asTable(keyword));
+        Table* output = new Table(keywords.asTable(keyword));
+        return output;
     }
 
     void put_keyword_boolean(Table* t, char* keyword, bool input) {
@@ -198,7 +199,8 @@ extern "C" {
         putKeyword(t, keyword, input);
     }
     void put_keyword_table(Table* t, char* keyword, Table* input) {
-        putKeyword(t, keyword, input);
+        TableRecord& keywords = t->rwKeywordSet();
+        keywords.defineTable(keyword, *input);
     }
 
     bool* get_keyword_array_boolean(Table* t, char* keyword) {
