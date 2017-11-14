@@ -414,7 +414,7 @@
     if get(ENV, "CI", "false") == "true"
         println("Running test for issue #58")
         ms1 = Tables.create("~/issue58.ms")
-        Tables.addrows!(ms1, 1)
+        Tables.add_rows!(ms1, 1)
         ms1["col"] = [1.0]
         Tables.close(ms1)
         ms2 = Tables.open("~/issue58.ms")
