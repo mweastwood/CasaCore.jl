@@ -43,7 +43,31 @@
         @test repr(table) == "Table: "*path*" (read/write)"
         Tables.close(table)
 
+        @test_throws CasaCoreTablesError Tables.create(path)
+        @test_throws CasaCoreTablesError Tables.open("/tmp/does-not-exist.ms")
+
+        table = Tables.open("Table: "*path)
+        @test table.path == path
+        @test table.status[] === Tables.readonly
+        @test repr(table) == "Table: "*path*" (read only)"
+        Tables.close(table)
+
         rm(path, force=true, recursive=true)
+
+        # Issue #58
+        # This will create a temporary table in the user's home directory so only run this test if
+        # we are running tests from a CI service
+        if get(ENV, "CI", "false") == "true"
+            println("Running test for issue #58")
+            ms1 = Tables.create("~/issue58.ms")
+            Tables.add_rows!(ms1, 1)
+            ms1["col"] = [1.0]
+            Tables.close(ms1)
+            ms2 = Tables.open("~/issue58.ms")
+            @test ms2["col"] == [1.0]
+            Tables.close(ms2)
+            rm("~/issue58.ms", force=true, recursive=true)
+        end
     end
 
     @testset "basic rows" begin
@@ -85,6 +109,9 @@
         path = tempname()*".ms"
         table = Tables.create(path)
         Tables.add_rows!(table, 10)
+
+        @test_throws CasaCoreTablesError Tables.add_column!(table, "test", Float64, (11,))
+        @test_throws CasaCoreTablesError Tables.add_column!(table, "test", Float64, (10, 11))
 
         names = ("bools", "ints", "floats", "doubles", "complex", "strings")
         types = (Bool, Int32, Float32, Float64, Complex64, String)
@@ -406,21 +433,6 @@
         Tables.close(table′)
 
         rm(path, force=true, recursive=true)
-    end
-
-    # Issue #58
-    # This will create a temporary table in the user's home directory so only run this test if we
-    # are running tests from a CI service
-    if get(ENV, "CI", "false") == "true"
-        println("Running test for issue #58")
-        ms1 = Tables.create("~/issue58.ms")
-        Tables.add_rows!(ms1, 1)
-        ms1["col"] = [1.0]
-        Tables.close(ms1)
-        ms2 = Tables.open("~/issue58.ms")
-        @test ms2["col"] == [1.0]
-        Tables.close(ms2)
-        rm("~/issue58.ms", force=true, recursive=true)
     end
 end
 

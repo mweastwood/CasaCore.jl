@@ -14,6 +14,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 @testset "Measures" begin
+
+    @testset "errors" begin
+        @test repr(CasaCoreMeasuresError("hello")) == "CasaCoreMeasuresError: hello"
+    end
+
     @testset "sexagesimal" begin
         @test sexagesimal("12h34m56.78s") ≈ π/12.*(12.+34/60.+56.78/3600)
         @test sexagesimal("12h34m56s")    ≈ π/12.*(12.+34/60.+56./3600)
