@@ -101,6 +101,18 @@ extern "C" {
         return shape;
     }
 
+    int* column_keyword_info(Table* t, char* column, char* keyword,
+                             int* element_type, int* dimension) {
+        auto keywords = t->keywordSet();
+        *element_type = keywords.dataType(keyword);
+        auto iposition_shape = keywords.shape(keyword);
+        *dimension = iposition_shape.size();
+        int* shape = new int[*dimension];
+        for (int i = 0; i < *dimension; ++i) {
+            shape[i] = iposition_shape[i];
+        }
+        return shape;
+    }
     //int getKeywordType_column(Table* t, char* column, char* keyword) {
     //    auto keywords = TableColumn(*t, column).keywordSet();
     //    return keywords.dataType(keyword);
