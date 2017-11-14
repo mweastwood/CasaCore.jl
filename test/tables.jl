@@ -34,7 +34,7 @@
         table = Tables.open(path)
         @test table.path == path
         @test table.status[] === Tables.readonly
-        @test repr(table) == "Table: "*path*" (read only)"
+        @test repr(table) == "Table: "*path*" (read-only)"
         Tables.close(table)
 
         table = Tables.open(path, write=true)
@@ -49,10 +49,10 @@
         table = Tables.open("Table: "*path)
         @test table.path == path
         @test table.status[] === Tables.readonly
-        @test repr(table) == "Table: "*path*" (read only)"
-        Tables.close(table)
+        @test repr(table) == "Table: "*path*" (read-only)"
 
-        rm(path, force=true, recursive=true)
+        Tables.delete(table)
+        @test !isdir(table.path) && !isfile(table.path)
 
         # Issue #58
         # This will create a temporary table in the user's home directory so only run this test if
@@ -101,8 +101,7 @@
         Tables.remove_rows!(table, 1:Tables.num_rows(table))
         @test Tables.num_rows(table) == 0
 
-        Tables.close(table)
-        rm(path, force=true, recursive=true)
+        Tables.delete(table)
     end
 
     @testset "basic columns" begin
@@ -152,8 +151,7 @@
             Tables.remove_column!(table, "test")
         end
 
-        Tables.close(table)
-        rm(path, force=true, recursive=true)
+        Tables.delete(table)
     end
 
     @testset "basic cells" begin
@@ -199,8 +197,7 @@
             Tables.remove_column!(table, "test")
         end
 
-        Tables.close(table)
-        rm(path, force=true, recursive=true)
+        Tables.delete(table)
     end
 
     @testset "basic keywords" begin
@@ -239,8 +236,7 @@
             end
         end
 
-        Tables.close(table)
-        rm(path, force=true, recursive=true)
+        Tables.delete(table)
     end
 
     @testset "column keywords" begin
@@ -283,8 +279,7 @@
             end
         end
 
-        Tables.close(table)
-        rm(path, force=true, recursive=true)
+        Tables.delete(table)
     end
 
     @testset "old tests" begin
@@ -432,7 +427,7 @@
         @test_throws CasaCoreTablesError table′["FABRICATED_DATA"]
         Tables.close(table′)
 
-        rm(path, force=true, recursive=true)
+        Tables.delete(table)
     end
 end
 

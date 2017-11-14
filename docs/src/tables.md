@@ -1,5 +1,12 @@
 # CasaCore.Tables
 
+``` @meta
+CurrentModule = CasaCore.Tables
+DocTestSetup = quote
+    using CasaCore.Tables
+end
+```
+
 Load this module by running
 
 ``` julia
@@ -9,6 +16,21 @@ using CasaCore.Tables
 The `Tables` module is used to interact with CasaCore tables. This is a common data format in radio
 astronomy. For example CASA measurement sets and CASA calibration tables are simply CasaCore tables
 with a standard set of columns, keywords, and subtables.
+
+## Tables
+
+```@docs
+Table
+Tables.create
+Tables.open
+Tables.close
+Tables.delete
+```
+
+
+
+
+
 
 Opening a table is simple:
 
