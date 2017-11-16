@@ -26,6 +26,12 @@ export set!, measure
 
 export longitude, latitude, observatory, sexagesimal
 
+using Unitful
+# See https://github.com/ajkeller34/Unitful.jl/issues/38 for a discussion of angle units in the
+# Unitful package. We decided that it makes sense for angles to be dimensionless, but Andrew was
+# hesitant to commit to this typealias within Unitful.
+const Angle{T} =  Unitful.DimensionlessQuantity{T}
+
 const libcasacorewrapper = normpath(joinpath(@__DIR__, "..", "deps", "src",
                                              "libcasacorewrapper.so"))
 
@@ -39,7 +45,15 @@ end
 Base.show(io::IO, err::CasaCoreMeasuresError) = print(io, "CasaCoreMeasuresError: ", err.msg)
 err(msg) = throw(CasaCoreMeasuresError(msg))
 
-include("measures/measures.jl")
+abstract type Measure end
+
+include("measures/sexagesimal.jl")
+include("measures/epochs.jl")
+include("measures/directions.jl")
+include("measures/positions.jl")
+include("measures/baselines.jl")
+include("measures/conversions.jl")
+include("measures/mathematics.jl")
 
 end
 

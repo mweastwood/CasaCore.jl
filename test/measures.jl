@@ -156,7 +156,7 @@
         @test_throws CasaCoreMeasuresError observatory("SKA")
     end
 
-    @testset "baslines" begin
+    @testset "baselines" begin
         @test baseline"ITRF"  === Measures.Baselines.ITRF
         @test baseline"J2000" === Measures.Baselines.J2000
 
