@@ -104,7 +104,7 @@
         @test dir"AZEL"  === Measures.Directions.AZEL
 
         dir = Direction(dir"J2000", "12h00m", "43d21m")
-        @test radius(dir) ≈ 1
+        @test norm(dir) ≈ 1
         @test longitude(dir) ≈ π
         @test latitude(dir) ≈ 43.35 * π/180
         @test repr(dir) == "+180d00m00s, +43d21m00s"

@@ -69,9 +69,13 @@ This type represents a location on the sky.
 """
 struct Direction <: Measure
     sys :: Directions.System
-    x :: Float64 # measured in meters
-    y :: Float64 # measured in meters
-    z :: Float64 # measured in meters
+    x :: Float64
+    y :: Float64
+    z :: Float64
+    function Direction(sys, x, y, z)
+        magnitude = hypot(x, y, z)
+        new(sys, x/magnitude, y/magnitude, z/magnitude)
+    end
 end
 
 """
@@ -268,7 +272,7 @@ function Base.show(io::IO, direction::Direction)
 end
 
 function Base.show(io::IO, position::Position)
-    rad = radius(position)
+    rad = norm(position)
     if rad > 1e5
         rad_str = @sprintf("%.3f kilometers", rad/1e3)
     else
@@ -440,9 +444,9 @@ function sexagesimal(angle::T; hours::Bool = false, digits::Int = 0) where T
     string(s1, s2, s3)
 end
 
-radius(measure) = hypot(hypot(measure.x, measure.y), measure.z)
-longitude(measure) = atan2(measure.y, measure.x)
-latitude(measure)  = atan2(measure.z, hypot(measure.x, measure.y))
+Base.norm(measure::Measure) = hypot(measure.x, measure.y, measure.z) * u"m"
+longitude(measure) = atan2(measure.y, measure.x) * u"rad"
+latitude(measure)  = atan2(measure.z, hypot(measure.x, measure.y)) * u"rad"
 
 function Base.isapprox(lhs::Epoch, rhs::Epoch)
     lhs.sys === rhs.sys || err("Coordinate systems must match.")
@@ -512,5 +516,38 @@ function measure(frame::ReferenceFrame, baseline::Baseline, newsys::Baselines.Sy
     ccall(("convertBaseline", libcasacorewrapper), Baseline,
           (Ref{Baseline}, Cint, Ref{ReferenceFrame}),
           baseline, newsys, frame)
+end
+
+const VectorMeasure = Union{Direction, Position, Baseline}
+
+for op in (:+, :-)
+    @eval function Base.$op(measure1::T, measure2::T) where T<:VectorMeasure
+        T(measure1.sys, $op(measure1.x, measure2.x),
+                        $op(measure1.y, measure2.y),
+                        $op(measure1.z, measure2.z))
+    end
+end
+
+for op in (:*, :/)
+    @eval function Base.$op(measure::T, scalar::Real) where T<:VectorMeasure
+        T(measure.sys, $op(measure.x, scalar),
+                       $op(measure.y, scalar),
+                       $op(measure.z, scalar))
+    end
+    @eval function Base.$op(scalar::Real, measure::T) where T<:VectorMeasure
+        T(measure.sys, $op(scalar, measure.x),
+                       $op(scalar, measure.y),
+                       $op(scalar, measure.z))
+    end
+end
+
+function Base.dot(lhs::VectorMeasure, rhs::VectorMeasure)
+    lhs.x*rhs.x + lhs.y*rhs.y + lhs.z*rhs.z
+end
+
+function Base.cross(lhs::T, rhs::T) where T<:VectorMeasure
+    T(lhs.sys, lhs.y*rhs.z - lhs.z*rhs.y,
+               lhs.z*rhs.x - lhs.x*rhs.z,
+               lhs.x*rhs.y - lhs.y*rhs.x)
 end
 

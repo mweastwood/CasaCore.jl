@@ -24,7 +24,7 @@ export @epoch_str, @dir_str, @pos_str, @baseline_str
 export ReferenceFrame
 export set!, measure
 
-export radius, longitude, latitude, observatory, sexagesimal
+export longitude, latitude, observatory, sexagesimal
 
 const libcasacorewrapper = normpath(joinpath(@__DIR__, "..", "deps", "src",
                                              "libcasacorewrapper.so"))
