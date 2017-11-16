@@ -24,22 +24,22 @@
 
         table = Tables.create(path)
         @test table.path == path
-        @test table.status[] === Tables.readwrite
+        @test table.status === Tables.readwrite
         @test repr(table) == "Table: "*path*" (read/write)"
         Tables.close(table)
         @test table.path == path
-        @test table.status[] === Tables.closed
+        @test table.status === Tables.closed
         @test repr(table) == "Table: "*path*" (closed)"
 
         table = Tables.open(path)
         @test table.path == path
-        @test table.status[] === Tables.readonly
+        @test table.status === Tables.readonly
         @test repr(table) == "Table: "*path*" (read-only)"
         Tables.close(table)
 
         table = Tables.open(path, write=true)
         @test table.path == path
-        @test table.status[] === Tables.readwrite
+        @test table.status === Tables.readwrite
         @test repr(table) == "Table: "*path*" (read/write)"
         Tables.close(table)
 
@@ -48,7 +48,7 @@
 
         table = Tables.open("Table: "*path)
         @test table.path == path
-        @test table.status[] === Tables.readonly
+        @test table.status === Tables.readonly
         @test repr(table) == "Table: "*path*" (read-only)"
 
         Tables.delete(table)
