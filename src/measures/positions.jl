@@ -33,6 +33,7 @@ struct Position <: Measure
     z :: Float64 # measured in meters
 end
 
+units(::Position) = u"m"
 units(::Type{Position}) = u"m"
 
 """

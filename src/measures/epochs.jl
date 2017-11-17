@@ -36,6 +36,7 @@ struct Epoch <: Measure
     time :: Float64 # measured in seconds
 end
 
+units(::Epoch) = u"s"
 units(::Type{Epoch}) = u"s"
 
 """

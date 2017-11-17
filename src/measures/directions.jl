@@ -42,7 +42,8 @@ struct Direction <: Measure
     end
 end
 
-units(::Type{Direction}) = 1 # dimensionless
+units(::Direction) = 1 # dimensionless
+units(::Type{Direction}) = 1
 
 """
     Direction(sys, longitude, latitude)

@@ -25,6 +25,7 @@ export ReferenceFrame
 export set!, measure
 
 export longitude, latitude, observatory, sexagesimal
+export angle_between, gram_schmidt
 
 using Unitful
 # See https://github.com/ajkeller34/Unitful.jl/issues/38 for a discussion of angle units in the

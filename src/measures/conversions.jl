@@ -101,3 +101,11 @@ function measure(frame::ReferenceFrame, baseline::Baseline, newsys::Baselines.Sy
           baseline, newsys, frame)
 end
 
+function Direction(position::Position)
+    if position.sys == pos"ITRF"
+        Direction(dir"ITRF", position.x, position.y, position.z)
+    else
+        err("cannot convert given coordinate system to a `Direction`")
+    end
+end
+

@@ -79,13 +79,15 @@ for op in (:+, :-)
     end
 end
 
+# Scalar multiplication is not defined for `Direction`, because `Direction` represents a normalized
+# unit vector, so any multiplication would be immediately normalized away.
 for op in (:*, :/)
-    @eval function Base.$op(measure::T, scalar::Real) where T<:VectorMeasure
+    @eval function Base.$op(measure::T, scalar::Real) where T<:Union{Position, Baseline}
         T(measure.sys, $op(measure.x, scalar),
                        $op(measure.y, scalar),
                        $op(measure.z, scalar))
     end
-    @eval function Base.$op(scalar::Real, measure::T) where T<:VectorMeasure
+    @eval function Base.$op(scalar::Real, measure::T) where T<:Union{Position, Baseline}
         T(measure.sys, $op(scalar, measure.x),
                        $op(scalar, measure.y),
                        $op(scalar, measure.z))
@@ -114,5 +116,17 @@ function do_cross_product(T, lhs, rhs)
     T(lhs.sys, lhs.y*rhs.z - lhs.z*rhs.y,
                lhs.z*rhs.x - lhs.x*rhs.z,
                lhs.x*rhs.y - lhs.y*rhs.x)
+end
+
+function angle_between(lhs::Direction, rhs::Direction)
+    acos(clamp(dot(lhs, rhs), -1, 1)) * u"rad"
+end
+
+function gram_schmidt(lhs::Direction, rhs::Direction)
+    check_coordinate_system(lhs, rhs)
+    d = dot(lhs, rhs)
+    Direction(lhs.sys, lhs.x - d*rhs.x,
+                       lhs.y - d*rhs.y,
+                       lhs.z - d*rhs.z)
 end
 

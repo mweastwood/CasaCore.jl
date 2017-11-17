@@ -38,6 +38,7 @@ struct Baseline <: Measure
     z :: Float64 # measured in meters
 end
 
+units(::Baseline) = u"m"
 units(::Type{Baseline}) = u"m"
 
 function Base.show(io::IO, baseline::Baseline)
