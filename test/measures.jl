@@ -1,4 +1,24 @@
-@testset "measures.jl" begin
+# Copyright (c) 2015-2017 Michael Eastwood
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+@testset "Measures" begin
+
+    @testset "errors" begin
+        @test repr(CasaCoreMeasuresError("hello")) == "CasaCoreMeasuresError: hello"
+    end
+
     @testset "sexagesimal" begin
         @test sexagesimal("12h34m56.78s") ≈ π/12.*(12.+34/60.+56.78/3600)
         @test sexagesimal("12h34m56s")    ≈ π/12.*(12.+34/60.+56./3600)
@@ -77,6 +97,8 @@
         @test tai.sys === epoch"TAI"
         @test tai.time - utc.time == 36
         @test utc ≈ utc′
+
+        @test Measures.units(Epoch) == Measures.units(utc) == u"s"
     end
 
     @testset "directions" begin
@@ -84,7 +106,7 @@
         @test dir"AZEL"  === Measures.Directions.AZEL
 
         dir = Direction(dir"J2000", "12h00m", "43d21m")
-        @test radius(dir) ≈ 1
+        @test norm(dir) ≈ 1
         @test longitude(dir) ≈ π
         @test latitude(dir) ≈ 43.35 * π/180
         @test repr(dir) == "+180d00m00s, +43d21m00s"
@@ -113,6 +135,8 @@
         @test dir1.sys === dir2.sys === dir"J2000"
         @test azel.sys === dir"AZEL"
         @test dir1 ≈ dir2
+
+        @test Measures.units(Direction) == Measures.units(dir1) == 1
     end
 
     @testset "positions" begin
@@ -133,10 +157,12 @@
         vla  = observatory("VLA")
         @test alma ≈ Position(pos"WGS84", 1.761867423e3, -4.307634996e3, -1.97770831e3)
         @test vla  ≈ Position(pos"ITRF", -1.601185365e6, -5.041977547e6,  3.55487587e6)
-        @test_throws ErrorException observatory("SKA")
+        @test_throws CasaCoreMeasuresError observatory("SKA")
+
+        @test Measures.units(Position) == Measures.units(vla) == u"m"
     end
 
-    @testset "baslines" begin
+    @testset "baselines" begin
         @test baseline"ITRF"  === Measures.Baselines.ITRF
         @test baseline"J2000" === Measures.Baselines.J2000
 
@@ -152,6 +178,64 @@
         @test baseline2.sys === baseline"J2000"
         @test baseline1 ≈ baseline3
         @test repr(baseline1) == "1.234 meters, 5.678 meters, 0.100 meters"
+
+        @test Measures.units(Baseline) == Measures.units(baseline1) == u"m"
+    end
+
+    @testset "conversions" begin
+        itrf = (dir"ITRF", pos"ITRF", baseline"ITRF")
+        not_itrf = (dir"J2000", pos"WGS84", baseline"GALACTIC")
+        for sys in itrf
+            @test sys == sys
+            for sys′ in itrf
+                @test sys == sys′
+                @test sys′ == sys
+            end
+            for sys′ in not_itrf
+                @test sys != sys′
+                @test sys′ != sys
+            end
+        end
+    end
+
+    @testset "mathematics" begin
+        x_position = Position(pos"ITRF", 2, 0, 0)
+        y_position = Position(pos"ITRF", 0, 2, 0)
+        z_position = Position(pos"ITRF", 0, 0, 2)
+        x = Direction(x_position)
+        y = Direction(y_position)
+        z = Direction(z_position)
+
+        @test cross(x, y) == z
+        for lhs in (x, y, z), rhs in (x, y, z)
+            if lhs == rhs
+                @test dot(lhs, rhs) == 1
+                @test Measures.angle_between(lhs, rhs) == 0*u"rad"
+            else
+                @test dot(lhs, rhs) == 0
+                @test Measures.angle_between(lhs, rhs) == π/2*u"rad"
+                @test Measures.gram_schmidt(lhs, rhs) == lhs
+            end
+        end
+        @test_throws MethodError x+y
+        @test_throws MethodError 5*x
+
+        @test cross(x, y_position) == z_position
+        @test cross(x_position, y) == z_position
+        @test dot(x, x_position) == 2*u"m"
+        @test dot(x_position, x) == 2*u"m"
+        for pos in (y_position, z_position)
+            @test dot(x, pos) == 0*u"m"
+            @test dot(pos, x) == 0*u"m"
+        end
+
+        @test 2*x_position == Position(pos"ITRF", 4, 0, 0)
+        @test 2*y_position == Position(pos"ITRF", 0, 4, 0)
+        @test 2*z_position == Position(pos"ITRF", 0, 0, 4)
+        @test x_position/2 == Position(pos"ITRF", 1, 0, 0)
+        @test y_position/2 == Position(pos"ITRF", 0, 1, 0)
+        @test z_position/2 == Position(pos"ITRF", 0, 0, 1)
+        @test x_position + y_position - z_position == Position(pos"ITRF", 2, 2, -2)
     end
 end
 

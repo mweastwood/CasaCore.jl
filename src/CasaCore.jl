@@ -1,4 +1,4 @@
-# Copyright (c) 2015, 2016 Michael Eastwood
+# Copyright (c) 2015-2017 Michael Eastwood
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,9 +17,8 @@ __precompile__()
 
 module CasaCore
 
-include("common.jl")
-include("tables.jl")
-include("measures.jl")
+include("Tables.jl")
+include("Measures.jl")
 
 end
 

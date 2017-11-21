@@ -49,7 +49,7 @@ lengths, and angles. These are summarized below.
 |    Unit    | Expression |
 |:----------:|:----------:|
 |   Seconds  |   `u"s"`   |
-|    Days    |   `u"dy"`  |
+|    Days    |   `u"d"`   |
 |   Meters   |   `u"m"`   |
 | Kilometers |   `u"km"`  |
 |   Degrees  |   `u"°"`   |
@@ -58,6 +58,9 @@ lengths, and angles. These are summarized below.
 !!! note
     The ° character for degrees con be obtained at the Julia REPL by typing `\degree` and then
     pressing `<tab>`. The Julia plugins for Emacs and vim also provide this functionality.
+
+[UnitfulAstro](https://github.com/JuliaAstro/UnitfulAstro.jl) extends base Unitful with additional
+units commonly encountered in astronomy (for instance, `pc` and `Jy`).
 
 ## Epochs
 

@@ -1,8 +1,15 @@
 # CasaCore.Tables
 
+```@meta
+CurrentModule = CasaCore.Tables
+DocTestSetup = quote
+    using CasaCore.Tables
+end
+```
+
 Load this module by running
 
-``` julia
+```julia
 using CasaCore.Tables
 ```
 
@@ -10,44 +17,49 @@ The `Tables` module is used to interact with CasaCore tables. This is a common d
 astronomy. For example CASA measurement sets and CASA calibration tables are simply CasaCore tables
 with a standard set of columns, keywords, and subtables.
 
-Opening a table is simple:
+## Tables
 
-``` julia
-table = Table("/path/to/table")
+```@docs
+Table
+Tables.create
+Tables.open
+Tables.close
+Tables.delete
+Tables.num_rows
+Tables.add_rows!
+Tables.remove_rows!
 ```
-
-This will open an existing table at the given path, or create a new table if one does not already
-exist at that path. Note that a read/write lock is automatically obtained on an open table. This
-lock will automatically be released when the `table` object is garbage collected, but you may
-manually release the lock by calling `Tables.unlock(table)`.
 
 ## Columns
 
-Columns are accessed by name. For example to read the entire `DATA` column from a measurement set:
+Columns are accessed by name. Some common table names (used in CASA measurement sets) are `UVW` (the
+baseline coordinates), `DATA` (the uncalibrated data), and `CORRECTED_DATA` (the calibrated data).
 
-``` julia
-table = Table("/path/to/measurementset.ms")
-data = table["DATA"]
+For example to read and write the entire `DATA` column from a measurement set:
+
+```jldoctest
+julia> table = Tables.create("/tmp/my-table.ms")
+       Tables.add_rows!(table, 100)
+       Npol  =   4 # number of polarizations
+       Nfreq =  50 # number of frequency channels
+       Nbase = 100 # number of baselines
+       data = rand(Complex64, Npol, Nfreq, Nbase)
+       table["DATA"] = data # creates the DATA column if it doesn't already exist
+       data == table["DATA"]
+true
+
+julia> Tables.delete(table)
 ```
-
-If we have some function `calibrate` that solves for and applies a calibration to the measured
-visibilities, we can then write the calibrated data back to the `CORRECTED_DATA` column as follows:
-
-``` julia
-corrected_data = calibrate(data) # calibrate the measured visibilities
-table["CORRECTED_DATA"] = corrected_data
-```
-
-Note that the `CORRECTED_DATA` column will be created in the table if it does not already exist. If
-the column does already exist, the column will be overwritten with the contents of `corrected_data`.
 
 !!! warning
-    CasaCore.jl will throw a `CasaCoreError` exception if you try to overwrite a column with an
-    array of the incorrect size or element type. A column that contains `float`s cannot be
+    CasaCore.jl will throw a `CasaCoreTablesError` exception if you try to overwrite a column with
+    an array of the incorrect size or element type. A column that contains `float`s cannot be
     overwritten with an array of `int`s.
 
-A column can be removed from the table by using `Tables.removecolumn!(table, "name")`, where
-`"name"` is the name of the column to be removed from the table.
+```@docs
+Tables.num_columns
+Tables.remove_column!
+```
 
 ## Cells
 
@@ -55,55 +67,73 @@ If you do not want to read or write to an entire column, you can instead pick a 
 column (ie. a cell). For example, the length of the 123rd baseline in a measurement set can be
 computed by:
 
-``` julia
-uvw = table["UVW", 123]
-baseline_length = norm(uvw)
+```jldoctest
+julia> table = Tables.create("/tmp/my-table.ms")
+       Nbase = 500 # number of baselines
+       Tables.add_rows!(table, 500)
+       uvw = 100 .* randn(3, Nbase) # create a random set of baselines
+       table["UVW"] = uvw # creates the UVW column if it doesn't already exist
+       uvw[:, 123] == table["UVW", 123]
+true
+
+julia> table["UVW", 123] = [100., 50, 0.]
+       table["UVW", 123]
+3-element Array{Float64,1}:
+ 100.0
+  50.0
+   0.0
+
+julia> Tables.delete(table)
 ```
 
-If we then perform a calculation that updates the `uvw` coordinates of this baseline, we can write
-these changes back to the table:
-
-``` julia
-table["UVW", 123] = uvw
-```
-
-The number of rows in the table can be obtained with `Tables.numrows(table)`.  Note also that the
+The number of rows in the table can be obtained with [`Tables.num_rows`](@ref).  Note also that the
 indexing order is column first, row second. This is opposite from the usual matrix convention where
 the first index specifies the row.
 
 !!! important
     Julia is 1-indexed programming language. This means that the first element of an array `x` is
     accessed with `x[1]` instead of `x[0]` (as is the case for C and Python). Similarly, the first
-    row of a table is row number 1. Attempting to access row number 0 will throw a `CasaCoreError`
-    because this row does not exist.
+    row of a table is row number 1. Attempting to access row number 0 will throw a
+    `CasaCoreTablesError` because this row does not exist.
 
 ## Keywords
 
 Keywords are accessed using the `kw"..."` string macro. For example:
 
-``` julia
-ms_version = table[kw"MS_VERSION"] # read the value of the "MS_VERSION" keyword
-table[kw"MS_VERSION"] = 2.0        # set the value of the "MS_VERSION" keyword
+```jldoctest
+julia> table = Tables.create("/tmp/my-table.ms")
+       table[kw"MS_VERSION"] = 2.0 # set the value of the "MS_VERSION" keyword
+       table[kw"MS_VERSION"]       # read the value of the "MS_VERSION" keyword
+2.0
+
+julia> Tables.delete(table)
 ```
 
-A keyword can be removed with the `Tables.removekeyword!` function.
-
-!!! warning
-    A current known limitation of CasaCore.jl is the inability to read from or write to keywords
-    that contain an array of values. This will be fixed if you file a bug report!
+```@docs
+Tables.num_keywords
+Tables.remove_keyword!
+```
 
 ## Subtables
 
-Subtables can be opened by reading their location from the appropriate keyword, and opening them as
-you would a regular table.
+Subtables will be automatically opened by reading the appropriate keyword. These tables need to be
+closed when you are done using them (just as for a regular table).
 
-``` julia
-location = table[kw"SPECTRAL_WINDOW"]
-subtable = Table(location)
+```jldoctest
+julia> table = Tables.create("/tmp/my-table.ms")
+       subtable = Tables.create("/tmp/my-sub-table.ms")
+       subtable[kw"SECRET_CODE"] = Int32(42)
+       table[kw"SUBTABLE"] = subtable
+       Tables.close(subtable)
+closed::CasaCore.Tables.TableStatus = 0
+
+julia> subtable = table[kw"SUBTABLE"] # re-open the subtable
+       subtable[kw"SECRET_CODE"]
+42
+
+julia> Tables.delete(table)
+       Tables.delete(subtable)
 ```
-
-In this example the `SPECTRAL_WINDOW` keyword contains the path to the corresponding subtable, which
-usually contains information about the frequency bands and channels of a measurement set.
 
 ## Best Practices
 
@@ -125,7 +155,7 @@ This concept is important for `CasaCore.Tables` because the result of `table["co
 wide variety of different types, and the actual type isn't known until *run time*. Now consider the
 following example:
 
-``` julia
+```julia
 function add_one_to_data_column(table)
     column = table["DATA"] # type of `column` cannot be inferred
     for idx in eachindex(column)
@@ -140,7 +170,7 @@ write the result back to the table. However because the type of `column` cannot 
 performance of the `for`-loop will be sub-optimal. We can remedy this problem by moving the
 computational kernel into a separate function:
 
-``` julia
+```julia
 function add_one_to_data_column(table)
     column = table["DATA"]
     do_the_for_loop(column) # `do_the_for_loop` specializes on the actual type of `column`
@@ -159,6 +189,6 @@ That is, the `for`-loop will be compiled with the knowledge of the actual type o
 specialization ultimately means that the latter example will generally be faster.
 
 For more information please refer to the [performance tips
-section](http://docs.julialang.org/en/release-0.5/manual/performance-tips/#separate-kernel-functions-aka-function-barriers)
-of the Julia manual.
+section](https://docs.julialang.org/en/release-0.6/manual/performance-tips/#kernal-functions-1) of
+the Julia manual.
 

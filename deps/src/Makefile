@@ -1,21 +1,20 @@
 CXX = g++
-CXXFLAGS = -c -std=c++0x -Wall -Werror -fpic -Wno-return-type-c-linkage
+LDLIBS = -lcasa_casa -lcasa_tables -lcasa_measures
+LDFLAGS = -Wl,-rpath,\$$ORIGIN -Wl,--no-undefined
+
+MODULES = tables measures
+OBJ = $(addsuffix /module.o, $(MODULES))
+
+.PHONY: all clean $(MODULES)
 
 all: libcasacorewrapper.so
 
-tables.o: tables.cpp
-	$(CXX) $(CXXFLAGS) tables.cpp
+libcasacorewrapper.so: $(MODULES)
+	$(CXX) -shared $(LDFLAGS) -o libcasacorewrapper.so $(OBJ) $(LDLIBS)
 
-measures.o: measures.cpp
-	$(CXX) $(CXXFLAGS) measures.cpp
-
-libcasacorewrapper.so: tables.o measures.o
-	$(CXX) -shared -o libcasacorewrapper.so tables.o measures.o -lcasa_tables -lcasa_measures
+$(MODULES):
+	$(MAKE) -C $@
 
 clean:
-	-rm *.o
-	-rm *.so
-
-install:
-	cp libcasacorewrapper.so ..
+	-rm -f libcasacorewrapper.so
 
