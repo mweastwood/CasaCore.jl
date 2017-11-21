@@ -38,9 +38,33 @@ macro kw_str(string)
 end
 
 """
-    numkeywords(table::Table)
+    num_keywords(table)
 
 Returns the number of keywords associated with the given table.
+
+**Arguments:**
+
+- `table` - the relevant table
+
+**Usage:**
+
+```jldoctest
+julia> table = Tables.create("/tmp/my-table.ms")
+       Tables.num_keywords(table)
+0
+
+julia> table[kw"RICK_PERLEY_IS_A_BOSS"] = true
+       Tables.num_keywords(table)
+1
+
+julia> table[kw"NOT_SO_BAD"] = "yourself"
+       Tables.num_keywords(table)
+2
+
+julia> Tables.delete(table)
+```
+
+**See also:** [`Tables.num_rows`](@ref), [`Tables.num_columns`](@ref)
 """
 function num_keywords(table::Table)
     ccall((:num_keywords, libcasacorewrapper), Cuint,
@@ -59,9 +83,31 @@ function keyword_exists(table::Table, column::String, keyword::Keyword)
 end
 
 """
-    Tables.remove_keyword!(table::Table, keyword::Keyword)
+    Tables.remove_keyword!(table, keyword)
 
 Remove the specified keyword from the table.
+
+**Arguments:**
+
+- `table` - the relevant table
+- `keyword` - the keyword to be removed
+
+**Usage:**
+
+```jldoctest
+julia> table = Tables.create("/tmp/my-table.ms")
+       table[kw"HELLO"] = "world"
+       Tables.num_keywords(table)
+1
+
+julia> Tables.remove_keyword!(table, kw"HELLO")
+       Tables.num_keywords(table)
+0
+
+julia> Tables.delete(table)
+```
+
+**See also:** [`Tables.num_keywords`](@ref)
 """
 function remove_keyword!(table::Table, keyword::Keyword)
     ccall((:remove_keyword, libcasacorewrapper), Void,
