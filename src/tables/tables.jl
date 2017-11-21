@@ -162,7 +162,9 @@ function open(table::Table; write=false)
         mode = write ? readwrite : readonly
         ptr = ccall((:new_table_open, libcasacorewrapper), Ptr{CasaCoreTable},
                     (Ptr{Cchar}, Cint), path, mode)
-        Table(path, mode, ptr)
+        table.path   = path
+        table.status = mode
+        table.ptr    = ptr
     end
     table
 end
@@ -244,8 +246,6 @@ function Base.show(io::IO, table::Table)
         str = " (read-only)"
     elseif table.status == readwrite
         str = " (read/write)"
-    else
-        str = ""
     end
     print(io, "Table: ", table.path, str)
 end

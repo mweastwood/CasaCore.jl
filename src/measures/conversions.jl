@@ -101,6 +101,40 @@ function measure(frame::ReferenceFrame, baseline::Baseline, newsys::Baselines.Sy
           baseline, newsys, frame)
 end
 
+# Define conversions and routines for comparing the different kinds of measures.
+
+@noinline inconsistent_coordinate_system_error() = err("inconsistent coordinate system")
+
+function check_coordinate_system(measure1, measure2)
+    if measure1.sys != measure2.sys
+        inconsistent_coordinate_system_error()
+    end
+end
+
+function Base.:(==)(lhs::Directions.System, rhs::Positions.System)
+    if lhs == Directions.ITRF && rhs == Positions.ITRF
+        return true
+    else
+        return false
+    end
+end
+
+function Base.:(==)(lhs::Directions.System, rhs::Baselines.System)
+    Int32(lhs) == Int32(rhs)
+end
+
+function Base.:(==)(lhs::Positions.System, rhs::Baselines.System)
+    if lhs == Positions.ITRF && rhs == Baselines.ITRF
+        return true
+    else
+        return false
+    end
+end
+
+Base.:(==)(lhs::Positions.System, rhs::Directions.System) = rhs == lhs
+Base.:(==)(lhs::Baselines.System, rhs::Directions.System) = rhs == lhs
+Base.:(==)(lhs::Baselines.System, rhs::Positions.System) = rhs == lhs
+
 function Direction(position::Position)
     if position.sys == pos"ITRF"
         Direction(dir"ITRF", position.x, position.y, position.z)

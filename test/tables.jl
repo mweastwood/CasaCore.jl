@@ -25,22 +25,40 @@
         table = Tables.create(path)
         @test table.path == path
         @test table.status === Tables.readwrite
+        @test Tables.iswritable(table)
         @test repr(table) == "Table: "*path*" (read/write)"
         Tables.close(table)
         @test table.path == path
         @test table.status === Tables.closed
+        @test !Tables.iswritable(table)
         @test repr(table) == "Table: "*path*" (closed)"
 
         table = Tables.open(path)
         @test table.path == path
         @test table.status === Tables.readonly
         @test repr(table) == "Table: "*path*" (read-only)"
+        @test !Tables.iswritable(table)
         Tables.close(table)
 
         table = Tables.open(path, write=true)
         @test table.path == path
         @test table.status === Tables.readwrite
         @test repr(table) == "Table: "*path*" (read/write)"
+        @test Tables.iswritable(table)
+        Tables.close(table)
+
+        table = Tables.open(table)
+        @test table.path == path
+        @test table.status === Tables.readonly
+        @test repr(table) == "Table: "*path*" (read-only)"
+        @test !Tables.iswritable(table)
+        Tables.close(table)
+
+        table = Tables.open(table, write=true)
+        @test table.path == path
+        @test table.status === Tables.readwrite
+        @test repr(table) == "Table: "*path*" (read/write)"
+        @test Tables.iswritable(table)
         Tables.close(table)
 
         @test_throws CasaCoreTablesError Tables.create(path)
@@ -49,6 +67,7 @@
         table = Tables.open("Table: "*path)
         @test table.path == path
         @test table.status === Tables.readonly
+        @test !Tables.iswritable(table)
         @test repr(table) == "Table: "*path*" (read-only)"
 
         Tables.delete(table)

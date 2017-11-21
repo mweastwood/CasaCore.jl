@@ -97,6 +97,8 @@
         @test tai.sys === epoch"TAI"
         @test tai.time - utc.time == 36
         @test utc ≈ utc′
+
+        @test Measures.units(Epoch) == Measures.units(utc) == u"s"
     end
 
     @testset "directions" begin
@@ -133,6 +135,8 @@
         @test dir1.sys === dir2.sys === dir"J2000"
         @test azel.sys === dir"AZEL"
         @test dir1 ≈ dir2
+
+        @test Measures.units(Direction) == Measures.units(dir1) == 1
     end
 
     @testset "positions" begin
@@ -154,6 +158,8 @@
         @test alma ≈ Position(pos"WGS84", 1.761867423e3, -4.307634996e3, -1.97770831e3)
         @test vla  ≈ Position(pos"ITRF", -1.601185365e6, -5.041977547e6,  3.55487587e6)
         @test_throws CasaCoreMeasuresError observatory("SKA")
+
+        @test Measures.units(Position) == Measures.units(vla) == u"m"
     end
 
     @testset "baselines" begin
@@ -172,6 +178,27 @@
         @test baseline2.sys === baseline"J2000"
         @test baseline1 ≈ baseline3
         @test repr(baseline1) == "1.234 meters, 5.678 meters, 0.100 meters"
+
+        @test Measures.units(Baseline) == Measures.units(baseline1) == u"m"
+    end
+
+    @testset "conversions" begin
+        itrf = (dir"ITRF", pos"ITRF", baseline"ITRF")
+        not_itrf = (dir"J2000", pos"WGS84", baseline"GALACTIC")
+        for sys in itrf
+            @test sys == sys
+            for sys′ in itrf
+                @test sys == sys′
+                @test sys′ == sys
+            end
+            for sys′ in not_itrf
+                @test sys != sys′
+                @test sys′ != sys
+            end
+        end
+    end
+
+    @testset "mathematics" begin
     end
 end
 

@@ -13,37 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-@noinline inconsistent_coordinate_system_error() = err("inconsistent coordinate system")
-function check_coordinate_system(measure1, measure2)
-    if measure1.sys != measure2.sys
-        inconsistent_coordinate_system_error()
-    end
-end
-
-function Base.:(==)(lhs::Directions.System, rhs::Positions.System)
-    if lhs == Directions.ITRF && rhs == Positions.ITRF
-        return true
-    else
-        return false
-    end
-end
-
-function Base.:(==)(lhs::Directions.System, rhs::Baselines.System)
-    Int32(lhs) == Int32(rhs)
-end
-
-function Base.:(==)(lhs::Positions.System, rhs::Baselines.System)
-    if lhs == Positions.ITRF && rhs == Baselines.ITRF
-        return true
-    else
-        return false
-    end
-end
-
-Base.:(==)(lhs::Positions.System, rhs::Directions.System) = rhs == lhs
-Base.:(==)(lhs::Baselines.System, rhs::Directions.System) = rhs == lhs
-Base.:(==)(lhs::Baselines.System, rhs::Positions.System) = rhs == lhs
-
 const ScalarMeasure = Union{Epoch}
 const VectorMeasure = Union{Direction, Position, Baseline}
 
@@ -70,8 +39,10 @@ function Base.isapprox(lhs::T, rhs::T) where T<:Union{Direction,Position,Baselin
     v1 ≈ v2
 end
 
+# Vector addition is not defined for `Direction`, because `Direction` represents a normalized unit
+# vector, so these methods are error prone.
 for op in (:+, :-)
-    @eval function Base.$op(measure1::T, measure2::T) where T<:VectorMeasure
+    @eval function Base.$op(measure1::T, measure2::T) where T<:Union{Position, Baseline}
         check_coordinate_system(measure1, measure2)
         T(measure1.sys, $op(measure1.x, measure2.x),
                         $op(measure1.y, measure2.y),
@@ -119,6 +90,7 @@ function do_cross_product(T, lhs, rhs)
 end
 
 function angle_between(lhs::Direction, rhs::Direction)
+    check_coordinate_system(lhs, rhs)
     acos(clamp(dot(lhs, rhs), -1, 1)) * u"rad"
 end
 
