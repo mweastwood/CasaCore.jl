@@ -1,10 +1,169 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>CasaCore.Tables · CasaCore.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link href="assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><a href="index.html"><img class="logo" src="assets/logo.png" alt="CasaCore.jl logo"/></a><h1>CasaCore.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" action="search.html"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="index.html">Introduction</a></li><li><span class="toctext">Modules</span><ul><li class="current"><a class="toctext" href="tables.html">CasaCore.Tables</a><ul class="internal"><li><a class="toctext" href="#Columns-1">Columns</a></li><li><a class="toctext" href="#Cells-1">Cells</a></li><li><a class="toctext" href="#Keywords-1">Keywords</a></li><li><a class="toctext" href="#Subtables-1">Subtables</a></li><li><a class="toctext" href="#Best-Practices-1">Best Practices</a></li></ul></li><li><a class="toctext" href="measures.html">CasaCore.Measures</a></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li>Modules</li><li><a href="tables.html">CasaCore.Tables</a></li></ul><a class="edit-page" href="https://github.com/mweastwood/CasaCore.jl/tree/acf2c4d826347f67aa8df05976b5066d0dc9518c/docs/src/tables.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>CasaCore.Tables</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="CasaCore.Tables-1" href="#CasaCore.Tables-1">CasaCore.Tables</a></h1><p>Load this module by running</p><pre><code class="language-julia">using CasaCore.Tables</code></pre><p>The <code>Tables</code> module is used to interact with CasaCore tables. This is a common data format in radio astronomy. For example CASA measurement sets and CASA calibration tables are simply CasaCore tables with a standard set of columns, keywords, and subtables.</p><p>Opening a table is simple:</p><pre><code class="language-julia">table = Table(&quot;/path/to/table&quot;)</code></pre><p>This will open an existing table at the given path, or create a new table if one does not already exist at that path. Note that a read/write lock is automatically obtained on an open table. This lock will automatically be released when the <code>table</code> object is garbage collected, but you may manually release the lock by calling <code>Tables.unlock(table)</code>.</p><h2><a class="nav-anchor" id="Columns-1" href="#Columns-1">Columns</a></h2><p>Columns are accessed by name. For example to read the entire <code>DATA</code> column from a measurement set:</p><pre><code class="language-julia">table = Table(&quot;/path/to/measurementset.ms&quot;)
-data = table[&quot;DATA&quot;]</code></pre><p>If we have some function <code>calibrate</code> that solves for and applies a calibration to the measured visibilities, we can then write the calibrated data back to the <code>CORRECTED_DATA</code> column as follows:</p><pre><code class="language-julia">corrected_data = calibrate(data) # calibrate the measured visibilities
-table[&quot;CORRECTED_DATA&quot;] = corrected_data</code></pre><p>Note that the <code>CORRECTED_DATA</code> column will be created in the table if it does not already exist. If the column does already exist, the column will be overwritten with the contents of <code>corrected_data</code>.</p><div class="admonition warning"><div class="admonition-title">Warning</div><div class="admonition-text"><p>CasaCore.jl will throw a <code>CasaCoreError</code> exception if you try to overwrite a column with an array of the incorrect size or element type. A column that contains <code>float</code>s cannot be overwritten with an array of <code>int</code>s.</p></div></div><p>A column can be removed from the table by using <code>Tables.removecolumn!(table, &quot;name&quot;)</code>, where <code>&quot;name&quot;</code> is the name of the column to be removed from the table.</p><h2><a class="nav-anchor" id="Cells-1" href="#Cells-1">Cells</a></h2><p>If you do not want to read or write to an entire column, you can instead pick a single row of the column (ie. a cell). For example, the length of the 123rd baseline in a measurement set can be computed by:</p><pre><code class="language-julia">uvw = table[&quot;UVW&quot;, 123]
-baseline_length = norm(uvw)</code></pre><p>If we then perform a calculation that updates the <code>uvw</code> coordinates of this baseline, we can write these changes back to the table:</p><pre><code class="language-julia">table[&quot;UVW&quot;, 123] = uvw</code></pre><p>The number of rows in the table can be obtained with <code>Tables.numrows(table)</code>.  Note also that the indexing order is column first, row second. This is opposite from the usual matrix convention where the first index specifies the row.</p><div class="admonition important"><div class="admonition-title">Important</div><div class="admonition-text"><p>Julia is 1-indexed programming language. This means that the first element of an array <code>x</code> is accessed with <code>x[1]</code> instead of <code>x[0]</code> (as is the case for C and Python). Similarly, the first row of a table is row number 1. Attempting to access row number 0 will throw a <code>CasaCoreError</code> because this row does not exist.</p></div></div><h2><a class="nav-anchor" id="Keywords-1" href="#Keywords-1">Keywords</a></h2><p>Keywords are accessed using the <code>kw&quot;...&quot;</code> string macro. For example:</p><pre><code class="language-julia">ms_version = table[kw&quot;MS_VERSION&quot;] # read the value of the &quot;MS_VERSION&quot; keyword
-table[kw&quot;MS_VERSION&quot;] = 2.0        # set the value of the &quot;MS_VERSION&quot; keyword</code></pre><p>A keyword can be removed with the <code>Tables.removekeyword!</code> function.</p><div class="admonition warning"><div class="admonition-title">Warning</div><div class="admonition-text"><p>A current known limitation of CasaCore.jl is the inability to read from or write to keywords that contain an array of values. This will be fixed if you file a bug report!</p></div></div><h2><a class="nav-anchor" id="Subtables-1" href="#Subtables-1">Subtables</a></h2><p>Subtables can be opened by reading their location from the appropriate keyword, and opening them as you would a regular table.</p><pre><code class="language-julia">location = table[kw&quot;SPECTRAL_WINDOW&quot;]
-subtable = Table(location)</code></pre><p>In this example the <code>SPECTRAL_WINDOW</code> keyword contains the path to the corresponding subtable, which usually contains information about the frequency bands and channels of a measurement set.</p><h2><a class="nav-anchor" id="Best-Practices-1" href="#Best-Practices-1">Best Practices</a></h2><h3><a class="nav-anchor" id="Type-Stability-1" href="#Type-Stability-1">Type Stability</a></h3><p>Julia is a dynamically typed language. Because of this we can write statements like <code>column = table[&quot;column&quot;]</code> without knowing the type of the column ahead of time. If the column contains <code>float</code>s (<code>Float32</code>), Julia will do the right thing. If the column contains <code>double</code>s (<code>Float64</code>), Julia will do the right thing. As a user, we did not need to know whether this column contains <code>float</code>s or <code>double</code>s ahead of time.</p><p>However Julia also performs &quot;type-inference&quot;. This means that Julia will attempt to deduce the types of your variables. If the types of your variables can be inferred at <em>compile time</em>, Julia will generate more efficient machine code specialized on the types that it inferred. If the types of your variables cannot be inferred at <em>compile time</em>, Julia will need to generate less efficient generic code to account for the uncertainty in the types of your variables.</p><p>This concept is important for <code>CasaCore.Tables</code> because the result of <code>table[&quot;column&quot;]</code> can be a wide variety of different types, and the actual type isn&#39;t known until <em>run time</em>. Now consider the following example:</p><pre><code class="language-julia">function add_one_to_data_column(table)
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>CasaCore.Tables · CasaCore.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link href="assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><a href="index.html"><img class="logo" src="assets/logo.png" alt="CasaCore.jl logo"/></a><h1>CasaCore.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="search.html"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="index.html">Introduction</a></li><li><span class="toctext">Modules</span><ul><li class="current"><a class="toctext" href="tables.html">CasaCore.Tables</a><ul class="internal"><li><a class="toctext" href="#Tables-1">Tables</a></li><li><a class="toctext" href="#Columns-1">Columns</a></li><li><a class="toctext" href="#Cells-1">Cells</a></li><li><a class="toctext" href="#Keywords-1">Keywords</a></li><li><a class="toctext" href="#Subtables-1">Subtables</a></li><li><a class="toctext" href="#Best-Practices-1">Best Practices</a></li></ul></li><li><a class="toctext" href="measures.html">CasaCore.Measures</a></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li>Modules</li><li><a href="tables.html">CasaCore.Tables</a></li></ul><a class="edit-page" href="https://github.com/mweastwood/CasaCore.jl/blob/master/docs/src/tables.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>CasaCore.Tables</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="CasaCore.Tables-1" href="#CasaCore.Tables-1">CasaCore.Tables</a></h1><p>Load this module by running</p><pre><code class="language-julia">using CasaCore.Tables</code></pre><p>The <code>Tables</code> module is used to interact with CasaCore tables. This is a common data format in radio astronomy. For example CASA measurement sets and CASA calibration tables are simply CasaCore tables with a standard set of columns, keywords, and subtables.</p><h2><a class="nav-anchor" id="Tables-1" href="#Tables-1">Tables</a></h2><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="CasaCore.Tables.Table" href="#CasaCore.Tables.Table"><code>CasaCore.Tables.Table</code></a> — <span class="docstring-category">Type</span>.</div><div><pre><code class="language-none">mutable struct Table</code></pre><p>This type is used to interact with CasaCore tables (including measurement sets).</p><p><strong>Fields:</strong></p><ul><li><p><code>path</code> - the path to the table</p></li><li><p><code>status</code> - the current status of the table</p></li><li><p><code>ptr</code> - the pointer to the table object</p></li></ul><p><strong>Usage:</strong></p><pre><code class="language-julia-repl">julia&gt; table = Tables.create(&quot;/tmp/my-table.ms&quot;)
+Table: /tmp/my-table.ms (read/write)
+
+julia&gt; Tables.add_rows!(table, 3)
+3
+
+julia&gt; table[&quot;DATA&quot;] = Complex64[1+2im, 3+4im, 5+6im]
+3-element Array{Complex{Float32},1}:
+ 1.0+2.0im
+ 3.0+4.0im
+ 5.0+6.0im
+
+julia&gt; Tables.close(table)
+closed::CasaCore.Tables.TableStatus = 0
+
+julia&gt; table = Tables.open(&quot;/tmp/my-table.ms&quot;)
+Table: /tmp/my-table.ms (read-only)
+
+julia&gt; table[&quot;DATA&quot;]
+3-element Array{Complex{Float32},1}:
+ 1.0+2.0im
+ 3.0+4.0im
+ 5.0+6.0im
+
+julia&gt; Tables.delete(table)</code></pre><p><strong>See also:</strong> <a href="tables.html#CasaCore.Tables.create"><code>Tables.create</code></a>, <a href="tables.html#CasaCore.Tables.open"><code>Tables.open</code></a>, <a href="tables.html#CasaCore.Tables.close"><code>Tables.close</code></a>, <a href="tables.html#CasaCore.Tables.delete"><code>Tables.delete</code></a></p></div><a class="source-link" target="_blank" href="https://github.com/mweastwood/CasaCore.jl/blob/0aa3e54368dee1462f780985f9fa92ca795aef2a/src/tables/tables.jl#L25-L68">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="CasaCore.Tables.create" href="#CasaCore.Tables.create"><code>CasaCore.Tables.create</code></a> — <span class="docstring-category">Function</span>.</div><div><pre><code class="language-none">create(path)</code></pre><p>Create a CasaCore table at the given path.</p><p><strong>Arguments:</strong></p><ul><li><p><code>path</code> - the path where the table will be created</p></li></ul><p><strong>Usage:</strong></p><pre><code class="language-julia-repl">julia&gt; table = Tables.create(&quot;/tmp/my-table.ms&quot;)
+Table: /tmp/my-table.ms (read/write)
+
+julia&gt; Tables.delete(table)</code></pre><p><strong>See also:</strong> <a href="tables.html#CasaCore.Tables.open"><code>Tables.open</code></a>, <a href="tables.html#CasaCore.Tables.close"><code>Tables.close</code></a>, <a href="tables.html#CasaCore.Tables.delete"><code>Tables.delete</code></a></p></div><a class="source-link" target="_blank" href="https://github.com/mweastwood/CasaCore.jl/blob/0aa3e54368dee1462f780985f9fa92ca795aef2a/src/tables/tables.jl#L83-L102">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="CasaCore.Tables.open" href="#CasaCore.Tables.open"><code>CasaCore.Tables.open</code></a> — <span class="docstring-category">Function</span>.</div><div><pre><code class="language-none">open(path; write=false)</code></pre><p>Open the CasaCore table at the given path.</p><p><strong>Arguments:</strong></p><ul><li><p><code>path</code> - the path to the table that will be opened</p></li></ul><p><strong>Keyword Arguments:</strong></p><ul><li><p><code>write</code> - if <code>false</code> (the default) the table will be opened read-only</p></li></ul><p><strong>Usage:</strong></p><pre><code class="language-julia-repl">julia&gt; table = Tables.create(&quot;/tmp/my-table.ms&quot;)
+Table: /tmp/my-table.ms (read/write)
+
+julia&gt; table′ = Tables.open(&quot;/tmp/my-table.ms&quot;)
+Table: /tmp/my-table.ms (read-only)
+
+julia&gt; table″ = Tables.open(&quot;/tmp/my-table.ms&quot;, write=true)
+Table: /tmp/my-table.ms (read/write)
+
+julia&gt; Tables.close(table′)
+       Tables.close(table″)
+       Tables.delete(table)</code></pre><p><strong>See also:</strong> <a href="tables.html#CasaCore.Tables.create"><code>Tables.create</code></a>, <a href="tables.html#CasaCore.Tables.close"><code>Tables.close</code></a>, <a href="tables.html#CasaCore.Tables.delete"><code>Tables.delete</code></a></p></div><a class="source-link" target="_blank" href="https://github.com/mweastwood/CasaCore.jl/blob/0aa3e54368dee1462f780985f9fa92ca795aef2a/src/tables/tables.jl#L113-L144">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="CasaCore.Tables.close" href="#CasaCore.Tables.close"><code>CasaCore.Tables.close</code></a> — <span class="docstring-category">Function</span>.</div><div><pre><code class="language-none">close(table)</code></pre><p>Close the given CasaCore table.</p><p><strong>Arguments:</strong></p><ul><li><p><code>table</code> - the table to be closed</p></li></ul><p><strong>Usage:</strong></p><pre><code class="language-julia-repl">julia&gt; table = Tables.create(&quot;/tmp/my-table.ms&quot;)
+Table: /tmp/my-table.ms (read/write)
+
+julia&gt; Tables.close(table)
+closed::CasaCore.Tables.TableStatus = 0
+
+julia&gt; Tables.delete(table)</code></pre><p><strong>See also:</strong> <a href="tables.html#CasaCore.Tables.create"><code>Tables.create</code></a>, <a href="tables.html#CasaCore.Tables.open"><code>Tables.open</code></a>, <a href="tables.html#CasaCore.Tables.delete"><code>Tables.delete</code></a></p></div><a class="source-link" target="_blank" href="https://github.com/mweastwood/CasaCore.jl/blob/0aa3e54368dee1462f780985f9fa92ca795aef2a/src/tables/tables.jl#L172-L194">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="CasaCore.Tables.delete" href="#CasaCore.Tables.delete"><code>CasaCore.Tables.delete</code></a> — <span class="docstring-category">Function</span>.</div><div><pre><code class="language-none">delete(table)</code></pre><p>Close and delete the given CasaCore table.</p><p><strong>Arguments:</strong></p><ul><li><p><code>table</code> - the table to be deleted</p></li></ul><p><strong>Usage:</strong></p><pre><code class="language-julia-repl">julia&gt; table = Tables.create(&quot;/tmp/my-table.ms&quot;)
+Table: /tmp/my-table.ms (read/write)
+
+julia&gt; Tables.delete(table)</code></pre><p><strong>See also:</strong> <a href="tables.html#CasaCore.Tables.create"><code>Tables.create</code></a>, <a href="tables.html#CasaCore.Tables.open"><code>Tables.open</code></a>, <a href="tables.html#CasaCore.Tables.create"><code>Tables.create</code></a></p></div><a class="source-link" target="_blank" href="https://github.com/mweastwood/CasaCore.jl/blob/0aa3e54368dee1462f780985f9fa92ca795aef2a/src/tables/tables.jl#L203-L222">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="CasaCore.Tables.num_rows" href="#CasaCore.Tables.num_rows"><code>CasaCore.Tables.num_rows</code></a> — <span class="docstring-category">Function</span>.</div><div><pre><code class="language-none">Tables.num_rows(table)</code></pre><p>Returns the number of rows in the given table.</p><p><strong>Arguments:</strong></p><ul><li><p><code>table</code> - the relevant table</p></li></ul><p><strong>Usage:</strong></p><pre><code class="language-julia-repl">julia&gt; table = Tables.create(&quot;/tmp/my-table.ms&quot;)
+       Tables.num_rows(table)
+0
+
+julia&gt; Tables.add_rows!(table, 10)
+       Tables.num_rows(table)
+10
+
+julia&gt; Tables.remove_rows!(table, 1:2:10)
+       Tables.num_rows(table)
+5
+
+julia&gt; Tables.delete(table)</code></pre><p><strong>See also:</strong> <a href="tables.html#CasaCore.Tables.num_columns"><code>Tables.num_columns</code></a>, <a href="tables.html#CasaCore.Tables.num_keywords"><code>Tables.num_keywords</code></a></p></div><a class="source-link" target="_blank" href="https://github.com/mweastwood/CasaCore.jl/blob/0aa3e54368dee1462f780985f9fa92ca795aef2a/src/tables/rows.jl#L18-L46">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="CasaCore.Tables.add_rows!" href="#CasaCore.Tables.add_rows!"><code>CasaCore.Tables.add_rows!</code></a> — <span class="docstring-category">Function</span>.</div><div><pre><code class="language-none">Tables.add_rows!(table, number)</code></pre><p>Add the given number of rows to the table.</p><p><strong>Arguments:</strong></p><ul><li><p><code>table</code> - the relevant table</p></li><li><p><code>number</code> - the number of rows that will be added to the table</p></li></ul><p><strong>Usage:</strong></p><pre><code class="language-julia-repl">julia&gt; table = Tables.create(&quot;/tmp/my-table.ms&quot;)
+       Tables.add_rows!(table, 10)
+       Tables.num_rows(table)
+10
+
+julia&gt; Tables.add_rows!(table, 123)
+       Tables.num_rows(table)
+133
+
+julia&gt; Tables.delete(table)</code></pre><p><strong>See also:</strong> <a href="tables.html#CasaCore.Tables.remove_rows!"><code>Tables.remove_rows!</code></a></p></div><a class="source-link" target="_blank" href="https://github.com/mweastwood/CasaCore.jl/blob/0aa3e54368dee1462f780985f9fa92ca795aef2a/src/tables/rows.jl#L52-L78">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="CasaCore.Tables.remove_rows!" href="#CasaCore.Tables.remove_rows!"><code>CasaCore.Tables.remove_rows!</code></a> — <span class="docstring-category">Function</span>.</div><div><pre><code class="language-none">Tables.remove_rows!(table, rows)</code></pre><p>Remove the specified rows from the table.</p><p><strong>Arguments:</strong></p><ul><li><p><code>tables</code> - the relevant table</p></li><li><p><code>rows</code> - the row or rows that will be deleted from the table</p></li></ul><p><strong>Usage:</strong></p><pre><code class="language-julia-repl">julia&gt; table = Tables.create(&quot;/tmp/my-table.ms&quot;)
+       Tables.add_rows!(table, 10)
+       Tables.remove_rows!(table, 1:2:10)
+       Tables.num_rows(table)
+5
+
+julia&gt; Tables.remove_rows!(table, 4)
+       Tables.num_rows(table)
+4
+
+julia&gt; Tables.remove_rows!(table, [1, 2, 3])
+       Tables.num_rows(table)
+1
+
+julia&gt; Tables.delete(table)</code></pre><p><strong>See also:</strong> <a href="tables.html#CasaCore.Tables.add_rows!"><code>Tables.add_rows!</code></a></p></div><a class="source-link" target="_blank" href="https://github.com/mweastwood/CasaCore.jl/blob/0aa3e54368dee1462f780985f9fa92ca795aef2a/src/tables/rows.jl#L85-L116">source</a></section><h2><a class="nav-anchor" id="Columns-1" href="#Columns-1">Columns</a></h2><p>Columns are accessed by name. Some common table names (used in CASA measurement sets) are <code>UVW</code> (the baseline coordinates), <code>DATA</code> (the uncalibrated data), and <code>CORRECTED_DATA</code> (the calibrated data).</p><p>For example to read and write the entire <code>DATA</code> column from a measurement set:</p><pre><code class="language-julia-repl">julia&gt; table = Tables.create(&quot;/tmp/my-table.ms&quot;)
+       Tables.add_rows!(table, 100)
+       Npol  =   4 # number of polarizations
+       Nfreq =  50 # number of frequency channels
+       Nbase = 100 # number of baselines
+       data = rand(Complex64, Npol, Nfreq, Nbase)
+       table[&quot;DATA&quot;] = data # creates the DATA column if it doesn&#39;t already exist
+       data == table[&quot;DATA&quot;]
+true
+
+julia&gt; Tables.delete(table)</code></pre><div class="admonition warning"><div class="admonition-title">Warning</div><div class="admonition-text"><p>CasaCore.jl will throw a <code>CasaCoreTablesError</code> exception if you try to overwrite a column with an array of the incorrect size or element type. A column that contains <code>float</code>s cannot be overwritten with an array of <code>int</code>s.</p></div></div><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="CasaCore.Tables.num_columns" href="#CasaCore.Tables.num_columns"><code>CasaCore.Tables.num_columns</code></a> — <span class="docstring-category">Function</span>.</div><div><pre><code class="language-none">Tables.num_columns(table)</code></pre><p>Returns the number of columns in the given table.</p><p><strong>Arguments:</strong></p><ul><li><p><code>table</code> - the relevant table</p></li></ul><p><strong>Usage:</strong></p><pre><code class="language-julia-repl">julia&gt; table = Tables.create(&quot;/tmp/my-table.ms&quot;)
+       Tables.num_columns(table)
+0
+
+julia&gt; Tables.add_rows!(table, 10)
+       table[&quot;TEST_COLUMN&quot;] = randn(10)
+       Tables.num_columns(table)
+1
+
+julia&gt; Tables.delete(table)</code></pre><p><strong>See also:</strong> <a href="tables.html#CasaCore.Tables.num_rows"><code>Tables.num_rows</code></a>, <a href="tables.html#CasaCore.Tables.num_keywords"><code>Tables.num_keywords</code></a></p></div><a class="source-link" target="_blank" href="https://github.com/mweastwood/CasaCore.jl/blob/0aa3e54368dee1462f780985f9fa92ca795aef2a/src/tables/columns.jl#L32-L57">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="CasaCore.Tables.remove_column!" href="#CasaCore.Tables.remove_column!"><code>CasaCore.Tables.remove_column!</code></a> — <span class="docstring-category">Function</span>.</div><div><pre><code class="language-none">Tables.remove_column!(table, column)</code></pre><p>Remove the specified column from the table.</p><p><strong>Arguments:</strong></p><ul><li><p><code>table</code> - the relevant table</p></li><li><p><code>column</code> - the column that will be removed from the table</p></li></ul><p><strong>Usage:</strong></p><pre><code class="language-julia-repl">julia&gt; table = Tables.create(&quot;/tmp/my-table.ms&quot;)
+       Tables.add_rows!(table, 10)
+       table[&quot;TEST&quot;] = rand(Bool, 10)
+       Tables.num_columns(table)
+1
+
+julia&gt; Tables.remove_column!(table, &quot;TEST&quot;)
+       Tables.num_columns(table)
+0
+
+julia&gt; Tables.delete(table)</code></pre><p><strong>See also:</strong> <a href="tables.html#CasaCore.Tables.num_columns"><code>Tables.num_columns</code></a></p></div><a class="source-link" target="_blank" href="https://github.com/mweastwood/CasaCore.jl/blob/0aa3e54368dee1462f780985f9fa92ca795aef2a/src/tables/columns.jl#L97-L124">source</a></section><h2><a class="nav-anchor" id="Cells-1" href="#Cells-1">Cells</a></h2><p>If you do not want to read or write to an entire column, you can instead pick a single row of the column (ie. a cell). For example, the length of the 123rd baseline in a measurement set can be computed by:</p><pre><code class="language-julia-repl">julia&gt; table = Tables.create(&quot;/tmp/my-table.ms&quot;)
+       Nbase = 500 # number of baselines
+       Tables.add_rows!(table, 500)
+       uvw = 100 .* randn(3, Nbase) # create a random set of baselines
+       table[&quot;UVW&quot;] = uvw # creates the UVW column if it doesn&#39;t already exist
+       uvw[:, 123] == table[&quot;UVW&quot;, 123]
+true
+
+julia&gt; table[&quot;UVW&quot;, 123] = [100., 50, 0.]
+       table[&quot;UVW&quot;, 123]
+3-element Array{Float64,1}:
+ 100.0
+  50.0
+   0.0
+
+julia&gt; Tables.delete(table)</code></pre><p>The number of rows in the table can be obtained with <a href="tables.html#CasaCore.Tables.num_rows"><code>Tables.num_rows</code></a>.  Note also that the indexing order is column first, row second. This is opposite from the usual matrix convention where the first index specifies the row.</p><div class="admonition important"><div class="admonition-title">Important</div><div class="admonition-text"><p>Julia is 1-indexed programming language. This means that the first element of an array <code>x</code> is accessed with <code>x[1]</code> instead of <code>x[0]</code> (as is the case for C and Python). Similarly, the first row of a table is row number 1. Attempting to access row number 0 will throw a <code>CasaCoreTablesError</code> because this row does not exist.</p></div></div><h2><a class="nav-anchor" id="Keywords-1" href="#Keywords-1">Keywords</a></h2><p>Keywords are accessed using the <code>kw&quot;...&quot;</code> string macro. For example:</p><pre><code class="language-julia-repl">julia&gt; table = Tables.create(&quot;/tmp/my-table.ms&quot;)
+       table[kw&quot;MS_VERSION&quot;] = 2.0 # set the value of the &quot;MS_VERSION&quot; keyword
+       table[kw&quot;MS_VERSION&quot;]       # read the value of the &quot;MS_VERSION&quot; keyword
+2.0
+
+julia&gt; Tables.delete(table)</code></pre><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="CasaCore.Tables.num_keywords" href="#CasaCore.Tables.num_keywords"><code>CasaCore.Tables.num_keywords</code></a> — <span class="docstring-category">Function</span>.</div><div><pre><code class="language-none">num_keywords(table)</code></pre><p>Returns the number of keywords associated with the given table.</p><p><strong>Arguments:</strong></p><ul><li><p><code>table</code> - the relevant table</p></li></ul><p><strong>Usage:</strong></p><pre><code class="language-julia-repl">julia&gt; table = Tables.create(&quot;/tmp/my-table.ms&quot;)
+       Tables.num_keywords(table)
+0
+
+julia&gt; table[kw&quot;RICK_PERLEY_IS_A_BOSS&quot;] = true
+       Tables.num_keywords(table)
+1
+
+julia&gt; table[kw&quot;NOT_SO_BAD&quot;] = &quot;yourself&quot;
+       Tables.num_keywords(table)
+2
+
+julia&gt; Tables.delete(table)</code></pre><p><strong>See also:</strong> <a href="tables.html#CasaCore.Tables.num_rows"><code>Tables.num_rows</code></a>, <a href="tables.html#CasaCore.Tables.num_columns"><code>Tables.num_columns</code></a></p></div><a class="source-link" target="_blank" href="https://github.com/mweastwood/CasaCore.jl/blob/0aa3e54368dee1462f780985f9fa92ca795aef2a/src/tables/keywords.jl#L40-L68">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="CasaCore.Tables.remove_keyword!" href="#CasaCore.Tables.remove_keyword!"><code>CasaCore.Tables.remove_keyword!</code></a> — <span class="docstring-category">Function</span>.</div><div><pre><code class="language-none">Tables.remove_keyword!(table, keyword)</code></pre><p>Remove the specified keyword from the table.</p><p><strong>Arguments:</strong></p><ul><li><p><code>table</code> - the relevant table</p></li><li><p><code>keyword</code> - the keyword to be removed</p></li></ul><p><strong>Usage:</strong></p><pre><code class="language-julia-repl">julia&gt; table = Tables.create(&quot;/tmp/my-table.ms&quot;)
+       table[kw&quot;HELLO&quot;] = &quot;world&quot;
+       Tables.num_keywords(table)
+1
+
+julia&gt; Tables.remove_keyword!(table, kw&quot;HELLO&quot;)
+       Tables.num_keywords(table)
+0
+
+julia&gt; Tables.delete(table)</code></pre><p><strong>See also:</strong> <a href="tables.html#CasaCore.Tables.num_keywords"><code>Tables.num_keywords</code></a></p></div><a class="source-link" target="_blank" href="https://github.com/mweastwood/CasaCore.jl/blob/0aa3e54368dee1462f780985f9fa92ca795aef2a/src/tables/keywords.jl#L85-L111">source</a></section><h2><a class="nav-anchor" id="Subtables-1" href="#Subtables-1">Subtables</a></h2><p>Subtables will be automatically opened by reading the appropriate keyword. These tables need to be closed when you are done using them (just as for a regular table).</p><pre><code class="language-julia-repl">julia&gt; table = Tables.create(&quot;/tmp/my-table.ms&quot;)
+       subtable = Tables.create(&quot;/tmp/my-sub-table.ms&quot;)
+       subtable[kw&quot;SECRET_CODE&quot;] = Int32(42)
+       table[kw&quot;SUBTABLE&quot;] = subtable
+       Tables.close(subtable)
+closed::CasaCore.Tables.TableStatus = 0
+
+julia&gt; subtable = table[kw&quot;SUBTABLE&quot;] # re-open the subtable
+       subtable[kw&quot;SECRET_CODE&quot;]
+42
+
+julia&gt; Tables.delete(table)
+       Tables.delete(subtable)</code></pre><h2><a class="nav-anchor" id="Best-Practices-1" href="#Best-Practices-1">Best Practices</a></h2><h3><a class="nav-anchor" id="Type-Stability-1" href="#Type-Stability-1">Type Stability</a></h3><p>Julia is a dynamically typed language. Because of this we can write statements like <code>column = table[&quot;column&quot;]</code> without knowing the type of the column ahead of time. If the column contains <code>float</code>s (<code>Float32</code>), Julia will do the right thing. If the column contains <code>double</code>s (<code>Float64</code>), Julia will do the right thing. As a user, we did not need to know whether this column contains <code>float</code>s or <code>double</code>s ahead of time.</p><p>However Julia also performs &quot;type-inference&quot;. This means that Julia will attempt to deduce the types of your variables. If the types of your variables can be inferred at <em>compile time</em>, Julia will generate more efficient machine code specialized on the types that it inferred. If the types of your variables cannot be inferred at <em>compile time</em>, Julia will need to generate less efficient generic code to account for the uncertainty in the types of your variables.</p><p>This concept is important for <code>CasaCore.Tables</code> because the result of <code>table[&quot;column&quot;]</code> can be a wide variety of different types, and the actual type isn&#39;t known until <em>run time</em>. Now consider the following example:</p><pre><code class="language-julia">function add_one_to_data_column(table)
     column = table[&quot;DATA&quot;] # type of `column` cannot be inferred
     for idx in eachindex(column)
         column[idx] += 1
@@ -20,4 +179,4 @@ function do_the_for_loop(column)
     for idx in eachindex(column)
         column[idx] += 1
     end
-end</code></pre><p>When <code>do_the_for_loop</code> is called, Julia will specialize the function on the actual type of <code>column</code>. That is, the <code>for</code>-loop will be compiled with the knowledge of the actual type of <code>column</code>.  This specialization ultimately means that the latter example will generally be faster.</p><p>For more information please refer to the <a href="http://docs.julialang.org/en/release-0.5/manual/performance-tips/#separate-kernel-functions-aka-function-barriers">performance tips section</a> of the Julia manual.</p><footer><hr/><a class="previous" href="index.html"><span class="direction">Previous</span><span class="title">Introduction</span></a><a class="next" href="measures.html"><span class="direction">Next</span><span class="title">CasaCore.Measures</span></a></footer></article></body></html>
+end</code></pre><p>When <code>do_the_for_loop</code> is called, Julia will specialize the function on the actual type of <code>column</code>. That is, the <code>for</code>-loop will be compiled with the knowledge of the actual type of <code>column</code>.  This specialization ultimately means that the latter example will generally be faster.</p><p>For more information please refer to the <a href="https://docs.julialang.org/en/release-0.6/manual/performance-tips/#kernal-functions-1">performance tips section</a> of the Julia manual.</p><footer><hr/><a class="previous" href="index.html"><span class="direction">Previous</span><span class="title">Introduction</span></a><a class="next" href="measures.html"><span class="direction">Next</span><span class="title">CasaCore.Measures</span></a></footer></article></body></html>

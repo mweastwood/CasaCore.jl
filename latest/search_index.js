@@ -45,7 +45,95 @@ var documenterSearchIndex = {"docs": [
     "page": "CasaCore.Tables",
     "title": "CasaCore.Tables",
     "category": "section",
-    "text": "Load this module by runningusing CasaCore.TablesThe Tables module is used to interact with CasaCore tables. This is a common data format in radio astronomy. For example CASA measurement sets and CASA calibration tables are simply CasaCore tables with a standard set of columns, keywords, and subtables.Opening a table is simple:table = Table(\"/path/to/table\")This will open an existing table at the given path, or create a new table if one does not already exist at that path. Note that a read/write lock is automatically obtained on an open table. This lock will automatically be released when the table object is garbage collected, but you may manually release the lock by calling Tables.unlock(table)."
+    "text": "CurrentModule = CasaCore.Tables\nDocTestSetup = quote\n    using CasaCore.Tables\nendLoad this module by runningusing CasaCore.TablesThe Tables module is used to interact with CasaCore tables. This is a common data format in radio astronomy. For example CASA measurement sets and CASA calibration tables are simply CasaCore tables with a standard set of columns, keywords, and subtables."
+},
+
+{
+    "location": "tables.html#CasaCore.Tables.Table",
+    "page": "CasaCore.Tables",
+    "title": "CasaCore.Tables.Table",
+    "category": "Type",
+    "text": "mutable struct Table\n\nThis type is used to interact with CasaCore tables (including measurement sets).\n\nFields:\n\npath - the path to the table\nstatus - the current status of the table\nptr - the pointer to the table object\n\nUsage:\n\njulia> table = Tables.create(\"/tmp/my-table.ms\")\nTable: /tmp/my-table.ms (read/write)\n\njulia> Tables.add_rows!(table, 3)\n3\n\njulia> table[\"DATA\"] = Complex64[1+2im, 3+4im, 5+6im]\n3-element Array{Complex{Float32},1}:\n 1.0+2.0im\n 3.0+4.0im\n 5.0+6.0im\n\njulia> Tables.close(table)\nclosed::CasaCore.Tables.TableStatus = 0\n\njulia> table = Tables.open(\"/tmp/my-table.ms\")\nTable: /tmp/my-table.ms (read-only)\n\njulia> table[\"DATA\"]\n3-element Array{Complex{Float32},1}:\n 1.0+2.0im\n 3.0+4.0im\n 5.0+6.0im\n\njulia> Tables.delete(table)\n\nSee also: Tables.create, Tables.open, Tables.close, Tables.delete\n\n\n\n"
+},
+
+{
+    "location": "tables.html#CasaCore.Tables.create",
+    "page": "CasaCore.Tables",
+    "title": "CasaCore.Tables.create",
+    "category": "Function",
+    "text": "create(path)\n\nCreate a CasaCore table at the given path.\n\nArguments:\n\npath - the path where the table will be created\n\nUsage:\n\njulia> table = Tables.create(\"/tmp/my-table.ms\")\nTable: /tmp/my-table.ms (read/write)\n\njulia> Tables.delete(table)\n\nSee also: Tables.open, Tables.close, Tables.delete\n\n\n\n"
+},
+
+{
+    "location": "tables.html#CasaCore.Tables.open",
+    "page": "CasaCore.Tables",
+    "title": "CasaCore.Tables.open",
+    "category": "Function",
+    "text": "open(path; write=false)\n\nOpen the CasaCore table at the given path.\n\nArguments:\n\npath - the path to the table that will be opened\n\nKeyword Arguments:\n\nwrite - if false (the default) the table will be opened read-only\n\nUsage:\n\njulia> table = Tables.create(\"/tmp/my-table.ms\")\nTable: /tmp/my-table.ms (read/write)\n\njulia> table′ = Tables.open(\"/tmp/my-table.ms\")\nTable: /tmp/my-table.ms (read-only)\n\njulia> table″ = Tables.open(\"/tmp/my-table.ms\", write=true)\nTable: /tmp/my-table.ms (read/write)\n\njulia> Tables.close(table′)\n       Tables.close(table″)\n       Tables.delete(table)\n\nSee also: Tables.create, Tables.close, Tables.delete\n\n\n\n"
+},
+
+{
+    "location": "tables.html#CasaCore.Tables.close",
+    "page": "CasaCore.Tables",
+    "title": "CasaCore.Tables.close",
+    "category": "Function",
+    "text": "close(table)\n\nClose the given CasaCore table.\n\nArguments:\n\ntable - the table to be closed\n\nUsage:\n\njulia> table = Tables.create(\"/tmp/my-table.ms\")\nTable: /tmp/my-table.ms (read/write)\n\njulia> Tables.close(table)\nclosed::CasaCore.Tables.TableStatus = 0\n\njulia> Tables.delete(table)\n\nSee also: Tables.create, Tables.open, Tables.delete\n\n\n\n"
+},
+
+{
+    "location": "tables.html#CasaCore.Tables.delete",
+    "page": "CasaCore.Tables",
+    "title": "CasaCore.Tables.delete",
+    "category": "Function",
+    "text": "delete(table)\n\nClose and delete the given CasaCore table.\n\nArguments:\n\ntable - the table to be deleted\n\nUsage:\n\njulia> table = Tables.create(\"/tmp/my-table.ms\")\nTable: /tmp/my-table.ms (read/write)\n\njulia> Tables.delete(table)\n\nSee also: Tables.create, Tables.open, Tables.create\n\n\n\n"
+},
+
+{
+    "location": "tables.html#CasaCore.Tables.num_rows",
+    "page": "CasaCore.Tables",
+    "title": "CasaCore.Tables.num_rows",
+    "category": "Function",
+    "text": "Tables.num_rows(table)\n\nReturns the number of rows in the given table.\n\nArguments:\n\ntable - the relevant table\n\nUsage:\n\njulia> table = Tables.create(\"/tmp/my-table.ms\")\n       Tables.num_rows(table)\n0\n\njulia> Tables.add_rows!(table, 10)\n       Tables.num_rows(table)\n10\n\njulia> Tables.remove_rows!(table, 1:2:10)\n       Tables.num_rows(table)\n5\n\njulia> Tables.delete(table)\n\nSee also: Tables.num_columns, Tables.num_keywords\n\n\n\n"
+},
+
+{
+    "location": "tables.html#CasaCore.Tables.add_rows!",
+    "page": "CasaCore.Tables",
+    "title": "CasaCore.Tables.add_rows!",
+    "category": "Function",
+    "text": "Tables.add_rows!(table, number)\n\nAdd the given number of rows to the table.\n\nArguments:\n\ntable - the relevant table\nnumber - the number of rows that will be added to the table\n\nUsage:\n\njulia> table = Tables.create(\"/tmp/my-table.ms\")\n       Tables.add_rows!(table, 10)\n       Tables.num_rows(table)\n10\n\njulia> Tables.add_rows!(table, 123)\n       Tables.num_rows(table)\n133\n\njulia> Tables.delete(table)\n\nSee also: Tables.remove_rows!\n\n\n\n"
+},
+
+{
+    "location": "tables.html#CasaCore.Tables.remove_rows!",
+    "page": "CasaCore.Tables",
+    "title": "CasaCore.Tables.remove_rows!",
+    "category": "Function",
+    "text": "Tables.remove_rows!(table, rows)\n\nRemove the specified rows from the table.\n\nArguments:\n\ntables - the relevant table\nrows - the row or rows that will be deleted from the table\n\nUsage:\n\njulia> table = Tables.create(\"/tmp/my-table.ms\")\n       Tables.add_rows!(table, 10)\n       Tables.remove_rows!(table, 1:2:10)\n       Tables.num_rows(table)\n5\n\njulia> Tables.remove_rows!(table, 4)\n       Tables.num_rows(table)\n4\n\njulia> Tables.remove_rows!(table, [1, 2, 3])\n       Tables.num_rows(table)\n1\n\njulia> Tables.delete(table)\n\nSee also: Tables.add_rows!\n\n\n\n"
+},
+
+{
+    "location": "tables.html#Tables-1",
+    "page": "CasaCore.Tables",
+    "title": "Tables",
+    "category": "section",
+    "text": "Table\nTables.create\nTables.open\nTables.close\nTables.delete\nTables.num_rows\nTables.add_rows!\nTables.remove_rows!"
+},
+
+{
+    "location": "tables.html#CasaCore.Tables.num_columns",
+    "page": "CasaCore.Tables",
+    "title": "CasaCore.Tables.num_columns",
+    "category": "Function",
+    "text": "Tables.num_columns(table)\n\nReturns the number of columns in the given table.\n\nArguments:\n\ntable - the relevant table\n\nUsage:\n\njulia> table = Tables.create(\"/tmp/my-table.ms\")\n       Tables.num_columns(table)\n0\n\njulia> Tables.add_rows!(table, 10)\n       table[\"TEST_COLUMN\"] = randn(10)\n       Tables.num_columns(table)\n1\n\njulia> Tables.delete(table)\n\nSee also: Tables.num_rows, Tables.num_keywords\n\n\n\n"
+},
+
+{
+    "location": "tables.html#CasaCore.Tables.remove_column!",
+    "page": "CasaCore.Tables",
+    "title": "CasaCore.Tables.remove_column!",
+    "category": "Function",
+    "text": "Tables.remove_column!(table, column)\n\nRemove the specified column from the table.\n\nArguments:\n\ntable - the relevant table\ncolumn - the column that will be removed from the table\n\nUsage:\n\njulia> table = Tables.create(\"/tmp/my-table.ms\")\n       Tables.add_rows!(table, 10)\n       table[\"TEST\"] = rand(Bool, 10)\n       Tables.num_columns(table)\n1\n\njulia> Tables.remove_column!(table, \"TEST\")\n       Tables.num_columns(table)\n0\n\njulia> Tables.delete(table)\n\nSee also: Tables.num_columns\n\n\n\n"
 },
 
 {
@@ -53,7 +141,7 @@ var documenterSearchIndex = {"docs": [
     "page": "CasaCore.Tables",
     "title": "Columns",
     "category": "section",
-    "text": "Columns are accessed by name. For example to read the entire DATA column from a measurement set:table = Table(\"/path/to/measurementset.ms\")\ndata = table[\"DATA\"]If we have some function calibrate that solves for and applies a calibration to the measured visibilities, we can then write the calibrated data back to the CORRECTED_DATA column as follows:corrected_data = calibrate(data) # calibrate the measured visibilities\ntable[\"CORRECTED_DATA\"] = corrected_dataNote that the CORRECTED_DATA column will be created in the table if it does not already exist. If the column does already exist, the column will be overwritten with the contents of corrected_data.warning: Warning\nCasaCore.jl will throw a CasaCoreError exception if you try to overwrite a column with an array of the incorrect size or element type. A column that contains floats cannot be overwritten with an array of ints.A column can be removed from the table by using Tables.removecolumn!(table, \"name\"), where \"name\" is the name of the column to be removed from the table."
+    "text": "Columns are accessed by name. Some common table names (used in CASA measurement sets) are UVW (the baseline coordinates), DATA (the uncalibrated data), and CORRECTED_DATA (the calibrated data).For example to read and write the entire DATA column from a measurement set:julia> table = Tables.create(\"/tmp/my-table.ms\")\n       Tables.add_rows!(table, 100)\n       Npol  =   4 # number of polarizations\n       Nfreq =  50 # number of frequency channels\n       Nbase = 100 # number of baselines\n       data = rand(Complex64, Npol, Nfreq, Nbase)\n       table[\"DATA\"] = data # creates the DATA column if it doesn't already exist\n       data == table[\"DATA\"]\ntrue\n\njulia> Tables.delete(table)warning: Warning\nCasaCore.jl will throw a CasaCoreTablesError exception if you try to overwrite a column with an array of the incorrect size or element type. A column that contains floats cannot be overwritten with an array of ints.Tables.num_columns\nTables.remove_column!"
 },
 
 {
@@ -61,7 +149,23 @@ var documenterSearchIndex = {"docs": [
     "page": "CasaCore.Tables",
     "title": "Cells",
     "category": "section",
-    "text": "If you do not want to read or write to an entire column, you can instead pick a single row of the column (ie. a cell). For example, the length of the 123rd baseline in a measurement set can be computed by:uvw = table[\"UVW\", 123]\nbaseline_length = norm(uvw)If we then perform a calculation that updates the uvw coordinates of this baseline, we can write these changes back to the table:table[\"UVW\", 123] = uvwThe number of rows in the table can be obtained with Tables.numrows(table).  Note also that the indexing order is column first, row second. This is opposite from the usual matrix convention where the first index specifies the row.important: Important\nJulia is 1-indexed programming language. This means that the first element of an array x is accessed with x[1] instead of x[0] (as is the case for C and Python). Similarly, the first row of a table is row number 1. Attempting to access row number 0 will throw a CasaCoreError because this row does not exist."
+    "text": "If you do not want to read or write to an entire column, you can instead pick a single row of the column (ie. a cell). For example, the length of the 123rd baseline in a measurement set can be computed by:julia> table = Tables.create(\"/tmp/my-table.ms\")\n       Nbase = 500 # number of baselines\n       Tables.add_rows!(table, 500)\n       uvw = 100 .* randn(3, Nbase) # create a random set of baselines\n       table[\"UVW\"] = uvw # creates the UVW column if it doesn't already exist\n       uvw[:, 123] == table[\"UVW\", 123]\ntrue\n\njulia> table[\"UVW\", 123] = [100., 50, 0.]\n       table[\"UVW\", 123]\n3-element Array{Float64,1}:\n 100.0\n  50.0\n   0.0\n\njulia> Tables.delete(table)The number of rows in the table can be obtained with Tables.num_rows.  Note also that the indexing order is column first, row second. This is opposite from the usual matrix convention where the first index specifies the row.important: Important\nJulia is 1-indexed programming language. This means that the first element of an array x is accessed with x[1] instead of x[0] (as is the case for C and Python). Similarly, the first row of a table is row number 1. Attempting to access row number 0 will throw a CasaCoreTablesError because this row does not exist."
+},
+
+{
+    "location": "tables.html#CasaCore.Tables.num_keywords",
+    "page": "CasaCore.Tables",
+    "title": "CasaCore.Tables.num_keywords",
+    "category": "Function",
+    "text": "num_keywords(table)\n\nReturns the number of keywords associated with the given table.\n\nArguments:\n\ntable - the relevant table\n\nUsage:\n\njulia> table = Tables.create(\"/tmp/my-table.ms\")\n       Tables.num_keywords(table)\n0\n\njulia> table[kw\"RICK_PERLEY_IS_A_BOSS\"] = true\n       Tables.num_keywords(table)\n1\n\njulia> table[kw\"NOT_SO_BAD\"] = \"yourself\"\n       Tables.num_keywords(table)\n2\n\njulia> Tables.delete(table)\n\nSee also: Tables.num_rows, Tables.num_columns\n\n\n\n"
+},
+
+{
+    "location": "tables.html#CasaCore.Tables.remove_keyword!",
+    "page": "CasaCore.Tables",
+    "title": "CasaCore.Tables.remove_keyword!",
+    "category": "Function",
+    "text": "Tables.remove_keyword!(table, keyword)\n\nRemove the specified keyword from the table.\n\nArguments:\n\ntable - the relevant table\nkeyword - the keyword to be removed\n\nUsage:\n\njulia> table = Tables.create(\"/tmp/my-table.ms\")\n       table[kw\"HELLO\"] = \"world\"\n       Tables.num_keywords(table)\n1\n\njulia> Tables.remove_keyword!(table, kw\"HELLO\")\n       Tables.num_keywords(table)\n0\n\njulia> Tables.delete(table)\n\nSee also: Tables.num_keywords\n\n\n\n"
 },
 
 {
@@ -69,7 +173,7 @@ var documenterSearchIndex = {"docs": [
     "page": "CasaCore.Tables",
     "title": "Keywords",
     "category": "section",
-    "text": "Keywords are accessed using the kw\"...\" string macro. For example:ms_version = table[kw\"MS_VERSION\"] # read the value of the \"MS_VERSION\" keyword\ntable[kw\"MS_VERSION\"] = 2.0        # set the value of the \"MS_VERSION\" keywordA keyword can be removed with the Tables.removekeyword! function.warning: Warning\nA current known limitation of CasaCore.jl is the inability to read from or write to keywords that contain an array of values. This will be fixed if you file a bug report!"
+    "text": "Keywords are accessed using the kw\"...\" string macro. For example:julia> table = Tables.create(\"/tmp/my-table.ms\")\n       table[kw\"MS_VERSION\"] = 2.0 # set the value of the \"MS_VERSION\" keyword\n       table[kw\"MS_VERSION\"]       # read the value of the \"MS_VERSION\" keyword\n2.0\n\njulia> Tables.delete(table)Tables.num_keywords\nTables.remove_keyword!"
 },
 
 {
@@ -77,7 +181,7 @@ var documenterSearchIndex = {"docs": [
     "page": "CasaCore.Tables",
     "title": "Subtables",
     "category": "section",
-    "text": "Subtables can be opened by reading their location from the appropriate keyword, and opening them as you would a regular table.location = table[kw\"SPECTRAL_WINDOW\"]\nsubtable = Table(location)In this example the SPECTRAL_WINDOW keyword contains the path to the corresponding subtable, which usually contains information about the frequency bands and channels of a measurement set."
+    "text": "Subtables will be automatically opened by reading the appropriate keyword. These tables need to be closed when you are done using them (just as for a regular table).julia> table = Tables.create(\"/tmp/my-table.ms\")\n       subtable = Tables.create(\"/tmp/my-sub-table.ms\")\n       subtable[kw\"SECRET_CODE\"] = Int32(42)\n       table[kw\"SUBTABLE\"] = subtable\n       Tables.close(subtable)\nclosed::CasaCore.Tables.TableStatus = 0\n\njulia> subtable = table[kw\"SUBTABLE\"] # re-open the subtable\n       subtable[kw\"SECRET_CODE\"]\n42\n\njulia> Tables.delete(table)\n       Tables.delete(subtable)"
 },
 
 {
@@ -117,11 +221,11 @@ var documenterSearchIndex = {"docs": [
     "page": "CasaCore.Measures",
     "title": "Units",
     "category": "section",
-    "text": "CasaCore.Measures depends on the Unitful package in order to specify the units associated with various quantities. The Unitful package should have automatically been installed when you ran Pkg.add(\"CasaCore\"). You can load the Unitful package by running using Unitful and documentation for Unitful is also available. Unitful is a particularly elegant package for unit-checked computation because the unit checking occurs at compile-time. That is, there is no run-time overhead associated with using Unitful.Unitful offers two ways to attach units to a quantity:using Unitful: m\nx = 10.0 * u\"m\" # using the u\"...\" string macro\ny = 10.0 * m    # using the Unitful.m object (which we have imported into our namespace)The first approach using the string macro is generally preferred because it avoids polluting the namespace. Simply replace the ... in u\"...\" with your desired units. For example we could obtain units of meters per second by writing u\"m/s\" or radians per kilometer-squared by writing u\"rad/km^2\".CasaCore.Measures, however, will only expect quantities with three different kinds of units: times, lengths, and angles. These are summarized below.Unit Expression\nSeconds u\"s\"\nDays u\"dy\"\nMeters u\"m\"\nKilometers u\"km\"\nDegrees u\"°\"\nRadians u\"rad\"note: Note\nThe ° character for degrees con be obtained at the Julia REPL by typing \\degree and then pressing <tab>. The Julia plugins for Emacs and vim also provide this functionality."
+    "text": "CasaCore.Measures depends on the Unitful package in order to specify the units associated with various quantities. The Unitful package should have automatically been installed when you ran Pkg.add(\"CasaCore\"). You can load the Unitful package by running using Unitful and documentation for Unitful is also available. Unitful is a particularly elegant package for unit-checked computation because the unit checking occurs at compile-time. That is, there is no run-time overhead associated with using Unitful.Unitful offers two ways to attach units to a quantity:using Unitful: m\nx = 10.0 * u\"m\" # using the u\"...\" string macro\ny = 10.0 * m    # using the Unitful.m object (which we have imported into our namespace)The first approach using the string macro is generally preferred because it avoids polluting the namespace. Simply replace the ... in u\"...\" with your desired units. For example we could obtain units of meters per second by writing u\"m/s\" or radians per kilometer-squared by writing u\"rad/km^2\".CasaCore.Measures, however, will only expect quantities with three different kinds of units: times, lengths, and angles. These are summarized below.Unit Expression\nSeconds u\"s\"\nDays u\"d\"\nMeters u\"m\"\nKilometers u\"km\"\nDegrees u\"°\"\nRadians u\"rad\"note: Note\nThe ° character for degrees con be obtained at the Julia REPL by typing \\degree and then pressing <tab>. The Julia plugins for Emacs and vim also provide this functionality.UnitfulAstro extends base Unitful with additional units commonly encountered in astronomy (for instance, pc and Jy)."
 },
 
 {
-    "location": "measures.html#CasaCore.Measures.Epoch-Tuple{CasaCore.Measures.Epochs.System,Unitful.Quantity{T,Unitful.Dimensions{(Unitful.Dimension{:Time}(1//1),)},U} where U where T}",
+    "location": "measures.html#CasaCore.Measures.Epoch-Tuple{CasaCore.Measures.Epochs.System,Union{Unitful.Level{L,S,Unitful.Quantity{T,Unitful.Dimensions{(Unitful.Dimension{:Time}(1//1),)},U}} where S where L, Unitful.Quantity{T,Unitful.Dimensions{(Unitful.Dimension{:Time}(1//1),)},U}} where U where T}",
     "page": "CasaCore.Measures",
     "title": "CasaCore.Measures.Epoch",
     "category": "Method",
@@ -153,7 +257,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "measures.html#CasaCore.Measures.Position-Tuple{CasaCore.Measures.Positions.System,Unitful.Quantity{T,Unitful.Dimensions{(Unitful.Dimension{:Length}(1//1),)},U} where U where T,Unitful.Quantity{T,Unitful.Dimensions{()},U} where U where T,Unitful.Quantity{T,Unitful.Dimensions{()},U} where U where T}",
+    "location": "measures.html#CasaCore.Measures.Position-Tuple{CasaCore.Measures.Positions.System,Union{Unitful.Level{L,S,Unitful.Quantity{T,Unitful.Dimensions{(Unitful.Dimension{:Length}(1//1),)},U}} where S where L, Unitful.Quantity{T,Unitful.Dimensions{(Unitful.Dimension{:Length}(1//1),)},U}} where U where T,Unitful.Quantity{T,Unitful.Dimensions{()},U} where U where T,Unitful.Quantity{T,Unitful.Dimensions{()},U} where U where T}",
     "page": "CasaCore.Measures",
     "title": "CasaCore.Measures.Position",
     "category": "Method",
