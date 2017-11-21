@@ -71,22 +71,22 @@ function Base.dot(lhs::VectorMeasure, rhs::VectorMeasure)
 end
 
 function Base.cross(lhs::T, rhs::Direction) where T<:VectorMeasure
-    do_cross_product(T, lhs, rhs)
+    do_cross_product(T, lhs.sys, lhs, rhs)
 end
 
 function Base.cross(lhs::Direction, rhs::T) where T<:VectorMeasure
-    do_cross_product(T, lhs, rhs)
+    do_cross_product(T, rhs.sys, lhs, rhs)
 end
 
 function Base.cross(lhs::Direction, rhs::Direction)
-    do_cross_product(Direction, lhs, rhs)
+    do_cross_product(Direction, lhs.sys, lhs, rhs)
 end
 
-function do_cross_product(T, lhs, rhs)
+function do_cross_product(T, sys, lhs, rhs)
     check_coordinate_system(lhs, rhs)
-    T(lhs.sys, lhs.y*rhs.z - lhs.z*rhs.y,
-               lhs.z*rhs.x - lhs.x*rhs.z,
-               lhs.x*rhs.y - lhs.y*rhs.x)
+    T(sys, lhs.y*rhs.z - lhs.z*rhs.y,
+           lhs.z*rhs.x - lhs.x*rhs.z,
+           lhs.x*rhs.y - lhs.y*rhs.x)
 end
 
 function angle_between(lhs::Direction, rhs::Direction)

@@ -199,6 +199,43 @@
     end
 
     @testset "mathematics" begin
+        x_position = Position(pos"ITRF", 2, 0, 0)
+        y_position = Position(pos"ITRF", 0, 2, 0)
+        z_position = Position(pos"ITRF", 0, 0, 2)
+        x = Direction(x_position)
+        y = Direction(y_position)
+        z = Direction(z_position)
+
+        @test cross(x, y) == z
+        for lhs in (x, y, z), rhs in (x, y, z)
+            if lhs == rhs
+                @test dot(lhs, rhs) == 1
+                @test Measures.angle_between(lhs, rhs) == 0*u"rad"
+            else
+                @test dot(lhs, rhs) == 0
+                @test Measures.angle_between(lhs, rhs) == π/2*u"rad"
+                @test Measures.gram_schmidt(lhs, rhs) == lhs
+            end
+        end
+        @test_throws MethodError x+y
+        @test_throws MethodError 5*x
+
+        @test cross(x, y_position) == z_position
+        @test cross(x_position, y) == z_position
+        @test dot(x, x_position) == 2*u"m"
+        @test dot(x_position, x) == 2*u"m"
+        for pos in (y_position, z_position)
+            @test dot(x, pos) == 0*u"m"
+            @test dot(pos, x) == 0*u"m"
+        end
+
+        @test 2*x_position == Position(pos"ITRF", 4, 0, 0)
+        @test 2*y_position == Position(pos"ITRF", 0, 4, 0)
+        @test 2*z_position == Position(pos"ITRF", 0, 0, 4)
+        @test x_position/2 == Position(pos"ITRF", 1, 0, 0)
+        @test y_position/2 == Position(pos"ITRF", 0, 1, 0)
+        @test z_position/2 == Position(pos"ITRF", 0, 0, 1)
+        @test x_position + y_position - z_position == Position(pos"ITRF", 2, 2, -2)
     end
 end
 
