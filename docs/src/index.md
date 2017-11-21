@@ -20,7 +20,7 @@ features that are not present in v0.4 or lower. Download and install the latest 
 from [the Julia language website](http://julialang.org/).
 
 Finally you may obtain CasaCore.jl by running (from within the Julia REPL):
-``` julia
+```julia
 Pkg.add("CasaCore")  # download CasaCore.jl and attempt to build the wrapper
 Pkg.test("CasaCore") # test that CasaCore.jl is working properly
 ```

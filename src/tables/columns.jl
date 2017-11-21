@@ -36,9 +36,24 @@ Returns the number of columns in the given table.
 
 **Arguments:**
 
+- `table` - the relevant table
+
 **Usage:**
 
-**See also:**
+```jldoctest
+julia> table = Tables.create("/tmp/my-table.ms")
+       Tables.num_columns(table)
+0
+
+julia> Tables.add_rows!(table, 10)
+       table["TEST_COLUMN"] = randn(10)
+       Tables.num_columns(table)
+1
+
+julia> Tables.delete(table)
+```
+
+**See also:** [`Tables.num_rows`](@ref), [`Tables.num_keywords`](@ref)
 """
 function num_columns(table::Table)
     ccall((:num_columns, libcasacorewrapper), Cuint,
@@ -59,6 +74,7 @@ for T in typelist
     @eval function add_column!(table::Table, column::String, ::Type{$T}, shape::Tuple{Int})
         Nrows = num_rows(table)
         if shape[1] != Nrows
+            @show shape[1] Nrows
             column_length_mismatch_error(shape[1], Nrows)
         end
         ccall(($c_add_scalar_column, libcasacorewrapper), Void,
@@ -80,14 +96,32 @@ for T in typelist
 end
 
 """
-    Tables.add_column!(table, column, element_type, shape)
-"""
-add_column!
-
-"""
     Tables.remove_column!(table, column)
 
 Remove the specified column from the table.
+
+**Arguments:**
+
+- `table` - the relevant table
+- `column` - the column that will be removed from the table
+
+**Usage:**
+
+```jldoctest
+julia> table = Tables.create("/tmp/my-table.ms")
+       Tables.add_rows!(table, 10)
+       table["TEST"] = rand(Bool, 10)
+       Tables.num_columns(table)
+1
+
+julia> Tables.remove_column!(table, "TEST")
+       Tables.num_columns(table)
+0
+
+julia> Tables.delete(table)
+```
+
+**See also:** [`Tables.num_columns`](@ref)
 """
 function remove_column!(table::Table, column::String)
     ccall(("remove_column", libcasacorewrapper), Void,

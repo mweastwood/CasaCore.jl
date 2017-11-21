@@ -1,6 +1,6 @@
 # CasaCore.Tables
 
-``` @meta
+```@meta
 CurrentModule = CasaCore.Tables
 DocTestSetup = quote
     using CasaCore.Tables
@@ -9,7 +9,7 @@ end
 
 Load this module by running
 
-``` julia
+```julia
 using CasaCore.Tables
 ```
 
@@ -25,51 +25,40 @@ Tables.create
 Tables.open
 Tables.close
 Tables.delete
+Tables.add_rows!
+Tables.num_rows
 ```
-
-
-
-
-
-
-Opening a table is simple:
-
-``` julia
-table = Table("/path/to/table")
-```
-
-This will open an existing table at the given path, or create a new table if one does not already
-exist at that path. Note that a read/write lock is automatically obtained on an open table. This
-lock will automatically be released when the `table` object is garbage collected, but you may
-manually release the lock by calling `Tables.unlock(table)`.
 
 ## Columns
 
-Columns are accessed by name. For example to read the entire `DATA` column from a measurement set:
+Columns are accessed by name. Some common table names (used in CASA measurement sets) are `UVW` (the
+baseline coordinates), `DATA` (the uncalibrated data), and `CORRECTED_DATA` (the calibrated data).
 
-``` julia
-table = Table("/path/to/measurementset.ms")
-data = table["DATA"]
+For example to read and write the entire `DATA` column from a measurement set:
+
+```jldoctest
+julia> table = Tables.create("/tmp/my-table.ms")
+       Tables.add_rows!(table, 100)
+       Npol  =   4 # number of polarizations
+       Nfreq =  50 # number of frequency channels
+       Nbase = 100 # number of baselines
+       data = rand(Complex64, Npol, Nfreq, Nbase)
+       table["DATA"] = data # creates the DATA column if it doesn't already exist
+       data == table["DATA"]
+true
+
+julia> Tables.delete(table)
 ```
-
-If we have some function `calibrate` that solves for and applies a calibration to the measured
-visibilities, we can then write the calibrated data back to the `CORRECTED_DATA` column as follows:
-
-``` julia
-corrected_data = calibrate(data) # calibrate the measured visibilities
-table["CORRECTED_DATA"] = corrected_data
-```
-
-Note that the `CORRECTED_DATA` column will be created in the table if it does not already exist. If
-the column does already exist, the column will be overwritten with the contents of `corrected_data`.
 
 !!! warning
-    CasaCore.jl will throw a `CasaCoreError` exception if you try to overwrite a column with an
-    array of the incorrect size or element type. A column that contains `float`s cannot be
+    CasaCore.jl will throw a `CasaCoreTablesError` exception if you try to overwrite a column with
+    an array of the incorrect size or element type. A column that contains `float`s cannot be
     overwritten with an array of `int`s.
 
-A column can be removed from the table by using `Tables.removecolumn!(table, "name")`, where
-`"name"` is the name of the column to be removed from the table.
+```@docs
+Tables.num_columns
+Tables.remove_column!
+```
 
 ## Cells
 
@@ -77,7 +66,7 @@ If you do not want to read or write to an entire column, you can instead pick a 
 column (ie. a cell). For example, the length of the 123rd baseline in a measurement set can be
 computed by:
 
-``` julia
+```julia
 uvw = table["UVW", 123]
 baseline_length = norm(uvw)
 ```
@@ -85,7 +74,7 @@ baseline_length = norm(uvw)
 If we then perform a calculation that updates the `uvw` coordinates of this baseline, we can write
 these changes back to the table:
 
-``` julia
+```julia
 table["UVW", 123] = uvw
 ```
 
@@ -103,7 +92,7 @@ the first index specifies the row.
 
 Keywords are accessed using the `kw"..."` string macro. For example:
 
-``` julia
+```julia
 ms_version = table[kw"MS_VERSION"] # read the value of the "MS_VERSION" keyword
 table[kw"MS_VERSION"] = 2.0        # set the value of the "MS_VERSION" keyword
 ```
@@ -119,7 +108,7 @@ A keyword can be removed with the `Tables.removekeyword!` function.
 Subtables can be opened by reading their location from the appropriate keyword, and opening them as
 you would a regular table.
 
-``` julia
+```julia
 location = table[kw"SPECTRAL_WINDOW"]
 subtable = Table(location)
 ```
@@ -147,7 +136,7 @@ This concept is important for `CasaCore.Tables` because the result of `table["co
 wide variety of different types, and the actual type isn't known until *run time*. Now consider the
 following example:
 
-``` julia
+```julia
 function add_one_to_data_column(table)
     column = table["DATA"] # type of `column` cannot be inferred
     for idx in eachindex(column)
@@ -162,7 +151,7 @@ write the result back to the table. However because the type of `column` cannot 
 performance of the `for`-loop will be sub-optimal. We can remedy this problem by moving the
 computational kernel into a separate function:
 
-``` julia
+```julia
 function add_one_to_data_column(table)
     column = table["DATA"]
     do_the_for_loop(column) # `do_the_for_loop` specializes on the actual type of `column`
