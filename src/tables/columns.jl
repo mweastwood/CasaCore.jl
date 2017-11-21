@@ -74,7 +74,6 @@ for T in typelist
     @eval function add_column!(table::Table, column::String, ::Type{$T}, shape::Tuple{Int})
         Nrows = num_rows(table)
         if shape[1] != Nrows
-            @show shape[1] Nrows
             column_length_mismatch_error(shape[1], Nrows)
         end
         ccall(($c_add_scalar_column, libcasacorewrapper), Void,
