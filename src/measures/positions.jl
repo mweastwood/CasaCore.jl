@@ -81,9 +81,9 @@ end
 function Base.show(io::IO, position::Position)
     rad = norm(position)
     if rad > 1e5*u"m"
-        rad_str = @sprintf("%.3f kilometers", rad/1u"km")
+        rad_str = @sprintf("%.3f km", ustrip(uconvert(u"km", rad)))
     else
-        rad_str = @sprintf("%.3f meters", rad/1u"m")
+        rad_str = @sprintf("%.3f m", ustrip(uconvert(u"m", rad)))
     end
     long_str = position |> longitude |> sexagesimal
     lat_str  = position |>  latitude |> sexagesimal
