@@ -151,7 +151,7 @@
         @test pos2.sys === pos"ITRF"
         @test pos1 ≈ pos3
         @test pos1 ≈ Position(pos"WGS84", 5000u"m", 20.5u"°", -80u"°")
-        @test repr(pos1) == "5000.000 meters, +20d30m00s, -80d00m00s"
+        @test repr(pos1) == "5000.000 m, +20d30m00s, -80d00m00s"
 
         alma = observatory("ALMA")
         vla  = observatory("VLA")
