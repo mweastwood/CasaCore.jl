@@ -206,7 +206,7 @@
         y = Direction(y_position)
         z = Direction(z_position)
 
-        @test cross(x, y) == z
+        @test cross(x+3y, y) == Measures.UnnormalizedDirection(dir"ITRF", 0, 0, 1)
         for lhs in (x, y, z), rhs in (x, y, z)
             if lhs == rhs
                 @test dot(lhs, rhs) == 1
@@ -218,8 +218,8 @@
             end
         end
 
-        @test cross(x, y_position) == z_position
-        @test cross(x_position, y) == z_position
+        @test cross(x, y_position) ≈ z_position
+        @test cross(x_position, y) ≈ z_position
         @test dot(x, x_position) == 2*u"m"
         @test dot(x_position, x) == 2*u"m"
         for pos in (y_position, z_position)

@@ -27,6 +27,7 @@ export set!, measure
 export longitude, latitude, observatory, sexagesimal
 export angle_between, gram_schmidt
 
+using StaticArrays
 using Unitful
 # See https://github.com/ajkeller34/Unitful.jl/issues/38 for a discussion of angle units in the
 # Unitful package. We decided that it makes sense for angles to be dimensionless, but Andrew was
@@ -55,6 +56,7 @@ include("measures/positions.jl")
 include("measures/baselines.jl")
 include("measures/conversions.jl")
 include("measures/mathematics.jl")
+include("measures/rotations.jl")
 
 end
 

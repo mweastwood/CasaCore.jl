@@ -60,6 +60,10 @@ for op in (:+, :-)
                          $op(measure1.y, measure2.y),
                          $op(measure1.z, measure2.z))
     end
+
+    @eval function Base.$op(measure::T) where T<:VectorMeasure
+        T(measure.sys, $op(measure.x), $op(measure.y), $op(measure.z))
+    end
 end
 
 for op in (:*, :/)
@@ -82,25 +86,15 @@ function Base.dot(lhs::VectorMeasure, rhs::VectorMeasure)
     (lhs.x*rhs.x + lhs.y*rhs.y + lhs.z*rhs.z) * units(lhs) * units(rhs)
 end
 
-function Base.cross(lhs::T, rhs::AnyDirection) where T<:Union{Position, Baseline}
-    do_cross_product(T, lhs.sys, lhs, rhs)
-end
-function Base.cross(lhs::AnyDirection, rhs::T) where T<:Union{Position, Baseline}
-    do_cross_product(T, rhs.sys, lhs, rhs)
-end
-function Base.cross(lhs::T, rhs::S) where {T<:AnyDirection, S<:AnyDirection}
-    Tp = promote_vector_measure(T, S)
-    do_cross_product(Tp, lhs.sys, lhs, rhs)
-end
-function Base.cross(lhs::Direction, rhs::Direction)
-    do_cross_product(Direction, lhs.sys, lhs, rhs)
-end
-
-function do_cross_product(T, sys, lhs, rhs)
+function Base.cross(lhs::T, rhs::AnyDirection) where T<:VectorMeasure
     check_coordinate_system(lhs, rhs)
-    T(sys, lhs.y*rhs.z - lhs.z*rhs.y,
-           lhs.z*rhs.x - lhs.x*rhs.z,
-           lhs.x*rhs.y - lhs.y*rhs.x)
+    Tp = promote_vector_measure(T)
+    Tp(lhs.sys, lhs.y*rhs.z - lhs.z*rhs.y,
+                lhs.z*rhs.x - lhs.x*rhs.z,
+                lhs.x*rhs.y - lhs.y*rhs.x)
+end
+function Base.cross(lhs::VectorMeasure, rhs::VectorMeasure)
+    -cross(rhs, lhs)
 end
 
 function angle_between(lhs::AnyDirection, rhs::AnyDirection)
