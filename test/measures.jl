@@ -217,8 +217,6 @@
                 @test Measures.gram_schmidt(lhs, rhs) == lhs
             end
         end
-        @test_throws MethodError x+y
-        @test_throws MethodError 5*x
 
         @test cross(x, y_position) == z_position
         @test cross(x_position, y) == z_position
@@ -229,6 +227,8 @@
             @test dot(pos, x) == 0*u"m"
         end
 
+        @test x+y == Measures.UnnormalizedDirection(dir"ITRF", 1, 1, 0)
+        @test 5*x == Measures.UnnormalizedDirection(dir"ITRF", 5, 0, 0)
         @test 2*x_position == Position(pos"ITRF", 4, 0, 0)
         @test 2*y_position == Position(pos"ITRF", 0, 4, 0)
         @test 2*z_position == Position(pos"ITRF", 0, 0, 4)

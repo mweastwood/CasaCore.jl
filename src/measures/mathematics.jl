@@ -47,7 +47,9 @@ end
 
 function Base.isapprox(lhs::T, rhs::T) where T<:VectorMeasure
     check_coordinate_system(lhs, rhs)
-    lhs.x ≈ rhs.x & lhs.y ≈ rhs.y & lhs.z ≈ rhs.z
+    v1 = [lhs.x, lhs.y, lhs.z]
+    v2 = [rhs.x, rhs.y, rhs.z]
+    v1 ≈ v2
 end
 
 for op in (:+, :-)
