@@ -42,8 +42,27 @@ struct Direction <: Measure
     end
 end
 
+struct UnnormalizedDirection <: Measure
+    sys :: Directions.System
+    x :: Float64
+    y :: Float64
+    z :: Float64
+end
+
+function Base.convert(::Type{Direction}, direction::UnnormalizedDirection)
+    Direction(direction.sys, direction.x, direction.y, direction.z)
+end
+
+function Base.convert(::Type{UnnormalizedDirection}, direction::Direction)
+    UnnormalizedDirection(direction.sys, direction.x, direction.y, direction.z)
+end
+
+
 units(::Direction) = 1 # dimensionless
 units(::Type{Direction}) = 1
+units(::UnnormalizedDirection) = 1 # dimensionless
+units(::Type{UnnormalizedDirection}) = 1
+
 
 """
     Direction(sys, longitude, latitude)
