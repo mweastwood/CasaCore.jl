@@ -136,6 +136,9 @@
         @test azel.sys === dir"AZEL"
         @test dir1 ≈ dir2
 
+        u = Measures.UnnormalizedDirection(dir1)
+        @test Direction(measure(frame, u, dir"AZEL")) == azel
+
         @test Measures.units(Direction) == Measures.units(dir1) == 1
     end
 
@@ -236,6 +239,14 @@
         @test y_position/2 == Position(pos"ITRF", 0, 1, 0)
         @test z_position/2 == Position(pos"ITRF", 0, 0, 1)
         @test x_position + y_position - z_position == Position(pos"ITRF", 2, 2, -2)
+    end
+
+    @testset "rotations" begin
+        x = Direction(dir"ITRF", randn(), randn(), randn())
+        y = Direction(dir"ITRF", randn(), randn(), randn())
+        R = Measures.RotationMatrix(x, y)
+        @test R.sys == dir"ITRF"
+        @test R*x ≈ y
     end
 end
 
