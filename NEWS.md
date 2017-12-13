@@ -1,5 +1,14 @@
 # News
 
+## v0.2.1
+
+*unreleased*
+
+* Arithmetic on `Direction` produces an `UnnormalizedDirection`, which can be converted back to a
+  regular normalized `Direction`. This allows intermediate operations to be unnormalized before
+  explicitly normalizing at the last step.
+* Experimental (unexported) support for rotation matrices.
+
 ## v0.2.0
 
 *2017-11-21*
