@@ -89,6 +89,10 @@ function measure(frame::ReferenceFrame, direction::Direction, newsys::Directions
           direction, newsys, frame)
 end
 
+function measure(frame::ReferenceFrame, direction::UnnormalizedDirection, newsys)
+    measure(frame, Direction(direction), newsys)
+end
+
 function measure(frame::ReferenceFrame, position::Position, newsys::Positions.System)
     ccall(("convertPosition", libcasacorewrapper), Position,
           (Ref{Position}, Cint, Ref{ReferenceFrame}),

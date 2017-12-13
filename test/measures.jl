@@ -136,6 +136,9 @@
         @test azel.sys === dir"AZEL"
         @test dir1 ≈ dir2
 
+        u = Measures.UnnormalizedDirection(dir1)
+        @test Direction(measure(frame, u, dir"AZEL")) == azel
+
         @test Measures.units(Direction) == Measures.units(dir1) == 1
     end
 
@@ -206,7 +209,7 @@
         y = Direction(y_position)
         z = Direction(z_position)
 
-        @test cross(x, y) == z
+        @test cross(x+3y, y) == Measures.UnnormalizedDirection(dir"ITRF", 0, 0, 1)
         for lhs in (x, y, z), rhs in (x, y, z)
             if lhs == rhs
                 @test dot(lhs, rhs) == 1
@@ -217,11 +220,9 @@
                 @test Measures.gram_schmidt(lhs, rhs) == lhs
             end
         end
-        @test_throws MethodError x+y
-        @test_throws MethodError 5*x
 
-        @test cross(x, y_position) == z_position
-        @test cross(x_position, y) == z_position
+        @test cross(x, y_position) ≈ z_position
+        @test cross(x_position, y) ≈ z_position
         @test dot(x, x_position) == 2*u"m"
         @test dot(x_position, x) == 2*u"m"
         for pos in (y_position, z_position)
@@ -229,6 +230,8 @@
             @test dot(pos, x) == 0*u"m"
         end
 
+        @test x+y == Measures.UnnormalizedDirection(dir"ITRF", 1, 1, 0)
+        @test 5*x == Measures.UnnormalizedDirection(dir"ITRF", 5, 0, 0)
         @test 2*x_position == Position(pos"ITRF", 4, 0, 0)
         @test 2*y_position == Position(pos"ITRF", 0, 4, 0)
         @test 2*z_position == Position(pos"ITRF", 0, 0, 4)
@@ -236,6 +239,14 @@
         @test y_position/2 == Position(pos"ITRF", 0, 1, 0)
         @test z_position/2 == Position(pos"ITRF", 0, 0, 1)
         @test x_position + y_position - z_position == Position(pos"ITRF", 2, 2, -2)
+    end
+
+    @testset "rotations" begin
+        x = Direction(dir"ITRF", randn(), randn(), randn())
+        y = Direction(dir"ITRF", randn(), randn(), randn())
+        R = Measures.RotationMatrix(x, y)
+        @test R.sys == dir"ITRF"
+        @test R*x ≈ y
     end
 end
 
