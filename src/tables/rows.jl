@@ -45,6 +45,7 @@ julia> Tables.delete(table)
 **See also:** [`Tables.num_columns`](@ref), [`Tables.num_keywords`](@ref)
 """
 function num_rows(table::Table)
+    isopen(table) || table_closed_error()
     ccall((:num_rows, libcasacorewrapper), Cuint,
           (Ptr{CasaCoreTable},), table) |> Int
 end
@@ -77,6 +78,7 @@ julia> Tables.delete(table)
 **See also:** [`Tables.remove_rows!`](@ref)
 """
 function add_rows!(table::Table, number::Integer)
+    isopen(table) || table_closed_error()
     ccall((:add_rows, libcasacorewrapper), Void,
           (Ptr{CasaCoreTable}, Cuint), table, number)
     number
@@ -115,6 +117,7 @@ julia> Tables.delete(table)
 **See also:** [`Tables.add_rows!`](@ref)
 """
 function remove_rows!(table::Table, rows)
+    isopen(table) || table_closed_error()
     N = num_rows(table)
     if any(rows .≤ 0) || any(rows .≥ N+1)
         row_out_of_bounds_error(rows)

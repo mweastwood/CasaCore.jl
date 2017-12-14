@@ -56,11 +56,13 @@ julia> Tables.delete(table)
 **See also:** [`Tables.num_rows`](@ref), [`Tables.num_keywords`](@ref)
 """
 function num_columns(table::Table)
+    isopen(table) || table_closed_error()
     ccall((:num_columns, libcasacorewrapper), Cuint,
           (Ptr{CasaCoreTable},), table) |> Int
 end
 
 function column_exists(table::Table, column::String)
+    isopen(table) || table_closed_error()
     ccall((:column_exists, libcasacorewrapper), Bool,
           (Ptr{CasaCoreTable}, Ptr{Cchar}),
           table, column)
@@ -72,6 +74,7 @@ for T in typelist
     c_add_array_column  = String(Symbol(:add_array_column_, typestr))
 
     @eval function add_column!(table::Table, column::String, ::Type{$T}, shape::Tuple{Int})
+        isopen(table) || table_closed_error()
         Nrows = num_rows(table)
         if shape[1] != Nrows
             column_length_mismatch_error(shape[1], Nrows)
@@ -82,6 +85,7 @@ for T in typelist
     end
 
     @eval function add_column!(table::Table, column::String, ::Type{$T}, shape::Tuple)
+        isopen(table) || table_closed_error()
         Nrows = num_rows(table)
         if shape[end] != Nrows
             column_length_mismatch_error(shape[end], Nrows)
@@ -123,12 +127,14 @@ julia> Tables.delete(table)
 **See also:** [`Tables.num_columns`](@ref)
 """
 function remove_column!(table::Table, column::String)
+    isopen(table) || table_closed_error()
     ccall(("remove_column", libcasacorewrapper), Void,
           (Ptr{CasaCoreTable}, Ptr{Cchar}), table, column)
 end
 
 "Get the column element type and shape."
 function column_info(table::Table, column::String)
+    isopen(table) || table_closed_error()
     element_type = Ref{Cint}(0)
     dimension    = Ref{Cint}(0)
     shape_ptr = ccall((:column_info, libcasacorewrapper), Ptr{Cint},
@@ -140,6 +146,7 @@ function column_info(table::Table, column::String)
 end
 
 function Base.getindex(table::Table, column::String)
+    isopen(table) || table_closed_error()
     if !column_exists(table, column)
         column_missing_error(column)
     end
@@ -148,6 +155,7 @@ function Base.getindex(table::Table, column::String)
 end
 
 function Base.setindex!(table::Table, value, column::String)
+    isopen(table) || table_closed_error()
     if !column_exists(table, column)
         add_column!(table, column, eltype(value), size(value))
     end

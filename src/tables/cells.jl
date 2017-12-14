@@ -14,12 +14,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 function Base.getindex(table::Table, column::String, row::Integer)
+    isopen(table) || table_closed_error()
     check_column_row(table, column, row)
     T, shape = column_info(table, column)
     read_cell(table, column, row, T, shape[1:end-1])
 end
 
 function Base.setindex!(table::Table, value, column::String, row::Integer)
+    isopen(table) || table_closed_error()
     check_column_row(table, column, row)
     T, shape = column_info(table, column)
     check_cell(value, column, T, shape)

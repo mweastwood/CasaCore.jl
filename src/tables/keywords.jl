@@ -67,17 +67,20 @@ julia> Tables.delete(table)
 **See also:** [`Tables.num_rows`](@ref), [`Tables.num_columns`](@ref)
 """
 function num_keywords(table::Table)
+    isopen(table) || table_closed_error()
     ccall((:num_keywords, libcasacorewrapper), Cuint,
           (Ptr{CasaCoreTable},), table) |> Int
 end
 
 "Query whether the keyword exists."
 function keyword_exists(table::Table, keyword::Keyword)
+    isopen(table) || table_closed_error()
     ccall((:keyword_exists, libcasacorewrapper), Bool,
           (Ptr{CasaCoreTable}, Ptr{Cchar}), table, keyword)
 end
 
 function keyword_exists(table::Table, column::String, keyword::Keyword)
+    isopen(table) || table_closed_error()
     ccall((:column_keyword_exists, libcasacorewrapper), Bool,
           (Ptr{CasaCoreTable}, Ptr{Cchar}, Ptr{Cchar}), table, column, keyword)
 end
@@ -110,18 +113,21 @@ julia> Tables.delete(table)
 **See also:** [`Tables.num_keywords`](@ref)
 """
 function remove_keyword!(table::Table, keyword::Keyword)
+    isopen(table) || table_closed_error()
     ccall((:remove_keyword, libcasacorewrapper), Void,
           (Ptr{CasaCoreTable}, Ptr{Cchar}), table, keyword)
     keyword
 end
 
 function remove_keyword!(table::Table, column::String, keyword::Keyword)
+    isopen(table) || table_closed_error()
     ccall((:remove_column_keyword, libcasacorewrapper), Void,
           (Ptr{CasaCoreTable}, Ptr{Cchar}, Ptr{Cchar}), table, column, keyword)
 end
 
 "Get the keyword element type and shape."
 function keyword_info(table::Table, keyword::Keyword)
+    isopen(table) || table_closed_error()
     element_type = Ref{Cint}(0)
     dimension    = Ref{Cint}(0)
     shape_ptr = ccall((:keyword_info, libcasacorewrapper), Ptr{Cint},
@@ -133,6 +139,7 @@ function keyword_info(table::Table, keyword::Keyword)
 end
 
 function keyword_info(table::Table, column::String, keyword::Keyword)
+    isopen(table) || table_closed_error()
     element_type = Ref{Cint}(0)
     dimension    = Ref{Cint}(0)
     shape_ptr = ccall((:column_keyword_info, libcasacorewrapper), Ptr{Cint},
@@ -144,6 +151,7 @@ function keyword_info(table::Table, column::String, keyword::Keyword)
 end
 
 function Base.getindex(table::Table, keyword::Keyword)
+    isopen(table) || table_closed_error()
     if !keyword_exists(table, keyword)
         keyword_missing_error(keyword)
     end
@@ -152,6 +160,7 @@ function Base.getindex(table::Table, keyword::Keyword)
 end
 
 function Base.setindex!(table::Table, value, keyword::Keyword)
+    isopen(table) || table_closed_error()
     if keyword_exists(table, keyword)
         T, shape = keyword_info(table, keyword)
         if T != typeof(value)
@@ -162,6 +171,7 @@ function Base.setindex!(table::Table, value, keyword::Keyword)
 end
 
 function Base.getindex(table::Table, column::String, keyword::Keyword)
+    isopen(table) || table_closed_error()
     if !column_exists(table, column)
         column_missing_error(column)
     end
@@ -173,6 +183,7 @@ function Base.getindex(table::Table, column::String, keyword::Keyword)
 end
 
 function Base.setindex!(table::Table, value, column::String, keyword::Keyword)
+    isopen(table) || table_closed_error()
     if !column_exists(table, column)
         column_missing_error(column)
     end
