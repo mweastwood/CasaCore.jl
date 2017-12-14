@@ -22,6 +22,7 @@ end
 
 function Base.setindex!(table::Table, value, column::String, row::Integer)
     isopen(table) || table_closed_error()
+    iswritable(table) || table_readonly_error()
     check_column_row(table, column, row)
     T, shape = column_info(table, column)
     check_cell(value, column, T, shape)

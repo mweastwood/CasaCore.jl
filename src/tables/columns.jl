@@ -75,6 +75,7 @@ for T in typelist
 
     @eval function add_column!(table::Table, column::String, ::Type{$T}, shape::Tuple{Int})
         isopen(table) || table_closed_error()
+        iswritable(table) || table_readonly_error()
         Nrows = num_rows(table)
         if shape[1] != Nrows
             column_length_mismatch_error(shape[1], Nrows)
@@ -86,6 +87,7 @@ for T in typelist
 
     @eval function add_column!(table::Table, column::String, ::Type{$T}, shape::Tuple)
         isopen(table) || table_closed_error()
+        iswritable(table) || table_readonly_error()
         Nrows = num_rows(table)
         if shape[end] != Nrows
             column_length_mismatch_error(shape[end], Nrows)
@@ -128,6 +130,7 @@ julia> Tables.delete(table)
 """
 function remove_column!(table::Table, column::String)
     isopen(table) || table_closed_error()
+    iswritable(table) || table_readonly_error()
     ccall(("remove_column", libcasacorewrapper), Void,
           (Ptr{CasaCoreTable}, Ptr{Cchar}), table, column)
 end
@@ -156,6 +159,7 @@ end
 
 function Base.setindex!(table::Table, value, column::String)
     isopen(table) || table_closed_error()
+    iswritable(table) || table_readonly_error()
     if !column_exists(table, column)
         add_column!(table, column, eltype(value), size(value))
     end

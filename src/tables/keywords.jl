@@ -114,6 +114,7 @@ julia> Tables.delete(table)
 """
 function remove_keyword!(table::Table, keyword::Keyword)
     isopen(table) || table_closed_error()
+    iswritable(table) || table_readonly_error()
     ccall((:remove_keyword, libcasacorewrapper), Void,
           (Ptr{CasaCoreTable}, Ptr{Cchar}), table, keyword)
     keyword
@@ -121,6 +122,7 @@ end
 
 function remove_keyword!(table::Table, column::String, keyword::Keyword)
     isopen(table) || table_closed_error()
+    iswritable(table) || table_readonly_error()
     ccall((:remove_column_keyword, libcasacorewrapper), Void,
           (Ptr{CasaCoreTable}, Ptr{Cchar}, Ptr{Cchar}), table, column, keyword)
 end
@@ -184,6 +186,7 @@ end
 
 function Base.setindex!(table::Table, value, column::String, keyword::Keyword)
     isopen(table) || table_closed_error()
+    iswritable(table) || table_readonly_error()
     if !column_exists(table, column)
         column_missing_error(column)
     end
