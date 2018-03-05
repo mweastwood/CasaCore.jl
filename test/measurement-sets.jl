@@ -55,5 +55,17 @@
         Tables.delete(ms)
     end
 
+    @testset "reading / writing columns" begin
+        path = tempname()*".ms"
+        ms = MeasurementSets.create(path)
+        Tables.add_rows!(ms, 5)
+        uvw = randn(3, 5)
+        ms["UVW"] = uvw
+        @test ms["UVW"] == uvw
+        @test_throws CasaCoreTablesError ms["UVW"] = randn(3, 4)
+        @test_throws CasaCoreTablesError ms["UVW"] = randn(2, 5)
+        Tables.delete(ms)
+    end
+
 end
 

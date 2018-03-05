@@ -148,6 +148,13 @@ function column_info(table::Table, column::String)
     T, tuple(shape...)
 end
 
+"Check to see if the column shape is fixed."
+function column_is_fixed_shape(table::Table, column::String)
+    ccall((:column_is_fixed_shape, libcasacorewrapper), Bool,
+          (Ptr{CasaCoreTable}, Ptr{Cchar}),
+          table, column)
+end
+
 function Base.getindex(table::Table, column::String)
     isopen(table) || table_closed_error()
     if !column_exists(table, column)
@@ -168,7 +175,14 @@ function Base.setindex!(table::Table, value, column::String)
         column_element_type_error(column)
     end
     if shape != size(value)
-        column_shape_error(column)
+        if column_is_fixed_shape(table, column)
+            column_shape_error(column)
+        else
+            # cell size can change, but the number of rows should still match
+            if shape[end] != size(value)[end]
+                column_shape_error(column)
+            end
+        end
     end
     write_column!(table, value, column)
 end
