@@ -13,17 +13,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-using CasaCore.Tables
-using CasaCore.Measures
-using CasaCore.MeasurementSets
-using Unitful
-using Base.Test
+"The `MeasurementSets` module is used to interact with CasaCore measurement sets."
+module MeasurementSets
 
-srand(123)
+using ..Tables
 
-@testset "CasaCore Tests" begin
-    include("tables.jl")
-    include("measures.jl")
-    include("measurement-sets.jl")
+const libcasacorewrapper = normpath(joinpath(@__DIR__, "..", "deps", "src",
+                                             "libcasacorewrapper.so"))
+
+function __init__()
+    isfile(libcasacorewrapper) || error("Run Pkg.build(\"CasaCore\")")
+end
+
+include("measurement-sets/measurement-sets.jl")
+
 end
 

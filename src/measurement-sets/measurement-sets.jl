@@ -13,17 +13,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-using CasaCore.Tables
-using CasaCore.Measures
-using CasaCore.MeasurementSets
-using Unitful
-using Base.Test
-
-srand(123)
-
-@testset "CasaCore Tests" begin
-    include("tables.jl")
-    include("measures.jl")
-    include("measurement-sets.jl")
+function create(path)
+    path = Tables.table_fix_path(path)
+    if isfile(path) || isdir(path)
+        Tables.table_exists_error()
+    end
+    ptr = ccall((:new_measurement_set_create, libcasacorewrapper), Ptr{Tables.CasaCoreTable},
+                (Ptr{Cchar},), path)
+    Table(path, Tables.readwrite, ptr)
 end
 

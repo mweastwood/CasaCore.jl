@@ -19,6 +19,7 @@ module CasaCore
 
 include("Tables.jl")
 include("Measures.jl")
+include("MeasurementSets.jl")
 
 end
 
