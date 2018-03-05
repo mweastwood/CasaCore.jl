@@ -125,29 +125,59 @@ extern "C" {
 
     // get/put columns
 
+    bool column_is_fixed_shape(Table* t, char* name) {
+        ROTableColumn col(*t, name);
+        return (col.columnDesc().options() & ColumnDesc::FixedShape) == ColumnDesc::FixedShape;
+    }
+
+    bool column_can_change_shape(Table* t, char* name) {
+        // if a column is not fixed shape, it still might not be able to change shape :(
+        ROTableColumn col(*t, name);
+        return col.canChangeShape();
+    }
+
     int* column_info(Table* t, char* name, int* element_type, int* dimension) {
         ROTableColumn col(*t, name);
-        // compute the element type
         *element_type = col.columnDesc().dataType();
         if (col.columnDesc().isScalar()) {
-            // compute the number of dimensions
             *dimension = 1;
-            // compute the size of each dimension
             int* shape = new int[1];
             shape[0] = t->nrow();
             return shape;
         }
         else {
-            // compute the number of dimensions
-            *dimension = col.ndim(0) + 1;
-            // compute the size of each dimension
-            int* shape = new int[*dimension];
-            auto colshape0 = col.shape(0);
-            for (uint i = 0; i < colshape0.size(); ++i) {
-                shape[i] = colshape0[i];
+            if (column_is_fixed_shape(t, name)) {
+                // for fixed shape columns we can use col.shapeColumn() to get the shape
+                auto colshape = col.shapeColumn();
+                *dimension = colshape.size() + 1;
+                int* shape = new int[*dimension];
+                for (uint i = 0; i < colshape.size(); ++i) {
+                    shape[i] = colshape[i];
+                }
+                shape[*dimension - 1] = t->nrow();
+                return shape;
             }
-            shape[col.ndim(0)] = t->nrow();
-            return shape;
+            else {
+                // if the column doesn't have a fixed shape, we will rely on the shape of the array
+                // in the first row to get the shape of the entire column, but we need to be sure
+                // that the first row actually has an array in it (ie. it's not left undefined).
+                if (col.isDefined(0)) {
+                    *dimension = col.ndim(0) + 1;
+                    int* shape = new int[*dimension];
+                    auto colshape0 = col.shape(0);
+                    for (uint i = 0; i < colshape0.size(); ++i) {
+                        shape[i] = colshape0[i];
+                    }
+                    shape[*dimension - 1] = t->nrow();
+                    return shape;
+                }
+                else {
+                    *dimension = 1;
+                    int* shape = new int[1];
+                    shape[0] = t->nrow();
+                    return shape;
+                }
+            }
         }
     }
 
