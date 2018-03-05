@@ -1,5 +1,12 @@
 # News
 
+## v0.2.2
+
+*2018-03-05*
+
+* Adds an undocumented (for now) `MeasurementSets` module for creating CasaCore measurement sets
+* Fix some errors in the way column shapes are computed
+
 ## v0.2.1
 
 *2017-12-15*
